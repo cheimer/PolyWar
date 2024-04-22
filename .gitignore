@@ -1,0 +1,14 @@
+/.vs
+/Intermediate
+/Saved
+/Plugins
+*.sln
+*_BuiltData.uasset
+/Binaries
+/Pack
+/Temp
+
+/Content/ExternalContent
+/Content/ExternalContents
+/Content/Developers
+/Content/Collections
