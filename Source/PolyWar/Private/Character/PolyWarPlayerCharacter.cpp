@@ -7,13 +7,40 @@
 #include "InputMappingContext.h"
 #include "InputActionValue.h"
 #include "EnhancedInputSubsystems.h"
+#include "Camera/CameraComponent.h"
+#include "Components/CapsuleComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "GameFramework/SpringArmComponent.h"
+
+APolyWarPlayerCharacter::APolyWarPlayerCharacter()
+{
+	SpringArm = CreateDefaultSubobject<USpringArmComponent>("SpringArm");
+	SpringArm->SetupAttachment(GetMesh());
+	SpringArm->TargetArmLength = 400.0f;
+	SpringArm->bUsePawnControlRotation = true;
+	SpringArm->SocketOffset.Y = 75.0f;
+	SpringArm->SocketOffset.Z = 75.0f;
+
+	Camera = CreateDefaultSubobject<UCameraComponent>("Camera");
+	Camera->SetupAttachment(SpringArm);
+	Camera->bUsePawnControlRotation = false;
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
+
+	bUseControllerRotationYaw = false;
+	GetCharacterMovement()->bOrientRotationToMovement = true;
+
+	GetCharacterMovement()->GravityScale = 3.0f;
+	GetCharacterMovement()->JumpZVelocity = 800.0f;
+	GetCharacterMovement()->BrakingFriction = 20.0f;
+	GetCharacterMovement()->AirControl = 0.5f;
+
+}
 
 void APolyWarPlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
 	// Client Input Setting
-	/*
 	if(!HasAuthority())
 	{
 		if(const APlayerController* PlayerController = Cast<APlayerController>(GetController()))
@@ -25,7 +52,7 @@ void APolyWarPlayerCharacter::BeginPlay()
 			}
 		}
 	}
-	*/
+
 }
 
 void APolyWarPlayerCharacter::PossessedBy(AController* NewController)
@@ -69,6 +96,10 @@ void APolyWarPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerI
 		{
 			EnhancedInputComponent->BindAction(InputJump, ETriggerEvent::Triggered, this, &ThisClass::Jump);
 		}
+		if(InputRun)
+		{
+			EnhancedInputComponent->BindAction(InputRun, ETriggerEvent::Triggered, this, &ThisClass::Run);
+		}
 	}
 }
 
@@ -107,4 +138,19 @@ void APolyWarPlayerCharacter::Jump()
 void APolyWarPlayerCharacter::LeftMousePressedAndReleased(const FInputActionValue& Value)
 {
 
+}
+
+void APolyWarPlayerCharacter::Run(const FInputActionValue& Value)
+{
+	bool IsTriggering = FMath::IsNearlyEqual(Value.Get<float>(), 1.0f);
+	if(IsTriggering)
+	{
+		GetCharacterMovement()->MaxWalkSpeed = RunSpeed;
+		bIsRunning = true;
+	}
+	else
+	{
+		GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+		bIsRunning = false;
+	}
 }

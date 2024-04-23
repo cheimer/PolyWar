@@ -12,18 +12,36 @@ class POLYWAR_API APolyWarBaseCharacter : public ACharacter
 	GENERATED_BODY()
 
 public:
-	// Sets default values for this character's properties
 	APolyWarBaseCharacter();
-
+	virtual void Tick(float DeltaTime) override;
 protected:
-	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+	//~ Begin Move
+	UPROPERTY(EditAnywhere, Category = "Settable")
+	float WalkSpeed = 600.0f;
 
-	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	UPROPERTY(EditAnywhere, Category = "Settable")
+	float RunSpeed = 900.0f;
+
+	bool bIsRunning = false;
+	//~ End Move
+
+	//~ Begin Weapon
+	UPROPERTY(EditAnywhere, Category = "Settable")
+	TSubclassOf<class AWeapon> EquippedWeaponClass;
+
+	TObjectPtr<AWeapon> EquippedWeapon;
+
+	void Attack();
+
+	bool bIsAttacking = false;
+	//~End Weapon
+
+private:
+	void SpawnWeapon();
+
+public:
+	bool GetIsRunning() const {return bIsRunning;}
 
 };

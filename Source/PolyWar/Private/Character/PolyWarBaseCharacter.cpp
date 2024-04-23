@@ -3,32 +3,54 @@
 
 #include "Character/PolyWarBaseCharacter.h"
 
-// Sets default values
+#include "Engine/SkeletalMeshSocket.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "Weapon/Weapon.h"
+
 APolyWarBaseCharacter::APolyWarBaseCharacter()
 {
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+	NetUpdateFrequency = 66.0f;
+	MinNetUpdateFrequency = 33.0f;
+
+	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+	GetCharacterMovement()->RotationRate = FRotator(0.0f, 360.0f, 0.0f);
 
 }
 
-// Called when the game starts or when spawned
 void APolyWarBaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	SpawnWeapon();
+
 }
 
-// Called every frame
 void APolyWarBaseCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
 }
 
-// Called to bind functionality to input
-void APolyWarBaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+void APolyWarBaseCharacter::SpawnWeapon()
 {
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
+	if(!EquippedWeaponClass || !GetMesh() || !GetWorld()) return;
+
+	EquippedWeapon = GetWorld()->SpawnActor<AWeapon>(EquippedWeaponClass);
+	EquippedWeapon->SetOwner(this);
+
+	FName SocketName("RightHandSocket");
+
+	const USkeletalMeshSocket* HandSocket = GetMesh()->GetSocketByName(SocketName);
+	if(HandSocket)
+	{
+		HandSocket->AttachActor(EquippedWeapon, GetMesh());
+	}
 
 }
 
+void APolyWarBaseCharacter::Attack()
+{
+
+}

@@ -16,11 +16,18 @@ class POLYWAR_API APolyWarPlayerCharacter : public APolyWarBaseCharacter
 	GENERATED_BODY()
 	
 public:
+	APolyWarPlayerCharacter();
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void PossessedBy(AController* NewController) override;
 
 protected:
 	virtual void BeginPlay() override;
+
+	UPROPERTY(VisibleAnywhere, Category = "Camera")
+	class USpringArmComponent* SpringArm;
+
+	UPROPERTY(VisibleAnywhere, Category = "Camera")
+	class UCameraComponent* Camera;
 
 	//~ Begin EnhancedInput
 	UPROPERTY(EditDefaultsOnly, Category = "EnhancedInput")
@@ -38,10 +45,14 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "EnhancedInput")
 	UInputAction* InputLeftMouse;
 
+	UPROPERTY(EditDefaultsOnly, Category = "EnhancedInput")
+	UInputAction* InputRun;
+
 	void MoveForwardRight(const FInputActionValue& Value);
 	void LookUpRight(const FInputActionValue& Value);
 	virtual void Jump() override;
 	void LeftMousePressedAndReleased(const FInputActionValue& Value);
+	void Run(const FInputActionValue& Value);
 	//~ End EnhancedInput
 
 };
