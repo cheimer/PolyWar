@@ -13,9 +13,22 @@ class POLYWAR_API APolyWarBaseCharacter : public ACharacter
 
 public:
 	APolyWarBaseCharacter();
+	virtual void PostInitializeComponents() override;
 	virtual void Tick(float DeltaTime) override;
+
+	void PlayAttackAnimMontage(bool RandPlay = true, int32 Index = 0);
+
 protected:
 	virtual void BeginPlay() override;
+
+	UFUNCTION()
+	void ReceiveDamage(AActor* DamagedActor, float Damage, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
+
+	UPROPERTY(VisibleAnywhere, Category = "Component")
+	class UCombatComponent* CombatComponent;
+
+	UPROPERTY(VisibleAnywhere, Category = "Component")
+	class UHealthComponent* HealthComponent;
 
 	//~ Begin Move
 	UPROPERTY(EditAnywhere, Category = "Settable")
@@ -35,7 +48,14 @@ protected:
 
 	void Attack();
 
-	bool bIsAttacking = false;
+	UPROPERTY(EditAnywhere, Category = "Settable")
+	TArray<UAnimMontage*> AttackAnimMontages;
+
+	UFUNCTION(BlueprintCallable)
+	void WeaponAttackStart();
+
+	UFUNCTION(BlueprintCallable)
+	void WeaponAttackEnd();
 	//~End Weapon
 
 private:
@@ -43,5 +63,7 @@ private:
 
 public:
 	bool GetIsRunning() const {return bIsRunning;}
+	bool GetIsAttacking() const;
+	int32 GetAttackAnimMontagesLen() const {return AttackAnimMontages.Num();}
 
 };

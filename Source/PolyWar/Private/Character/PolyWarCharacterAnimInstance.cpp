@@ -24,5 +24,6 @@ void UPolyWarCharacterAnimInstance::NativeUpdateAnimation(float DeltaTime)
 	Speed = Velocity.Size();
 
 	bIsRunning = PolyWarCharacter->GetIsRunning();
+	bIsAttacking = PolyWarCharacter->GetIsAttacking();
 
 }

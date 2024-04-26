@@ -21,7 +21,7 @@ class POLYWAR_API AWeapon : public AActor
 public:
 	AWeapon();
 
-	void Attack();
+	void SetCollisionEnabled(bool IsEnabled);
 
 protected:
 	virtual void BeginPlay() override;
@@ -33,16 +33,23 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Set Should")
 	EWeaponType WeaponType;
 
+	UPROPERTY(EditAnywhere, Category = "Set Should")
+	float WeaponDamage = 10.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Set Should")
+	float AttackDelay = 3.0f;
+
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Component")
 	UStaticMeshComponent* WeaponMesh;
 
 	UPROPERTY(VisibleAnywhere, Category = "Component")
-	class USphereComponent* AttackCollision;
+	class UBoxComponent* AttackCollision;
 
-	bool IsAttacking = false;
+	TArray<TObjectPtr<AActor>> HitActors;
 
 public:
-	void SetIsAttacking(const bool InIsAttacking) {IsAttacking = InIsAttacking;}
+	float GetWeaponDamage() const {return WeaponDamage;}
+	float GetAttackDelay() const {return AttackDelay;}
 
 };

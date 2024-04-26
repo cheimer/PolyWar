@@ -25,6 +25,7 @@ APolyWarPlayerCharacter::APolyWarPlayerCharacter()
 	Camera->SetupAttachment(SpringArm);
 	Camera->bUsePawnControlRotation = false;
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
+	GetMesh()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 
 	bUseControllerRotationYaw = false;
 	GetCharacterMovement()->bOrientRotationToMovement = true;
@@ -137,7 +138,7 @@ void APolyWarPlayerCharacter::Jump()
 
 void APolyWarPlayerCharacter::LeftMousePressedAndReleased(const FInputActionValue& Value)
 {
-
+	Attack();
 }
 
 void APolyWarPlayerCharacter::Run(const FInputActionValue& Value)
