@@ -87,5 +87,7 @@ public:
 	int32 GetAttackAnimMontagesLen() const {return AttackAnimMontages.Num();}
 	int32 GetDamagedAnimMontagesLen() const {return DamagedAnimMontages.Num();}
 	int32 GetDeathAnimMontagesLen() const {return DeathAnimMontages.Num();}
+	float GetCurrentHealth() const;
+	float GetMaxHealth() const;
 
 };

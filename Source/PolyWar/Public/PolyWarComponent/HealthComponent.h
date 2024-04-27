@@ -43,5 +43,7 @@ private:
 
 public:
 	void SetOwnerCharacter(APolyWarBaseCharacter* InOwnerCharacter);
+	float GetMaxHealth() const {return MaxHealth;}
+	float GetCurrentHealth() const {return CurrentHealth;}
 
 };

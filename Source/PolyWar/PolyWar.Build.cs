@@ -16,9 +16,14 @@ public class PolyWar : ModuleRules
 			"InputCore",
 			"EnhancedInput",
 			"UMG",
+
 			"MultiplayerSessions",
 			"OnlineSubsystem",
-			"OnlineSubsystemSteam"
+			"OnlineSubsystemSteam",
+
+			"AIModule",
+			"NavigationSystem",
+			"GameplayTasks"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });

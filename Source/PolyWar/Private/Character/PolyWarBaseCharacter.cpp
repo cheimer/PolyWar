@@ -191,3 +191,17 @@ AWeapon* APolyWarBaseCharacter::GetEquippedWeapon() const
 
 	return EquippedWeapon;
 }
+
+float APolyWarBaseCharacter::GetCurrentHealth() const
+{
+	if(!HealthComponent) return 0.0f;
+
+	return HealthComponent->GetCurrentHealth();
+}
+
+float APolyWarBaseCharacter::GetMaxHealth() const
+{
+	if(!HealthComponent) return 0.0f;
+
+	return HealthComponent->GetMaxHealth();
+}
