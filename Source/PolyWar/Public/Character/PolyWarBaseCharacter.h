@@ -16,13 +16,14 @@ public:
 	virtual void PostInitializeComponents() override;
 	virtual void Tick(float DeltaTime) override;
 
+	void SetPlayerDeath();
+
 	void PlayAttackAnimMontage(bool RandPlay = true, int32 Index = 0);
+	void PlayDamagedAnimMontage(bool RandPlay = true, int32 Index = 0);
+	void PlayDeathAnimMontage(bool RandPlay = true, int32 Index = 0);
 
 protected:
 	virtual void BeginPlay() override;
-
-	UFUNCTION()
-	void ReceiveDamage(AActor* DamagedActor, float Damage, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
 
 	UPROPERTY(VisibleAnywhere, Category = "Component")
 	class UCombatComponent* CombatComponent;
@@ -38,6 +39,7 @@ protected:
 	float RunSpeed = 900.0f;
 
 	bool bIsRunning = false;
+
 	//~ End Move
 
 	//~ Begin Weapon
@@ -56,7 +58,24 @@ protected:
 
 	UFUNCTION(BlueprintCallable)
 	void WeaponAttackEnd();
-	//~End Weapon
+
+	UPROPERTY(EditDefaultsOnly, Category = "Set Should")
+	FName RightHandSocket = "RightHandSocket";
+
+	//~ End Weapon
+
+	//~ Begin Health
+	UFUNCTION()
+	void ReceiveDamage(AActor* DamagedActor, float Damage,
+		const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser);
+
+	UPROPERTY(EditAnywhere, Category = "Settable")
+	TArray<UAnimMontage*> DamagedAnimMontages;
+
+	UPROPERTY(EditAnywhere, Category = "Settable")
+	TArray<UAnimMontage*> DeathAnimMontages;
+
+	//~ End Health
 
 private:
 	void SpawnWeapon();
@@ -64,6 +83,9 @@ private:
 public:
 	bool GetIsRunning() const {return bIsRunning;}
 	bool GetIsAttacking() const;
+	AWeapon* GetEquippedWeapon() const;
 	int32 GetAttackAnimMontagesLen() const {return AttackAnimMontages.Num();}
+	int32 GetDamagedAnimMontagesLen() const {return DamagedAnimMontages.Num();}
+	int32 GetDeathAnimMontagesLen() const {return DeathAnimMontages.Num();}
 
 };

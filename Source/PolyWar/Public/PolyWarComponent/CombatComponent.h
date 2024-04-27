@@ -14,7 +14,7 @@ class POLYWAR_API UCombatComponent : public UActorComponent
 
 public:
 	UCombatComponent();
-	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	void BeginAttack();
 
@@ -36,6 +36,8 @@ private:
 	void Attack(int32 AnimIndex = 0);
 	UFUNCTION(Server, Reliable)
 	void ServerAttack(int32 AnimIndex = 0);
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastAttack(int32 AnimIndex = 0);
 
 	void AttackEnd();
 

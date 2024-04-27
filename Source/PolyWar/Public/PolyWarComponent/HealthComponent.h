@@ -14,8 +14,34 @@ class POLYWAR_API UHealthComponent : public UActorComponent
 
 public:
 	UHealthComponent();
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	UFUNCTION()
+	void ReceiveDamage(float Damage, AController* InstigatedBy, AActor* DamageCauser);
 
 protected:
 	virtual void BeginPlay() override;
+
+private:
+	TObjectPtr<class APolyWarBaseCharacter> OwnerCharacter;
+
+	UPROPERTY(EditAnywhere, Category = "Set Should")
+	float MaxHealth = 100.0f;
+
+	UPROPERTY(ReplicatedUsing = "OnRep_CurrentHealth")
+	float CurrentHealth = MaxHealth;
+
+	UFUNCTION()
+	void OnRep_CurrentHealth();
+
+	void Damaged();
+	void Death();
+	void DeathTimerFinished();
+
+	UFUNCTION()
+	void CharacterRemoved(AActor* DestroyedActor);
+
+public:
+	void SetOwnerCharacter(APolyWarBaseCharacter* InOwnerCharacter);
 
 };

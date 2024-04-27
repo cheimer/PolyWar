@@ -3,9 +3,9 @@
 
 #include "Character/PolyWarBaseCharacter.h"
 
+#include "Components/CapsuleComponent.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "Kismet/GameplayStatics.h"
 #include "PolyWarComponent/CombatComponent.h"
 #include "PolyWarComponent/HealthComponent.h"
 #include "Weapon/Weapon.h"
@@ -35,6 +35,10 @@ void APolyWarBaseCharacter::PostInitializeComponents()
 	{
 		CombatComponent->SetOwnerCharacter(this);
 	}
+	if(HealthComponent)
+	{
+		HealthComponent->SetOwnerCharacter(this);
+	}
 }
 
 void APolyWarBaseCharacter::BeginPlay()
@@ -57,9 +61,19 @@ void APolyWarBaseCharacter::Tick(float DeltaTime)
 }
 
 void APolyWarBaseCharacter::ReceiveDamage(AActor* DamagedActor, float Damage,
-	const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser)
+                                          const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser)
 {
-	UE_LOG(LogTemp, Warning, TEXT("%s to %s %f damage"), *DamageCauser->GetName(), *DamagedActor->GetName(), Damage);
+	if(!HealthComponent) return;
+
+	HealthComponent->ReceiveDamage(Damage, InstigatedBy, DamageCauser);
+}
+
+void APolyWarBaseCharacter::SetPlayerDeath()
+{
+	GetCharacterMovement()->DisableMovement();
+	GetCharacterMovement()->StopMovementImmediately();
+	GetMesh()->SetCollisionResponseToAllChannels(ECR_Ignore);
+	GetCapsuleComponent()->SetCollisionResponseToAllChannels(ECR_Ignore);
 }
 
 void APolyWarBaseCharacter::SpawnWeapon()
@@ -69,9 +83,7 @@ void APolyWarBaseCharacter::SpawnWeapon()
 	EquippedWeapon = GetWorld()->SpawnActor<AWeapon>(EquippedWeaponClass);
 	EquippedWeapon->SetOwner(this);
 
-	FName SocketName("RightHandSocket");
-
-	const USkeletalMeshSocket* HandSocket = GetMesh()->GetSocketByName(SocketName);
+	const USkeletalMeshSocket* HandSocket = GetMesh()->GetSocketByName(RightHandSocket);
 	if(HandSocket)
 	{
 		HandSocket->AttachActor(EquippedWeapon, GetMesh());
@@ -109,6 +121,43 @@ void APolyWarBaseCharacter::PlayAttackAnimMontage(bool RandPlay, int32 Index)
 	}
 }
 
+void APolyWarBaseCharacter::PlayDamagedAnimMontage(bool RandPlay, int32 Index)
+{
+	if(DamagedAnimMontages.Num() <= 0) return;
+
+	if(RandPlay)
+	{
+		const int32 RandNum = FMath::RandRange(0, DamagedAnimMontages.Num() - 1);
+
+		if(!DamagedAnimMontages[RandNum]) return;
+		PlayAnimMontage(DamagedAnimMontages[RandNum]);
+	}
+	else
+	{
+		if(DamagedAnimMontages.Num() <= Index || !DamagedAnimMontages[Index]) return;
+		PlayAnimMontage(DamagedAnimMontages[Index]);
+	}
+}
+
+void APolyWarBaseCharacter::PlayDeathAnimMontage(bool RandPlay, int32 Index)
+{
+	if(DeathAnimMontages.Num() <= 0) return;
+
+	if(RandPlay)
+	{
+		const int32 RandNum = FMath::RandRange(0, DeathAnimMontages.Num() - 1);
+
+		if(!DeathAnimMontages[RandNum]) return;
+		PlayAnimMontage(DeathAnimMontages[RandNum]);
+	}
+	else
+	{
+		if(DeathAnimMontages.Num() <= Index || !DeathAnimMontages[Index]) return;
+		PlayAnimMontage(DeathAnimMontages[Index]);
+	}
+
+}
+
 void APolyWarBaseCharacter::WeaponAttackStart()
 {
 	if(CombatComponent)
@@ -134,4 +183,11 @@ bool APolyWarBaseCharacter::GetIsAttacking() const
 	if(!CombatComponent) return false;
 
 	return CombatComponent->GetIsAttacking();
+}
+
+AWeapon* APolyWarBaseCharacter::GetEquippedWeapon() const
+{
+	if(!EquippedWeapon) return nullptr;
+
+	return EquippedWeapon;
 }

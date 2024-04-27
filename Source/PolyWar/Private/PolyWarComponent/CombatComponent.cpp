@@ -35,6 +35,7 @@ void UCombatComponent::BeginAttack()
 
 	SetCurrentAnimIndexRand();
 	Attack(CurrentAnimIndex);
+
 	if(!OwnerCharacter->HasAuthority())
 	{
 		ServerAttack(CurrentAnimIndex);
@@ -61,6 +62,11 @@ void UCombatComponent::Attack(int32 AnimIndex)
 }
 
 void UCombatComponent::ServerAttack_Implementation(int32 AnimIndex)
+{
+	MulticastAttack(AnimIndex);
+}
+
+void UCombatComponent::MulticastAttack_Implementation(int32 AnimIndex)
 {
 	if(!OwnerCharacter || !EquippedWeapon) return;
 	OwnerCharacter->PlayAttackAnimMontage(false, AnimIndex);
