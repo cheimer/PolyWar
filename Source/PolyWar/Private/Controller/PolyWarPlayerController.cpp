@@ -29,41 +29,28 @@ void APolyWarPlayerController::BeginPlay()
 		Subsystem->AddMappingContext(ControllerInputMapping, 0);
 	}
 
+	PolyWarHUD = PolyWarHUD == nullptr ? Cast<APolyWarHUD>(GetHUD()) : PolyWarHUD;
+	if(PolyWarHUD)
+	{
+		PolyWarHUD->AddCharacterWidget();
+	}
 }
 
 void APolyWarPlayerController::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
-	PollInit();
-}
-
-void APolyWarPlayerController::PollInit()
-{
-	if(!bSetHUD)
-	{
-		PolyWarHUD = PolyWarHUD == nullptr ? Cast<APolyWarHUD>(GetHUD()) : PolyWarHUD;
-		if(PolyWarHUD)
-		{
-			bSetHUD = true;
-			PolyWarHUD->AddCharacterWidget();
-		}
-	}
-
-	if(bSetHUD && !bSetOwner)
-	{
-		APolyWarBaseCharacter* PolyCharacter = Cast<APolyWarBaseCharacter>(GetOwner());
-		if(PolyCharacter)
-		{
-			bSetOwner = true;
-			SetHUDHealth(PolyCharacter->GetCurrentHealth(), PolyCharacter->GetMaxHealth());
-		}
-	}
 }
 
 void APolyWarPlayerController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
+
+	PolyWarHUD = PolyWarHUD == nullptr ? Cast<APolyWarHUD>(GetHUD()) : PolyWarHUD;
+	if(PolyWarHUD)
+	{
+		PolyWarHUD->AddCharacterWidget();
+	}
 
 }
 
@@ -75,7 +62,7 @@ void APolyWarPlayerController::SetupInputComponent()
 
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(InputComponent))
 	{
-		;
+
 	}
 }
 

@@ -52,6 +52,10 @@ void APolyWarBaseCharacter::BeginPlay()
 		OnTakeAnyDamage.AddDynamic(this, &ThisClass::ReceiveDamage);
 	}
 
+	if(HealthComponent)
+	{
+		HealthComponent->UpdateHUDHealth();
+	}
 }
 
 void APolyWarBaseCharacter::Tick(float DeltaTime)

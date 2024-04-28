@@ -24,7 +24,6 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	virtual void SetupInputComponent() override;
-	void PollInit();
 
 	//~ Begin Enhanced Input
 	UPROPERTY(EditDefaultsOnly, Category = "EnhancedInput")
@@ -37,8 +36,6 @@ protected:
 
 private:
 	TObjectPtr<class APolyWarHUD> PolyWarHUD;
-
-	bool bSetHUD = false;
-	bool bSetOwner = false;
+	TObjectPtr<class UCharacterWidget> CharacterWidget;
 
 };

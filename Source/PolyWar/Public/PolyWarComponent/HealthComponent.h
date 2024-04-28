@@ -19,11 +19,14 @@ public:
 	UFUNCTION()
 	void ReceiveDamage(float Damage, AController* InstigatedBy, AActor* DamageCauser);
 
+	void UpdateHUDHealth();
+
 protected:
 	virtual void BeginPlay() override;
 
 private:
 	TObjectPtr<class APolyWarBaseCharacter> OwnerCharacter;
+	TObjectPtr<class APolyWarPlayerController> OwnerPlayerController;
 
 	UPROPERTY(EditAnywhere, Category = "Set Should")
 	float MaxHealth = 100.0f;

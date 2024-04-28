@@ -4,6 +4,7 @@
 #include "PolyWarComponent/HealthComponent.h"
 
 #include "Character/PolyWarBaseCharacter.h"
+#include "Controller/PolyWarPlayerController.h"
 #include "Net/UnrealNetwork.h"
 #include "Weapon/Weapon.h"
 
@@ -32,6 +33,7 @@ void UHealthComponent::ReceiveDamage(float Damage, AController* InstigatedBy, AA
 
 	CurrentHealth = FMath::Clamp(CurrentHealth - Damage, 0.0f, MaxHealth);
 
+	UpdateHUDHealth();
 	if(CurrentHealth <= 0.0f)
 	{
 		Death();
@@ -43,11 +45,11 @@ void UHealthComponent::ReceiveDamage(float Damage, AController* InstigatedBy, AA
 
 }
 
-
 void UHealthComponent::OnRep_CurrentHealth()
 {
 	if(!OwnerCharacter) return;
 
+	UpdateHUDHealth();
 	if(CurrentHealth <= 0.0f)
 	{
 		Death();
@@ -55,6 +57,15 @@ void UHealthComponent::OnRep_CurrentHealth()
 	else
 	{
 		Damaged();
+	}
+}
+
+void UHealthComponent::UpdateHUDHealth()
+{
+	OwnerPlayerController = OwnerPlayerController == nullptr ? Cast<APolyWarPlayerController>(OwnerCharacter->GetController()) : OwnerPlayerController;
+	if(OwnerPlayerController)
+	{
+		OwnerPlayerController->SetHUDHealth(CurrentHealth, MaxHealth);
 	}
 }
 
