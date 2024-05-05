@@ -19,6 +19,7 @@ void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 
 	DOREPLIFETIME(UCombatComponent, bIsAttacking);
 	DOREPLIFETIME(UCombatComponent, CurrentAnimIndex)
+	DOREPLIFETIME(UCombatComponent, EquippedWeapon)
 }
 
 void UCombatComponent::BeginPlay()

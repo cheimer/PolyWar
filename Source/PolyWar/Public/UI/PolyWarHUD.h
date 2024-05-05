@@ -22,6 +22,19 @@ public:
 	TObjectPtr<class UCharacterWidget> CharacterWidget;
 	void AddCharacterWidget();
 
+	UPROPERTY(EditAnywhere, Category = "Set Should")
+	TSubclassOf<class UMapWidget> MapWidgetClass;
+	TObjectPtr<class UMapWidget> MapWidget;
+	void AddMapWidget();
+
+	//~ TODO: MapMoveError Temp Solve
+	UPROPERTY(EditAnywhere, Category = "Set Should")
+	UMaterial* MapMaterial1;
+	UPROPERTY(EditAnywhere, Category = "Set Should")
+	UMaterial* MapMaterial2;
+	//~ TODO END
+
 private:
 	TObjectPtr<class APlayerController> OwnerPlayerController;
+
 };

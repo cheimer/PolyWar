@@ -20,6 +20,7 @@ public:
 	virtual void Tick(float DeltaSeconds) override;
 
 	void SetHUDHealth(float CurrentHealth, float MaxHealth);
+	void MapToggle();
 
 protected:
 	virtual void BeginPlay() override;
@@ -31,11 +32,13 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "EnhancedInput")
 	class UInputAction* QuitAction;
-
 	//~ End Enhanced Input
 
 private:
+	TObjectPtr<class APolyWarPlayerCharacter> PolyWarPlayerCharacter;
 	TObjectPtr<class APolyWarHUD> PolyWarHUD;
 	TObjectPtr<class UCharacterWidget> CharacterWidget;
+
+	void CreateWidgets();
 
 };

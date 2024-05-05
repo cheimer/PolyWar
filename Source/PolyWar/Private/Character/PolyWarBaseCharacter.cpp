@@ -6,6 +6,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Net/UnrealNetwork.h"
 #include "PolyWarComponent/CombatComponent.h"
 #include "PolyWarComponent/HealthComponent.h"
 #include "Weapon/Weapon.h"
@@ -39,6 +40,13 @@ void APolyWarBaseCharacter::PostInitializeComponents()
 	{
 		HealthComponent->SetOwnerCharacter(this);
 	}
+}
+
+void APolyWarBaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(APolyWarBaseCharacter, bIsRunning);
 }
 
 void APolyWarBaseCharacter::BeginPlay()
@@ -82,27 +90,27 @@ void APolyWarBaseCharacter::SetPlayerDeath()
 
 void APolyWarBaseCharacter::SpawnWeapon()
 {
-	if(!EquippedWeaponClass || !GetMesh() || !GetWorld()) return;
+	if(!EquippedWeaponClass || !GetMesh() || !GetWorld() || !HasAuthority()) return;
 
-	EquippedWeapon = GetWorld()->SpawnActor<AWeapon>(EquippedWeaponClass);
-	EquippedWeapon->SetOwner(this);
+	AWeapon* Weapon = GetWorld()->SpawnActor<AWeapon>(EquippedWeaponClass);
+	Weapon->SetOwner(this);
 
 	const USkeletalMeshSocket* HandSocket = GetMesh()->GetSocketByName(RightHandSocket);
 	if(HandSocket)
 	{
-		HandSocket->AttachActor(EquippedWeapon, GetMesh());
+		HandSocket->AttachActor(Weapon, GetMesh());
 	}
-
-	if(CombatComponent && EquippedWeapon)
+	if(CombatComponent && Weapon)
 	{
-		CombatComponent->SetEquippedWeapon(EquippedWeapon);
+		CombatComponent->SetEquippedWeapon(Weapon);
 	}
 
 }
 
 void APolyWarBaseCharacter::Attack()
 {
-	if(!CombatComponent || !EquippedWeapon) return;
+	if(!CombatComponent || !CombatComponent->GetEquippedWeapon()) return;
+	if(bIsOpenMap) return;
 
 	CombatComponent->BeginAttack();
 }
@@ -191,9 +199,9 @@ bool APolyWarBaseCharacter::GetIsAttacking() const
 
 AWeapon* APolyWarBaseCharacter::GetEquippedWeapon() const
 {
-	if(!EquippedWeapon) return nullptr;
+	if(!CombatComponent || !CombatComponent->GetEquippedWeapon()) return nullptr;
 
-	return EquippedWeapon;
+	return CombatComponent->GetEquippedWeapon();
 }
 
 float APolyWarBaseCharacter::GetCurrentHealth() const

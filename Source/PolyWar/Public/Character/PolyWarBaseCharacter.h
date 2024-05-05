@@ -14,6 +14,7 @@ class POLYWAR_API APolyWarBaseCharacter : public ACharacter
 public:
 	APolyWarBaseCharacter();
 	virtual void PostInitializeComponents() override;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void Tick(float DeltaTime) override;
 
 	void SetPlayerDeath();
@@ -25,11 +26,15 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+	bool bIsOpenMap = false;
+
+	//~ Begin Components
 	UPROPERTY(VisibleAnywhere, Category = "Component")
 	class UCombatComponent* CombatComponent;
 
 	UPROPERTY(VisibleAnywhere, Category = "Component")
 	class UHealthComponent* HealthComponent;
+	//~ End Components
 
 	//~ Begin Move
 	UPROPERTY(EditAnywhere, Category = "Settable")
@@ -38,6 +43,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Settable")
 	float RunSpeed = 900.0f;
 
+	UPROPERTY(Replicated)
 	bool bIsRunning = false;
 
 	//~ End Move
@@ -45,8 +51,6 @@ protected:
 	//~ Begin Weapon
 	UPROPERTY(EditAnywhere, Category = "Settable")
 	TSubclassOf<class AWeapon> EquippedWeaponClass;
-
-	TObjectPtr<AWeapon> EquippedWeapon;
 
 	void Attack();
 
@@ -61,7 +65,6 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Set Should")
 	FName RightHandSocket = "RightHandSocket";
-
 	//~ End Weapon
 
 	//~ Begin Health
@@ -74,7 +77,6 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Settable")
 	TArray<UAnimMontage*> DeathAnimMontages;
-
 	//~ End Health
 
 private:
@@ -89,5 +91,7 @@ public:
 	int32 GetDeathAnimMontagesLen() const {return DeathAnimMontages.Num();}
 	float GetCurrentHealth() const;
 	float GetMaxHealth() const;
+	bool GetIsOpenMap() const {return bIsOpenMap;};;
+	void SetIsOpenMap(bool SetIsOpenMap) {bIsOpenMap = SetIsOpenMap;};
 
 };

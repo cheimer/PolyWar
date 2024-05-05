@@ -26,6 +26,7 @@ protected:
 
 private:
 	TObjectPtr<class APolyWarBaseCharacter> OwnerCharacter;
+	UPROPERTY(Replicated)
 	TObjectPtr<class AWeapon> EquippedWeapon;
 
 	UPROPERTY(ReplicatedUsing = "OnRep_IsAttacking")
@@ -48,6 +49,7 @@ private:
 public:
 	void SetOwnerCharacter(APolyWarBaseCharacter* InOwnerCharacter);
 	void SetEquippedWeapon(AWeapon* InEquippedWeapon);
+	AWeapon* GetEquippedWeapon() const {return EquippedWeapon;}
 	bool GetIsAttacking() const {return bIsAttacking;}
 
 };
