@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 UENUM(BlueprintType)
-enum class ETeam : uint8
+enum class ETeamType : uint8
 {
 	ET_RedTeam,
 	ET_BlueTeam,

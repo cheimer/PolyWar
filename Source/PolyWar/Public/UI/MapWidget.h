@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "PolyWarTypes/OrderType.h"
+#include "PolyWarTypes/UnitNum.h"
 #include "MapWidget.generated.h"
 
 class UButton;
@@ -26,60 +28,60 @@ public:
 	UImage* MapImage;
 
 	UPROPERTY(meta = (BindWidget))
-	UButton* Unit1Button;
+	class UMapButton* Unit1Button;
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* Unit1Text;
 	UPROPERTY(meta = (BindWidget))
-	UButton* Unit2Button;
+	UMapButton* Unit2Button;
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* Unit2Text;
 	UPROPERTY(meta = (BindWidget))
-	UButton* Unit3Button;
+	UMapButton* Unit3Button;
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* Unit3Text;
 	UPROPERTY(meta = (BindWidget))
-	UButton* Unit4Button;
+	UMapButton* Unit4Button;
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* Unit4Text;
 	UPROPERTY(meta = (BindWidget))
-	UButton* Unit5Button;
+	UMapButton* Unit5Button;
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* Unit5Text;
 	UPROPERTY(meta = (BindWidget))
-	UButton* Unit6Button;
+	UMapButton* Unit6Button;
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* Unit6Text;
 	UPROPERTY(meta = (BindWidget))
-	UButton* Unit7Button;
+	UMapButton* Unit7Button;
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* Unit7Text;
 	UPROPERTY(meta = (BindWidget))
-	UButton* Unit8Button;
+	UMapButton* Unit8Button;
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* Unit8Text;
 
 	UPROPERTY(meta = (BindWidget))
-	UButton* MoveButton;
+	UMapButton* MoveButton;
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* MoveText;
 	UPROPERTY(meta = (BindWidget))
-	UButton* AttackButton;
+	UMapButton* AttackButton;
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* AttackText;
 	UPROPERTY(meta = (BindWidget))
-	UButton* HoldButton;
+	UMapButton* HoldButton;
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* HoldText;
 	UPROPERTY(meta = (BindWidget))
-	UButton* RushButton;
+	UMapButton* RushButton;
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* RushText;
 	UPROPERTY(meta = (BindWidget))
-	UButton* StopButton;
+	UMapButton* StopButton;
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* StopText;
 	UPROPERTY(meta = (BindWidget))
-	UButton* CancelButton;
+	UMapButton* CancelButton;
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* CancelText;
 
@@ -91,5 +93,14 @@ private:
 
 	UFUNCTION()
 	void ExitMap();
+
+	UFUNCTION()
+	void UnitButtonClicked(EUnitNum UnitNum, UTextBlock* TextBlock);
+	void SetUnitButton(UMapButton* UnitButton, EUnitNum UnitNum, UTextBlock* TextBlock);
+
+	UFUNCTION()
+	void OrderButtonClicked(EOrderType OrderType, UTextBlock* TextBlock);
+	void SetOrderButton(UMapButton* OrderButton, EOrderType OrderType, UTextBlock* TextBlock);
+
 
 };

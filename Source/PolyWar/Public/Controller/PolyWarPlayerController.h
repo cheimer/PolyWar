@@ -4,6 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
+#include "PolyWarTypes/OrderType.h"
+#include "PolyWarTypes/UnitNum.h"
+#include "PolyWarTypes/UnitState.h"
 #include "PolyWarPlayerController.generated.h"
 
 /**
@@ -21,6 +24,8 @@ public:
 
 	void SetHUDHealth(float CurrentHealth, float MaxHealth);
 	void MapToggle();
+	void MapUnitToggle(EUnitNum UnitNum, class UTextBlock* UnitText);
+	void MapOrderToggle(EOrderType OrderType, class UTextBlock* UnitText);
 
 protected:
 	virtual void BeginPlay() override;
@@ -40,5 +45,13 @@ private:
 	TObjectPtr<class UCharacterWidget> CharacterWidget;
 
 	void CreateWidgets();
+	void InitializeUnitMap();
+	void ResetUnitMap();
+	void ResetTextBlockColor();
+
+	TMap<EUnitNum, EUnitState> UnitMap;
+	EOrderType CurrentOrder = EOrderType::EOD_MAX;
+	TArray<UTextBlock*> StoreUnitTextBlocks;
+	TArray<UTextBlock*> StoreOrderTextBlocks;
 
 };

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Character/PolyWarBaseCharacter.h"
+#include "PolyWarTypes/UnitNum.h"
 #include "PolyWarAICharacter.generated.h"
 
 /**
@@ -21,5 +22,11 @@ public:
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Set Should")
 	class UBehaviorTree* BehaviorTree;
+
+	UPROPERTY(EditAnywhere, Category = "Set Should")
+	EUnitNum UnitNum;
+
+public:
+	EUnitNum GetUnitNum() const {return UnitNum;}
 	
 };

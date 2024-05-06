@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "PolyWarTypes/TeamType.h"
 #include "PolyWarBaseCharacter.generated.h"
 
 UCLASS()
@@ -79,6 +80,9 @@ protected:
 	TArray<UAnimMontage*> DeathAnimMontages;
 	//~ End Health
 
+	UPROPERTY(EditDefaultsOnly, Category = "Set Should")
+	ETeamType TeamType;
+
 private:
 	void SpawnWeapon();
 
@@ -91,7 +95,9 @@ public:
 	int32 GetDeathAnimMontagesLen() const {return DeathAnimMontages.Num();}
 	float GetCurrentHealth() const;
 	float GetMaxHealth() const;
-	bool GetIsOpenMap() const {return bIsOpenMap;};;
-	void SetIsOpenMap(bool SetIsOpenMap) {bIsOpenMap = SetIsOpenMap;};
+	bool GetIsOpenMap() const {return bIsOpenMap;}
+	void SetIsOpenMap(bool SetIsOpenMap) {bIsOpenMap = SetIsOpenMap;}
+	ETeamType GetTeamType() const {return TeamType;}
+	void SetTeamType(ETeamType InTeamType) {TeamType = InTeamType;}
 
 };
