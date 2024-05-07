@@ -95,6 +95,9 @@ private:
 	void ExitMap();
 
 	UFUNCTION()
+	FEventReply MapClick(FGeometry MyGeometry, const FPointerEvent& MouseEvent);
+
+	UFUNCTION()
 	void UnitButtonClicked(EUnitNum UnitNum, UTextBlock* TextBlock);
 	void SetUnitButton(UMapButton* UnitButton, EUnitNum UnitNum, UTextBlock* TextBlock);
 

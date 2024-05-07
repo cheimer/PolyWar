@@ -111,8 +111,7 @@ void APolyWarPlayerController::MapToggle()
 		PolyWarPlayerCharacter->SetIsOpenMap(true);
 
 		PolyWarPlayerCharacter->ResetMapSpringArmLocation();
-		ResetUnitMap();
-		ResetTextBlockColor();
+		ResetMapButtons();
 	}
 	// Map Close
 	else if(PolyWarHUD->MapWidget->GetVisibility() == ESlateVisibility::Visible)
@@ -123,10 +122,34 @@ void APolyWarPlayerController::MapToggle()
 		PolyWarPlayerCharacter->SetIsOpenMap(false);
 
 		PolyWarPlayerCharacter->ResetMapSpringArmLocation();
-		ResetUnitMap();
-		ResetTextBlockColor();
+		ResetMapButtons();
 	}
+}
 
+void APolyWarPlayerController::ResetMapButtons()
+{
+	// UnitMap Reset
+	for(EUnitNum UnitNum : TEnumRange<EUnitNum>())
+	{
+		if(UnitMap.Find(UnitNum))
+		{
+			UnitMap[UnitNum] = EUnitState::EUS_UnClicked;
+		}
+	}
+	// UnitTextBlock Reset
+	for(UTextBlock* TextBlock : StoreUnitTextBlocks)
+	{
+		TextBlock->SetColorAndOpacity(FColor::White);
+	}
+	StoreUnitTextBlocks.Empty();
+
+	// Order Reset
+	CurrentOrder = EOrderType::EOD_MAX;
+	if(CurrentOrderText != nullptr)
+	{
+		CurrentOrderText->SetColorAndOpacity(FColor::White);
+		CurrentOrderText = nullptr;
+	}
 }
 
 void APolyWarPlayerController::MapUnitToggle(EUnitNum UnitNum, UTextBlock* UnitText)
@@ -149,86 +172,78 @@ void APolyWarPlayerController::MapUnitToggle(EUnitNum UnitNum, UTextBlock* UnitT
 	}
 	else if(UnitMap[UnitNum] == EUnitState::EUS_Removed)
 	{
+		;
+	}
+}
+
+void APolyWarPlayerController::MapOrderToggle(EOrderType OrderType, UTextBlock* OrderText)
+{
+	if(!OrderText) return;
+	if(OrderType == CurrentOrder)
+	{
+		CurrentOrder = EOrderType::EOD_MAX;
+		OrderText->SetColorAndOpacity(FColor::White);
+		CurrentOrderText = OrderText;
 		return;
 	}
-}
 
-void APolyWarPlayerController::ResetUnitMap()
-{
-	for(EUnitNum UnitNum : TEnumRange<EUnitNum>())
+	// Before TextBlock Color Reset
+	if(OrderType != CurrentOrder && CurrentOrder != EOrderType::EOD_MAX)
 	{
-		if(UnitMap.Find(UnitNum))
+		if(CurrentOrderText)
 		{
-			UnitMap[UnitNum] = EUnitState::EUS_UnClicked;
+			CurrentOrderText->SetColorAndOpacity(FColor::White);
 		}
-	}
-}
-
-void APolyWarPlayerController::MapOrderToggle(EOrderType OrderType, UTextBlock* UnitText)
-{
-	if(!UnitText) return;
-	if(!StoreOrderTextBlocks.Contains(UnitText))
-	{
-		StoreOrderTextBlocks.Emplace(UnitText);
 	}
 
 	switch(OrderType)
 	{
+	// Apply When Click Map
 	case EOrderType::EOD_Move :
-		if(CurrentOrder != EOrderType::EOD_Move)
-		{
-			CurrentOrder = EOrderType::EOD_Move;
-			UnitText->SetColorAndOpacity(FColor::Green);
-		}
-		else
-		{
-			CurrentOrder = EOrderType::EOD_MAX;
-			UnitText->SetColorAndOpacity(FColor::White);
-		}
-		break;
 	case EOrderType::EOD_Attack :
-		if(CurrentOrder != EOrderType::EOD_Move)
-		{
-			CurrentOrder = EOrderType::EOD_Move;
-			UnitText->SetColorAndOpacity(FColor::Green);
-		}
-		else
-		{
-			CurrentOrder = EOrderType::EOD_MAX;
-			UnitText->SetColorAndOpacity(FColor::White);
-		}
-		break;
 	case EOrderType::EOD_Rush :
-		if(CurrentOrder != EOrderType::EOD_Move)
-		{
-			CurrentOrder = EOrderType::EOD_Move;
-			UnitText->SetColorAndOpacity(FColor::Green);
-		}
-		else
-		{
-			CurrentOrder = EOrderType::EOD_MAX;
-			UnitText->SetColorAndOpacity(FColor::White);
-		}
+		CurrentOrder = OrderType;
+		CurrentOrderText = OrderText;
+		CurrentOrderText->SetColorAndOpacity(FColor::Green);
 		break;
+
+	// Apply Immediately
 	case EOrderType::EOD_Hold :
-		// Hold Order
-		break;
 	case EOrderType::EOD_Stop :
-		// Stop Order
-		break;
 	case EOrderType::EOD_Cancel :
-		// Cancel Order
+		StartOrder(OrderType);
 		break;
 	}
-
 }
 
-void APolyWarPlayerController::ResetTextBlockColor()
+void APolyWarPlayerController::StartOrder(EOrderType Order)
 {
-	for(UTextBlock* TextBlock : StoreUnitTextBlocks)
+	switch (Order)
 	{
-		TextBlock->SetColorAndOpacity(FColor::White);
+	case EOrderType::EOD_Move :
+		break;
+	case EOrderType::EOD_Attack :
+		break;
+	case EOrderType::EOD_Rush :
+		break;
+	case EOrderType::EOD_Hold :
+		break;
+	case EOrderType::EOD_Stop :
+		break;
+	case EOrderType::EOD_Cancel :
+		break;
 	}
 
-	StoreUnitTextBlocks.Empty();
+	ResetMapButtons();
+}
+
+void APolyWarPlayerController::MapImageClick(const FVector2D StartPos, const FVector2D ClickPos)
+{
+	if(CurrentOrder == EOrderType::EOD_MAX || !CurrentOrderText) return;
+
+	EOrderType TempOrderStore = CurrentOrder;
+	CurrentOrder = EOrderType::EOD_MAX;
+	CurrentOrderText->SetColorAndOpacity(FColor::White);
+	CurrentOrderText = nullptr;
+	StartOrder(TempOrderStore);
 }

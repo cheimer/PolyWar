@@ -4,6 +4,7 @@
 #include "UI/MapWidget.h"
 
 #include "Components/Button.h"
+#include "Components/Image.h"
 #include "Controller/PolyWarPlayerController.h"
 #include "UI/MapButton.h"
 
@@ -17,6 +18,12 @@ void UMapWidget::NativeOnInitialized()
 	{
 		ExitButton->OnClicked.AddDynamic(this, &ThisClass::ExitMap);
 	}
+	if(MapImage)
+	{
+		MapImage->OnMouseButtonDownEvent.BindDynamic(this, &ThisClass::MapClick);
+	}
+
+	//~ Begin UnitButton
 	if(Unit1Button)
 	{
 		SetUnitButton(Unit1Button, EUnitNum::EUN_Unit1, Unit1Text);
@@ -49,7 +56,9 @@ void UMapWidget::NativeOnInitialized()
 	{
 		SetUnitButton(Unit8Button, EUnitNum::EUN_Unit8, Unit8Text);
 	}
+	//~ End UnitButton
 
+	//~ Begin OrderButton
 	if(MoveButton)
 	{
 		SetOrderButton(MoveButton, EOrderType::EOD_Move, MoveText);
@@ -74,6 +83,7 @@ void UMapWidget::NativeOnInitialized()
 	{
 		SetOrderButton(CancelButton, EOrderType::EOD_Cancel, CancelText);
 	}
+	//~ End OrderButton
 }
 
 void UMapWidget::SetUnitButton(UMapButton* UnitButton, EUnitNum UnitNum, UTextBlock* TextBlock)
@@ -114,4 +124,15 @@ void UMapWidget::ExitMap()
 	if(!PlayerController) return;
 
 	PlayerController->MapToggle();
+}
+
+FEventReply UMapWidget::MapClick(FGeometry MyGeometry, const FPointerEvent& MouseEvent)
+{
+	if(!MouseEvent.GetPressedButtons().Find(FName("LeftMouseButton"))) return FEventReply(false);
+
+	PlayerController = PlayerController == nullptr ? Cast<APolyWarPlayerController>(GetOwningPlayer()) : PlayerController;
+	if(!PlayerController) FEventReply(false);
+
+	PlayerController->MapImageClick(MyGeometry.GetAbsolutePosition(), MouseEvent.GetScreenSpacePosition());
+	return FEventReply(false);
 }

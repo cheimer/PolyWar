@@ -25,7 +25,8 @@ public:
 	void SetHUDHealth(float CurrentHealth, float MaxHealth);
 	void MapToggle();
 	void MapUnitToggle(EUnitNum UnitNum, class UTextBlock* UnitText);
-	void MapOrderToggle(EOrderType OrderType, class UTextBlock* UnitText);
+	void MapOrderToggle(EOrderType OrderType, class UTextBlock* OrderText);
+	void MapImageClick(const FVector2D StartPos, const FVector2D ClickPos);
 
 protected:
 	virtual void BeginPlay() override;
@@ -46,12 +47,16 @@ private:
 
 	void CreateWidgets();
 	void InitializeUnitMap();
-	void ResetUnitMap();
-	void ResetTextBlockColor();
+	void ResetMapButtons();
 
 	TMap<EUnitNum, EUnitState> UnitMap;
 	EOrderType CurrentOrder = EOrderType::EOD_MAX;
+	UTextBlock* CurrentOrderText = nullptr;
 	TArray<UTextBlock*> StoreUnitTextBlocks;
-	TArray<UTextBlock*> StoreOrderTextBlocks;
+
+	void StartOrder(EOrderType Order);
+
+public:
+	EOrderType GetCurrentOrder() const {return CurrentOrder;}
 
 };
