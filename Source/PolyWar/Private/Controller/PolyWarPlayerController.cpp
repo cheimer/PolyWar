@@ -8,10 +8,13 @@
 #include "EnhancedInputSubsystems.h"
 #include "InputMappingContext.h"
 #include "InputActionValue.h"
+#include "Character/PolyWarAICharacter.h"
 #include "Character/PolyWarBaseCharacter.h"
 #include "Character/PolyWarPlayerCharacter.h"
 #include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
+#include "GameState/PolyWarGameStateBase.h"
+#include "Kismet/GameplayStatics.h"
 #include "UI/CharacterWidget.h"
 #include "UI/MapWidget.h"
 
@@ -74,7 +77,7 @@ void APolyWarPlayerController::InitializeUnitMap()
 {
 	for(EUnitNum UnitNum : TEnumRange<EUnitNum>())
 	{
-		UnitMap.Emplace(UnitNum, EUnitState::EUS_UnClicked);
+		UnitMap.Emplace(UnitNum, EMapUnitState::EMUS_UnClicked);
 	}
 }
 
@@ -110,7 +113,7 @@ void APolyWarPlayerController::MapToggle()
 		SetShowMouseCursor(true);
 		PolyWarPlayerCharacter->SetIsOpenMap(true);
 
-		PolyWarPlayerCharacter->ResetMapSpringArmLocation();
+		PolyWarPlayerCharacter->ResetMapCameraLocation();
 		ResetMapButtons();
 	}
 	// Map Close
@@ -121,7 +124,7 @@ void APolyWarPlayerController::MapToggle()
 		SetShowMouseCursor(false);
 		PolyWarPlayerCharacter->SetIsOpenMap(false);
 
-		PolyWarPlayerCharacter->ResetMapSpringArmLocation();
+		PolyWarPlayerCharacter->ResetMapCameraLocation();
 		ResetMapButtons();
 	}
 }
@@ -133,7 +136,7 @@ void APolyWarPlayerController::ResetMapButtons()
 	{
 		if(UnitMap.Find(UnitNum))
 		{
-			UnitMap[UnitNum] = EUnitState::EUS_UnClicked;
+			UnitMap[UnitNum] = EMapUnitState::EMUS_UnClicked;
 		}
 	}
 	// UnitTextBlock Reset
@@ -152,6 +155,17 @@ void APolyWarPlayerController::ResetMapButtons()
 	}
 }
 
+void APolyWarPlayerController::GetMapUnitStateArray(EMapUnitState MapUnitState, TArray<EUnitNum>& OutUnitNumArray)
+{
+	for(EUnitNum UnitNum : TEnumRange<EUnitNum>())
+	{
+		if(UnitMap.Contains(UnitNum) && UnitMap[UnitNum] == MapUnitState)
+		{
+			OutUnitNumArray.Add(UnitNum);
+		}
+	}
+}
+
 void APolyWarPlayerController::MapUnitToggle(EUnitNum UnitNum, UTextBlock* UnitText)
 {
 	if(!UnitText || !UnitMap.Find(UnitNum)) return;
@@ -160,17 +174,17 @@ void APolyWarPlayerController::MapUnitToggle(EUnitNum UnitNum, UTextBlock* UnitT
 		StoreUnitTextBlocks.Emplace(UnitText);
 	}
 
-	if(UnitMap[UnitNum] == EUnitState::EUS_UnClicked)
+	if(UnitMap[UnitNum] == EMapUnitState::EMUS_UnClicked)
 	{
-		UnitMap[UnitNum] = EUnitState::EUS_Clicked;
+		UnitMap[UnitNum] = EMapUnitState::EMUS_Clicked;
 		UnitText->SetColorAndOpacity(FColor::Green);
 	}
-	else if(UnitMap[UnitNum] == EUnitState::EUS_Clicked)
+	else if(UnitMap[UnitNum] == EMapUnitState::EMUS_Clicked)
 	{
-		UnitMap[UnitNum] = EUnitState::EUS_UnClicked;
+		UnitMap[UnitNum] = EMapUnitState::EMUS_UnClicked;
 		UnitText->SetColorAndOpacity(FColor::White);
 	}
-	else if(UnitMap[UnitNum] == EUnitState::EUS_Removed)
+	else if(UnitMap[UnitNum] == EMapUnitState::EMUS_Removed)
 	{
 		;
 	}
@@ -216,34 +230,79 @@ void APolyWarPlayerController::MapOrderToggle(EOrderType OrderType, UTextBlock* 
 	}
 }
 
-void APolyWarPlayerController::StartOrder(EOrderType Order)
+void APolyWarPlayerController::MapImageClick(const FVector2D StartPos, const FVector2D Size, const FVector2D ClickPos)
 {
-	switch (Order)
+	if(CurrentOrder == EOrderType::EOD_MAX || !CurrentOrderText) return;
+
+	FVector MapPosition = MapImageClickToWorldPosition(StartPos, Size, ClickPos);
+	StartOrder(CurrentOrder, MapPosition);
+}
+
+FVector APolyWarPlayerController::MapImageClickToWorldPosition(const FVector2D StartPos, const FVector2D Size, const FVector2D ClickPos)
+{
+	PolyWarPlayerCharacter = PolyWarPlayerCharacter == nullptr ? Cast<APolyWarPlayerCharacter>(GetPawn()) : PolyWarPlayerCharacter;
+	if(!PolyWarPlayerCharacter) return FVector();
+
+	FVector2D Rate((StartPos + Size - ClickPos) / Size);
+	Rate.X = 0.5 - Rate.X; Rate.Y = 0.5 - Rate.Y;
+
+	FVector MapCameraPos = PolyWarPlayerCharacter->GetMapCameraPos();
+
+	FVector TraceStartPos;
+	TraceStartPos.X = MapCameraPos.X - Rate.Y * MapCameraPos.Z * 1.1f;
+	TraceStartPos.Y = MapCameraPos.Y + Rate.X * MapCameraPos.Z * 2.0f;
+	TraceStartPos.Z = MapCameraPos.Z;
+
+	FVector TraceEndPos = TraceStartPos;
+	TraceEndPos.Z = TraceStartPos.Z - PolyWarPlayerCharacter->GetMapHeightMaxLimit() * 2.0f;
+	FHitResult HitResult;
+	GetWorld()->LineTraceSingleByChannel(HitResult, TraceStartPos, TraceEndPos, ECC_WorldStatic);
+
+	return HitResult.ImpactPoint;
+}
+
+void APolyWarPlayerController::StartOrder(EOrderType Order, FVector OrderPos)
+{
+	TArray<APolyWarAICharacter*> TeamArray = GetMyTeam();
+
+	for(auto TeamAI : TeamArray)
 	{
-	case EOrderType::EOD_Move :
-		break;
-	case EOrderType::EOD_Attack :
-		break;
-	case EOrderType::EOD_Rush :
-		break;
-	case EOrderType::EOD_Hold :
-		break;
-	case EOrderType::EOD_Stop :
-		break;
-	case EOrderType::EOD_Cancel :
-		break;
+		switch (Order)
+		{
+		case EOrderType::EOD_Move :
+			TeamAI->OrderMove(OrderPos);
+			break;
+		case EOrderType::EOD_Attack :
+			TeamAI->OrderAttack(OrderPos);
+			break;
+		case EOrderType::EOD_Rush :
+			TeamAI->OrderRush(OrderPos);
+			break;
+		case EOrderType::EOD_Hold :
+			TeamAI->OrderHold();
+			break;
+		case EOrderType::EOD_Stop :
+			TeamAI->OrderStop();
+			break;
+		case EOrderType::EOD_Cancel :
+			//
+			break;
+		}
 	}
 
 	ResetMapButtons();
 }
 
-void APolyWarPlayerController::MapImageClick(const FVector2D StartPos, const FVector2D ClickPos)
+TArray<APolyWarAICharacter*> APolyWarPlayerController::GetMyTeam()
 {
-	if(CurrentOrder == EOrderType::EOD_MAX || !CurrentOrderText) return;
+	TArray<APolyWarAICharacter*> TeamArray;
+	PolyWarPlayerCharacter = PolyWarPlayerCharacter == nullptr ? Cast<APolyWarPlayerCharacter>(GetPawn()) : PolyWarPlayerCharacter;
+	PolyWarGameState == nullptr ? PolyWarGameState = Cast<APolyWarGameStateBase>(UGameplayStatics::GetGameState(GetWorld())) : PolyWarGameState;
+	if(!PolyWarPlayerCharacter || !PolyWarGameState) return TeamArray;
 
-	EOrderType TempOrderStore = CurrentOrder;
-	CurrentOrder = EOrderType::EOD_MAX;
-	CurrentOrderText->SetColorAndOpacity(FColor::White);
-	CurrentOrderText = nullptr;
-	StartOrder(TempOrderStore);
+	TArray<EUnitNum> UnitNums;
+	GetMapUnitStateArray(EMapUnitState::EMUS_Clicked, UnitNums);
+	PolyWarGameState->GetTeamArray(PolyWarPlayerCharacter->GetTeamType(), UnitNums, TeamArray);
+
+	return TeamArray;
 }

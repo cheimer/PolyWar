@@ -21,7 +21,8 @@ public:
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void PostInitializeComponents() override;
 
-	void ResetMapSpringArmLocation();
+	void ResetMapCameraLocation();
+	FVector GetMapCameraPos();
 
 protected:
 	virtual void BeginPlay() override;
@@ -88,8 +89,13 @@ protected:
 
 private:
 	TObjectPtr<class APolyWarPlayerController> PolyWarPlayerController;
+
 	UPROPERTY(EditAnywhere, Category = "Settable")
 	float MapDefaultHeight = 2200.0f;
+	UPROPERTY(EditAnywhere, Category = "Settable")
+	float MapHeightMaxLimit = 5000.0f;
+	UPROPERTY(EditAnywhere, Category = "Settable")
+	float MapHeightMinLimit = 1000.0f;
 
 	UPROPERTY(EditAnywhere, Category = "Settable")
 	float MapMoveSensitive = 100.0f;
@@ -111,5 +117,7 @@ private:
 
 public:
 	USpringArmComponent* GetMapSpringArm() const {return MapSpringArm;}
+	float GetMapHeightMaxLimit() const {return MapHeightMaxLimit;}
+	float GetMapHeightMinLimit() const {return MapHeightMinLimit;}
 
 };

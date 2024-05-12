@@ -133,6 +133,9 @@ FEventReply UMapWidget::MapClick(FGeometry MyGeometry, const FPointerEvent& Mous
 	PlayerController = PlayerController == nullptr ? Cast<APolyWarPlayerController>(GetOwningPlayer()) : PlayerController;
 	if(!PlayerController) FEventReply(false);
 
-	PlayerController->MapImageClick(MyGeometry.GetAbsolutePosition(), MouseEvent.GetScreenSpacePosition());
+	PlayerController->MapImageClick(
+		MyGeometry.GetAbsolutePosition(),
+		MyGeometry.GetAbsoluteSize(),
+		MouseEvent.GetScreenSpacePosition());
 	return FEventReply(false);
 }

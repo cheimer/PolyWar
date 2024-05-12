@@ -35,6 +35,8 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, Category = "Component")
 	class UHealthComponent* HealthComponent;
+
+	TObjectPtr<class UAIPerceptionStimuliSourceComponent> AIPerceptionSourceComponent;
 	//~ End Components
 
 	//~ Begin Move
@@ -80,7 +82,7 @@ protected:
 	TArray<UAnimMontage*> DeathAnimMontages;
 	//~ End Health
 
-	UPROPERTY(EditDefaultsOnly, Category = "Set Should")
+	UPROPERTY(EditAnywhere, Category = "Set Should")
 	ETeamType TeamType;
 
 private:

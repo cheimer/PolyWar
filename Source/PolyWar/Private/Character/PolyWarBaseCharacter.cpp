@@ -7,6 +7,8 @@
 #include "Engine/SkeletalMeshSocket.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Net/UnrealNetwork.h"
+#include "Perception/AIPerceptionStimuliSourceComponent.h"
+#include "Perception/AISense_Sight.h"
 #include "PolyWarComponent/CombatComponent.h"
 #include "PolyWarComponent/HealthComponent.h"
 #include "Weapon/Weapon.h"
@@ -25,6 +27,10 @@ APolyWarBaseCharacter::APolyWarBaseCharacter()
 
 	HealthComponent = CreateDefaultSubobject<UHealthComponent>("HealthComponent");
 	HealthComponent->SetIsReplicated(true);
+
+	AIPerceptionSourceComponent = CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>("AIPerceptionSourceComponent");
+	AIPerceptionSourceComponent->RegisterForSense(UAISense_Sight::StaticClass());
+	AIPerceptionSourceComponent->RegisterWithPerceptionSystem();
 
 }
 

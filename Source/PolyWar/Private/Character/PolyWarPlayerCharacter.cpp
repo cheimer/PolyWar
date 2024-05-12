@@ -96,7 +96,7 @@ void APolyWarPlayerCharacter::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
-	ResetMapSpringArmLocation();
+	ResetMapCameraLocation();
 
 }
 
@@ -272,16 +272,30 @@ void APolyWarPlayerCharacter::MapScroll(const FInputActionValue& Value)
 
 	if(bScrollUp)
 	{
+		if(MapSpringArm->GetRelativeLocation().Z <= MapHeightMinLimit)
+		{
+			return;
+		}
 		MapSpringArm->AddRelativeLocation(FVector(0.0f, 0.0f, -MapMoveSensitive));
 	}
 	else
 	{
+		if(MapSpringArm->GetRelativeLocation().Z >= MapHeightMaxLimit)
+		{
+			return;
+		}
 		MapSpringArm->AddRelativeLocation(FVector(0.0f, 0.0f, MapMoveSensitive));
 	}
 }
 
-void APolyWarPlayerCharacter::ResetMapSpringArmLocation()
+void APolyWarPlayerCharacter::ResetMapCameraLocation()
 {
 	if(!MapSpringArm) return;
 	MapSpringArm->SetRelativeLocation(FVector(0.0f, 0.0f, MapDefaultHeight));
+}
+
+FVector APolyWarPlayerCharacter::GetMapCameraPos()
+{
+	if(!MapSpringArm) return FVector();
+	return MapSpringArm->GetComponentLocation();
 }

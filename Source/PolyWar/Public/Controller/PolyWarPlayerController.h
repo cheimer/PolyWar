@@ -6,7 +6,7 @@
 #include "GameFramework/PlayerController.h"
 #include "PolyWarTypes/OrderType.h"
 #include "PolyWarTypes/UnitNum.h"
-#include "PolyWarTypes/UnitState.h"
+#include "..\PolyWarTypes\MapUnitState.h"
 #include "PolyWarPlayerController.generated.h"
 
 /**
@@ -26,7 +26,7 @@ public:
 	void MapToggle();
 	void MapUnitToggle(EUnitNum UnitNum, class UTextBlock* UnitText);
 	void MapOrderToggle(EOrderType OrderType, class UTextBlock* OrderText);
-	void MapImageClick(const FVector2D StartPos, const FVector2D ClickPos);
+	void MapImageClick(const FVector2D StartPos, const FVector2D Size, const FVector2D ClickPos);
 
 protected:
 	virtual void BeginPlay() override;
@@ -44,17 +44,23 @@ private:
 	TObjectPtr<class APolyWarPlayerCharacter> PolyWarPlayerCharacter;
 	TObjectPtr<class APolyWarHUD> PolyWarHUD;
 	TObjectPtr<class UCharacterWidget> CharacterWidget;
+	TObjectPtr<class APolyWarGameStateBase> PolyWarGameState;
 
 	void CreateWidgets();
 	void InitializeUnitMap();
 	void ResetMapButtons();
 
-	TMap<EUnitNum, EUnitState> UnitMap;
+	TMap<EUnitNum, EMapUnitState> UnitMap;
+	TArray<UTextBlock*> StoreUnitTextBlocks;
 	EOrderType CurrentOrder = EOrderType::EOD_MAX;
 	UTextBlock* CurrentOrderText = nullptr;
-	TArray<UTextBlock*> StoreUnitTextBlocks;
 
-	void StartOrder(EOrderType Order);
+	void GetMapUnitStateArray(EMapUnitState MapUnitState, TArray<EUnitNum>& OutUnitNumArray);
+	FVector MapImageClickToWorldPosition(const FVector2D StartPos, const FVector2D Size, const FVector2D ClickPos);
+
+	TArray<class APolyWarAICharacter*> GetMyTeam();
+
+	void StartOrder(EOrderType Order, FVector OrderPos = FVector::ZeroVector);
 
 public:
 	EOrderType GetCurrentOrder() const {return CurrentOrder;}
