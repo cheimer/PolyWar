@@ -5,6 +5,8 @@
 
 #include "Character/PolyWarBaseCharacter.h"
 #include "Controller/PolyWarPlayerController.h"
+#include "GameMode/PolyWarGameModeBase.h"
+#include "GameState/PolyWarGameStateBase.h"
 #include "Net/UnrealNetwork.h"
 #include "Weapon/Weapon.h"
 
@@ -34,7 +36,7 @@ void UHealthComponent::ReceiveDamage(float Damage, AController* InstigatedBy, AA
 	CurrentHealth = FMath::Clamp(CurrentHealth - Damage, 0.0f, MaxHealth);
 
 	UpdateHUDHealth();
-	if(CurrentHealth <= 0.0f)
+	if(IsDead())
 	{
 		Death();
 	}
@@ -69,6 +71,18 @@ void UHealthComponent::UpdateHUDHealth()
 	}
 }
 
+bool UHealthComponent::IsDead()
+{
+	if(CurrentHealth <= 0.0f)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
 void UHealthComponent::Damaged()
 {
 	APolyWarBaseCharacter* DamagedPolyCharacter = Cast<APolyWarBaseCharacter>(OwnerCharacter);
@@ -86,33 +100,7 @@ void UHealthComponent::Death()
 
 	if(DamagedPolyCharacter)
 	{
-		DamagedPolyCharacter->PlayDeathAnimMontage(true);
-
 		DamagedPolyCharacter->SetPlayerDeath();
-		DamagedPolyCharacter->OnDestroyed.AddDynamic(this, &ThisClass::CharacterRemoved);
-
-		FTimerHandle DeathTimer;
-		DamagedPolyCharacter->GetWorldTimerManager().SetTimer(DeathTimer, this, &ThisClass::DeathTimerFinished, 3.0f);
-	}
-}
-
-void UHealthComponent::DeathTimerFinished()
-{
-	APolyWarBaseCharacter* DamagedPolyCharacter = Cast<APolyWarBaseCharacter>(OwnerCharacter);
-
-	if(DamagedPolyCharacter)
-	{
-		DamagedPolyCharacter->Destroy();
-	}
-}
-
-void UHealthComponent::CharacterRemoved(AActor* DestroyedActor)
-{
-	APolyWarBaseCharacter* DamagedPolyCharacter = Cast<APolyWarBaseCharacter>(OwnerCharacter);
-
-	if(DamagedPolyCharacter && DamagedPolyCharacter->GetEquippedWeapon())
-	{
-		DamagedPolyCharacter->GetEquippedWeapon()->Destroy();
 	}
 }
 

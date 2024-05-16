@@ -3,56 +3,103 @@
 
 #include "Character/PolyWarAICharacter.h"
 
+#include "BrainComponent.h"
+#include "BehaviorTree/BlackboardComponent.h"
 #include "Controller/PolyWarAIController.h"
-#include "Perception/AIPerceptionComponent.h"
 
 APolyWarAICharacter::APolyWarAICharacter()
 {
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
 
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 }
 
+void APolyWarAICharacter::BeginPlay()
+{
+	Super::BeginPlay();
+
+	OrderHold();
+}
+
+void APolyWarAICharacter::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	PolyWarAIController = PolyWarAIController == nullptr ? Cast<APolyWarAIController>(GetController()) : PolyWarAIController;
+	if(PolyWarAIController && !GetIsAttacking() && !IsDead())
+	{
+		AActor* ClosestEnemy = PolyWarAIController->GetClosestEnemy();
+		if(ClosestEnemy)
+		{
+			const FVector ToVector = ClosestEnemy->GetActorLocation();
+			const FVector FromVector = GetActorLocation();
+			const FRotator TargetRotator = (ToVector - FromVector).Rotation();
+
+			SetActorRotation(FMath::RInterpTo(
+				GetActorRotation(), TargetRotator, DeltaSeconds, 5.0f));
+		}
+	}
+
+}
+
+// TODO: Add Client Order
 void APolyWarAICharacter::OrderMove(FVector OrderPos)
 {
-	bChaseEnemy = false;
-	bCanAttack = false;
-	MoveTo(OrderPos);
+	SetDestination(OrderPos);
+
+	LastOrder = EOrderType::EOD_Move;
+	LastOrderPos = OrderPos;
 }
 
 void APolyWarAICharacter::OrderAttack(FVector OrderPos)
 {
-	bChaseEnemy = true;
-	bCanAttack = true;
-	MoveTo(OrderPos);
+	SetDestination(OrderPos);
+
+	LastOrder = EOrderType::EOD_Attack;
+	LastOrderPos = OrderPos;
 }
 
 void APolyWarAICharacter::OrderRush(FVector OrderPos)
 {
-	bChaseEnemy = false;
-	bCanAttack = true;
-	MoveTo(OrderPos);
+	SetDestination(OrderPos);
+
+	LastOrder = EOrderType::EOD_Rush;
+	LastOrderPos = OrderPos;
 }
 
 void APolyWarAICharacter::OrderStop()
 {
-	bChaseEnemy = true;
-	bCanAttack = true;
+	SetDestination(GetActorLocation());
+
+	LastOrder = EOrderType::EOD_Stop;
+	LastOrderPos = GetActorLocation();
 }
 
 void APolyWarAICharacter::OrderHold()
 {
-	bChaseEnemy = false;
-	bCanAttack = true;
+	SetDestination(GetActorLocation());
+
+	LastOrder = EOrderType::EOD_Hold;
+	LastOrderPos = GetActorLocation();
 }
 
-void APolyWarAICharacter::MoveTo(FVector OrderPos)
+void APolyWarAICharacter::SetDestination(FVector OrderPos)
 {
-	if(HasAuthority())
-	{
-		PolyWarAIController == nullptr ? Cast<APolyWarAIController>(GetController()) : PolyWarAIController;
-		//PolyWarAIController->GetBlackboardComponent()
+	if(!HasAuthority()) return;
 
-	}
+	PolyWarAIController = PolyWarAIController == nullptr ? Cast<APolyWarAIController>(GetController()) : PolyWarAIController;
+	if(!PolyWarAIController || !PolyWarAIController->GetBlackboardComponent()) return;
 
+	PolyWarAIController->GetBlackboardComponent()->SetValueAsVector("Destination", OrderPos);
+
+}
+
+void APolyWarAICharacter::SetPlayerDeath()
+{
+	Super::SetPlayerDeath();
+
+	PolyWarAIController = PolyWarAIController == nullptr ? Cast<APolyWarAIController>(GetController()) : PolyWarAIController;
+	if(!PolyWarAIController || !PolyWarAIController->GetBrainComponent()) return;
+
+	PolyWarAIController->GetBrainComponent()->StopLogic("PlayerDeath");
 }

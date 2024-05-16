@@ -297,7 +297,8 @@ TArray<APolyWarAICharacter*> APolyWarPlayerController::GetMyTeam()
 {
 	TArray<APolyWarAICharacter*> TeamArray;
 	PolyWarPlayerCharacter = PolyWarPlayerCharacter == nullptr ? Cast<APolyWarPlayerCharacter>(GetPawn()) : PolyWarPlayerCharacter;
-	PolyWarGameState == nullptr ? PolyWarGameState = Cast<APolyWarGameStateBase>(UGameplayStatics::GetGameState(GetWorld())) : PolyWarGameState;
+	PolyWarGameState = PolyWarGameState == nullptr ?
+		PolyWarGameState = Cast<APolyWarGameStateBase>(UGameplayStatics::GetGameState(GetWorld())) : PolyWarGameState;
 	if(!PolyWarPlayerCharacter || !PolyWarGameState) return TeamArray;
 
 	TArray<EUnitNum> UnitNums;

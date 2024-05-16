@@ -11,8 +11,6 @@
 #include "Components/CapsuleComponent.h"
 #include "Components/SceneCaptureComponent2D.h"
 #include "Controller/PolyWarPlayerController.h"
-#include "Engine/CanvasRenderTarget2D.h"
-#include "Engine/TextureRenderTarget2D.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 
@@ -22,6 +20,7 @@ APolyWarPlayerCharacter::APolyWarPlayerCharacter()
 	CharacterSpringArm->SetupAttachment(GetMesh());
 	CharacterSpringArm->TargetArmLength = 400.0f;
 	CharacterSpringArm->bUsePawnControlRotation = true;
+	CharacterSpringArm->bDoCollisionTest = false;
 	CharacterSpringArm->SocketOffset.Y = 75.0f;
 	CharacterSpringArm->SocketOffset.Z = 75.0f;
 	CharacterSpringArm->SetRelativeLocation(FVector(0.0f, 0.0f, 90.0f));

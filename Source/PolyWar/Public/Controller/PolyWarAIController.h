@@ -7,6 +7,7 @@
 #include "Perception/AIPerceptionTypes.h"
 #include "PolyWarAIController.generated.h"
 
+struct FActorPerceptionUpdateInfo;
 /**
  * 
  */
@@ -18,6 +19,9 @@ class POLYWAR_API APolyWarAIController : public AAIController
 public:
 	APolyWarAIController();
 
+	bool IsEnemyInSight();
+	AActor* GetClosestEnemy();
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void OnPossess(APawn* InPawn) override;
@@ -28,7 +32,12 @@ protected:
 private:
 	TObjectPtr<class APolyWarAICharacter> PolyWarAICharacter;
 
+	TArray<class APolyWarBaseCharacter*> InSightEnemies;
+
 	UFUNCTION()
 	void OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
+
+	UFUNCTION()
+	void OnPerceptedActorDeath(class APolyWarBaseCharacter* DeathCharacter);
 
 };

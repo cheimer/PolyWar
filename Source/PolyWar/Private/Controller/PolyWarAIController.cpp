@@ -7,7 +7,6 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Character/PolyWarAICharacter.h"
 #include "Perception/AIPerceptionComponent.h"
-#include "Perception/AISenseConfig_Sight.h"
 
 APolyWarAIController::APolyWarAIController()
 {
@@ -41,7 +40,61 @@ void APolyWarAIController::OnPossess(APawn* InPawn)
 
 void APolyWarAIController::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 {
-	PolyWarAICharacter == nullptr ? PolyWarAICharacter = Cast<APolyWarAICharacter>(GetPawn()) : PolyWarAICharacter;
-	if(!PolyWarAICharacter) return;
+	PolyWarAICharacter = PolyWarAICharacter == nullptr ? Cast<APolyWarAICharacter>(GetPawn()) : PolyWarAICharacter;
+	APolyWarBaseCharacter* PerceptedActor = Cast<APolyWarBaseCharacter>(Actor);
+	if(!PolyWarAICharacter || !PerceptedActor) return;
 
+	if(PolyWarAICharacter->GetTeamType() != PerceptedActor->GetTeamType())
+	{
+		// PerceptedActor In
+		if(!InSightEnemies.Contains(PerceptedActor))
+		{
+			InSightEnemies.Emplace(PerceptedActor);
+			PerceptedActor->OnCharacterDeathDelegate.AddDynamic(this, &ThisClass::OnPerceptedActorDeath);
+		}
+		// PerceptedActor Out
+		else
+		{
+			InSightEnemies.Remove(PerceptedActor);
+			PerceptedActor->OnCharacterDeathDelegate.RemoveDynamic(this, &ThisClass::OnPerceptedActorDeath);
+		}
+	}
+
+}
+
+void APolyWarAIController::OnPerceptedActorDeath(APolyWarBaseCharacter* DeathCharacter)
+{
+	if(InSightEnemies.Contains(DeathCharacter))
+	{
+		InSightEnemies.Remove(DeathCharacter);
+		DeathCharacter->OnCharacterDeathDelegate.RemoveDynamic(this, &ThisClass::OnPerceptedActorDeath);
+	}
+}
+
+bool APolyWarAIController::IsEnemyInSight()
+{
+	if(InSightEnemies.Num() > 0)
+		return true;
+	else
+		return false;
+}
+
+AActor* APolyWarAIController::GetClosestEnemy()
+{
+	if(!GetPawn() || InSightEnemies.Num() == 0) return nullptr;
+
+	const FVector ActorLocation = GetPawn()->GetActorLocation();
+	float DistanceTwoActor = 10000.0f;
+	AActor* ClosestActor = nullptr;
+	for(const auto InSightEnemy : InSightEnemies)
+	{
+		const float NewDistance = FVector::Distance(ActorLocation, InSightEnemy->GetActorLocation());
+		if(NewDistance < DistanceTwoActor)
+		{
+			DistanceTwoActor = NewDistance;
+			ClosestActor = InSightEnemy;
+		}
+	}
+
+	return ClosestActor;
 }

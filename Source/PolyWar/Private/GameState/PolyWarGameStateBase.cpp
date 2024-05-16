@@ -20,6 +20,8 @@ void APolyWarGameStateBase::PostInitializeComponents()
 		APolyWarAICharacter* AICharacter = Cast<APolyWarAICharacter>(Index);
 		if(AICharacter)
 		{
+			AICharacter->OnCharacterDeathDelegate.AddDynamic(this, &ThisClass::DeathCharacter);
+
 			if(AICharacter->GetTeamType() == ETeamType::ET_BlueTeam)
 			{
 				if(BlueTeamUnitMap.Contains(AICharacter->GetUnitNum()))
@@ -46,6 +48,10 @@ void APolyWarGameStateBase::PostInitializeComponents()
 					RedTeamUnitMap.Emplace(AICharacter->GetUnitNum(), CreateArray);
 				}
 			}
+			else
+			{
+				//AICharacter->OnCharacterDeathDelegate.RemoveDynamic(this, &ThisClass::DeathCharacter);
+			}
 		}
 	}
 
@@ -70,6 +76,28 @@ void APolyWarGameStateBase::GetTeamArray(ETeamType TeamType, TArray<EUnitNum> Un
 			if(RedTeamUnitMap.Contains(Index))
 			{
 				OutArray.Append(RedTeamUnitMap[Index]);
+			}
+		}
+	}
+}
+
+void APolyWarGameStateBase::DeathCharacter(APolyWarBaseCharacter* Character)
+{
+	APolyWarAICharacter* AICharacter = Cast<APolyWarAICharacter>(Character);
+	if(AICharacter)
+	{
+		if(AICharacter->GetTeamType() == ETeamType::ET_BlueTeam)
+		{
+			if(BlueTeamUnitMap.Contains(AICharacter->GetUnitNum()) && BlueTeamUnitMap[AICharacter->GetUnitNum()].Contains(AICharacter))
+			{
+				BlueTeamUnitMap[AICharacter->GetUnitNum()].Remove(AICharacter);
+			}
+		}
+		else if(AICharacter->GetTeamType() == ETeamType::ET_RedTeam)
+		{
+			if(RedTeamUnitMap.Contains(AICharacter->GetUnitNum()) && RedTeamUnitMap[AICharacter->GetUnitNum()].Contains(AICharacter))
+			{
+				RedTeamUnitMap[AICharacter->GetUnitNum()].Remove(AICharacter);
 			}
 		}
 	}

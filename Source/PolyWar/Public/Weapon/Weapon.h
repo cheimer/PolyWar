@@ -34,10 +34,16 @@ protected:
 	EWeaponType WeaponType;
 
 	UPROPERTY(EditAnywhere, Category = "Set Should")
-	float WeaponDamage = 10.0f;
+	float WeaponDamage = 50.0f;
 
 	UPROPERTY(EditAnywhere, Category = "Set Should")
 	float AttackDelay = 3.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Set Should")
+	float AttackRange = 50.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Set Should")
+	float AttackAngle = 60.0f;
 
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Component")
@@ -51,5 +57,7 @@ private:
 public:
 	float GetWeaponDamage() const {return WeaponDamage;}
 	float GetAttackDelay() const {return AttackDelay;}
+	float GetAttackRange() const {return AttackRange;}
+	float GetAttackAngle() const {return AttackAngle;}
 
 };

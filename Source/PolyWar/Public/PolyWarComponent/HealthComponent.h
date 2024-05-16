@@ -6,7 +6,6 @@
 #include "Components/ActorComponent.h"
 #include "HealthComponent.generated.h"
 
-
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class POLYWAR_API UHealthComponent : public UActorComponent
 {
@@ -20,6 +19,8 @@ public:
 	void ReceiveDamage(float Damage, AController* InstigatedBy, AActor* DamageCauser);
 
 	void UpdateHUDHealth();
+
+	bool IsDead();
 
 protected:
 	virtual void BeginPlay() override;
@@ -39,10 +40,6 @@ private:
 
 	void Damaged();
 	void Death();
-	void DeathTimerFinished();
-
-	UFUNCTION()
-	void CharacterRemoved(AActor* DestroyedActor);
 
 public:
 	void SetOwnerCharacter(APolyWarBaseCharacter* InOwnerCharacter);

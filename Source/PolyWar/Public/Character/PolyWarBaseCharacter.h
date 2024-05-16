@@ -7,6 +7,8 @@
 #include "PolyWarTypes/TeamType.h"
 #include "PolyWarBaseCharacter.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCharacterDeathDelegate, class APolyWarBaseCharacter*, DeathCharacter);
+
 UCLASS()
 class POLYWAR_API APolyWarBaseCharacter : public ACharacter
 {
@@ -18,11 +20,15 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void Tick(float DeltaTime) override;
 
-	void SetPlayerDeath();
+	FOnCharacterDeathDelegate OnCharacterDeathDelegate;
+
+	virtual void SetPlayerDeath();
 
 	void PlayAttackAnimMontage(bool RandPlay = true, int32 Index = 0);
 	void PlayDamagedAnimMontage(bool RandPlay = true, int32 Index = 0);
 	void PlayDeathAnimMontage(bool RandPlay = true, int32 Index = 0);
+
+	virtual void Attack();
 
 protected:
 	virtual void BeginPlay() override;
@@ -55,8 +61,6 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Settable")
 	TSubclassOf<class AWeapon> EquippedWeaponClass;
 
-	void Attack();
-
 	UPROPERTY(EditAnywhere, Category = "Settable")
 	TArray<UAnimMontage*> AttackAnimMontages;
 
@@ -75,11 +79,15 @@ protected:
 	void ReceiveDamage(AActor* DamagedActor, float Damage,
 		const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser);
 
+	bool IsDead();
+
 	UPROPERTY(EditAnywhere, Category = "Settable")
 	TArray<UAnimMontage*> DamagedAnimMontages;
 
 	UPROPERTY(EditAnywhere, Category = "Settable")
 	TArray<UAnimMontage*> DeathAnimMontages;
+
+	void DeathTimerFinished();
 	//~ End Health
 
 	UPROPERTY(EditAnywhere, Category = "Set Should")
@@ -92,6 +100,8 @@ public:
 	bool GetIsRunning() const {return bIsRunning;}
 	bool GetIsAttacking() const;
 	AWeapon* GetEquippedWeapon() const;
+	float GetWeaponAttackRange() const;
+	float GetWeaponAttackAngle() const;
 	int32 GetAttackAnimMontagesLen() const {return AttackAnimMontages.Num();}
 	int32 GetDamagedAnimMontagesLen() const {return DamagedAnimMontages.Num();}
 	int32 GetDeathAnimMontagesLen() const {return DeathAnimMontages.Num();}

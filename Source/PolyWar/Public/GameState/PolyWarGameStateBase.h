@@ -25,4 +25,7 @@ private:
 	TMap<EUnitNum, TArray<APolyWarAICharacter*>> BlueTeamUnitMap;
 	TMap<EUnitNum, TArray<APolyWarAICharacter*>> RedTeamUnitMap;
 
+	UFUNCTION()
+	void DeathCharacter(class APolyWarBaseCharacter* Character);
+
 };

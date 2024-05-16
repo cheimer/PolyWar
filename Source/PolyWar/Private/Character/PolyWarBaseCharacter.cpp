@@ -86,12 +86,40 @@ void APolyWarBaseCharacter::ReceiveDamage(AActor* DamagedActor, float Damage,
 	HealthComponent->ReceiveDamage(Damage, InstigatedBy, DamageCauser);
 }
 
+bool APolyWarBaseCharacter::IsDead()
+{
+	if(!HealthComponent) return false;
+
+	return HealthComponent->IsDead();
+}
+
 void APolyWarBaseCharacter::SetPlayerDeath()
 {
 	GetCharacterMovement()->DisableMovement();
 	GetCharacterMovement()->StopMovementImmediately();
-	GetMesh()->SetCollisionResponseToAllChannels(ECR_Ignore);
-	GetCapsuleComponent()->SetCollisionResponseToAllChannels(ECR_Ignore);
+	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	if(GetEquippedWeapon())
+	{
+		GetEquippedWeapon()->SetCollisionEnabled(false);
+	}
+
+	PlayDeathAnimMontage(true);
+
+	FTimerHandle DeathTimer;
+	GetWorldTimerManager().SetTimer(DeathTimer, this, &ThisClass::DeathTimerFinished, 3.0f);
+
+	OnCharacterDeathDelegate.Broadcast(this);
+}
+
+void APolyWarBaseCharacter::DeathTimerFinished()
+{
+	if(GetEquippedWeapon())
+	{
+		GetEquippedWeapon()->Destroy();
+	}
+	Destroy();
 }
 
 void APolyWarBaseCharacter::SpawnWeapon()
@@ -208,6 +236,22 @@ AWeapon* APolyWarBaseCharacter::GetEquippedWeapon() const
 	if(!CombatComponent || !CombatComponent->GetEquippedWeapon()) return nullptr;
 
 	return CombatComponent->GetEquippedWeapon();
+}
+
+// If not possible, -1 is returned
+float APolyWarBaseCharacter::GetWeaponAttackRange() const
+{
+	if(!CombatComponent || !CombatComponent->GetEquippedWeapon()) return -1.0f;
+
+	return CombatComponent->GetEquippedWeapon()->GetAttackRange();
+}
+
+// If not possible, -1 is returned
+float APolyWarBaseCharacter::GetWeaponAttackAngle() const
+{
+	if(!CombatComponent || !CombatComponent->GetEquippedWeapon()) return -1.0f;
+
+	return CombatComponent->GetEquippedWeapon()->GetAttackAngle();
 }
 
 float APolyWarBaseCharacter::GetCurrentHealth() const

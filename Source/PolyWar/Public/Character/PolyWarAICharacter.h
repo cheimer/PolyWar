@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Character/PolyWarBaseCharacter.h"
+#include "PolyWarTypes/OrderType.h"
 #include "PolyWarTypes/UnitNum.h"
 #include "PolyWarAICharacter.generated.h"
 
@@ -17,6 +18,8 @@ class POLYWAR_API APolyWarAICharacter : public APolyWarBaseCharacter
 
 public:
 	APolyWarAICharacter();
+	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaSeconds) override;
 
 	void OrderMove(FVector OrderPos);
 	void OrderAttack(FVector OrderPos);
@@ -24,25 +27,27 @@ public:
 	void OrderStop();
 	void OrderHold();
 
+	void AttackInThisOrder(const bool bAttack) {bAttackInThisOrder = bAttack;}
+
+	virtual void SetPlayerDeath() override;
+
 protected:
 	UPROPERTY(EditAnywhere, Category = "Set Should")
 	EUnitNum UnitNum;
 
-	UPROPERTY(EditAnywhere, Category = "Settable")
-	float AttackRange = 100.0f;
-
 private:
 	TObjectPtr<class APolyWarAIController> PolyWarAIController;
 
-	bool bChaseEnemy = true;
-	bool bCanAttack = true;
+	void SetDestination(FVector OrderPos);
 
-	void MoveTo(FVector OrderPos);
+	EOrderType LastOrder = EOrderType::EOD_Hold;
+	FVector LastOrderPos = FVector();
+	bool bAttackInThisOrder = false;
 
 public:
 	EUnitNum GetUnitNum() const {return UnitNum;}
-	float GetAttackRange() const {return AttackRange;}
-	bool GetIsChaseEnemy() const {return bChaseEnemy;}
-	bool GetIsCanAttack() const {return bCanAttack;}
+	EOrderType GetLastOrder() const {return LastOrder;}
+	FVector GetLastOrderPos() const {return LastOrderPos;}
+	bool IsAttackInThisOrder() const {return bAttackInThisOrder;}
 
 };
