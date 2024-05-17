@@ -16,6 +16,8 @@
 APolyWarBaseCharacter::APolyWarBaseCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
+	SetReplicates(true);
+	SetReplicateMovement(true);
 	NetUpdateFrequency = 66.0f;
 	MinNetUpdateFrequency = 33.0f;
 

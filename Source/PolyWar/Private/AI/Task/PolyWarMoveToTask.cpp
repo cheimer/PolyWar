@@ -12,7 +12,7 @@ UPolyWarMoveToTask::UPolyWarMoveToTask()
 {
 	NodeName = "Move To";
 
-	// AcceptableRadius = AttackRange
+	//Check: AcceptableRadius = AttackRange
 }
 
 void UPolyWarMoveToTask::OnTaskFinished(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, EBTNodeResult::Type TaskResult)
@@ -29,10 +29,10 @@ void UPolyWarMoveToTask::OnTaskFinished(UBehaviorTreeComponent& OwnerComp, uint8
 		switch(AICharacter->GetLastOrder())
 		{
 		case EOrderType::EOD_Attack:
-			AICharacter->OrderAttack(AICharacter->GetLastOrderPos());
+			AICharacter->StartOrder(EOrderType::EOD_Attack, AICharacter->GetLastOrderPos());
 			break;
 		case EOrderType::EOD_Rush:
-			AICharacter->OrderRush(AICharacter->GetLastOrderPos());
+			AICharacter->StartOrder(EOrderType::EOD_Rush, AICharacter->GetLastOrderPos());
 			break;
 		case EOrderType::EOD_Move:
 		case EOrderType::EOD_Hold:

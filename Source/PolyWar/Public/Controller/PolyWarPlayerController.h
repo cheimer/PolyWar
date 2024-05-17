@@ -62,6 +62,9 @@ private:
 
 	void StartOrder(EOrderType Order, FVector OrderPos = FVector::ZeroVector);
 
+	UFUNCTION(Server, Reliable)
+	void ServerStartOrder(EOrderType Order, FVector_NetQuantize OrderPos, const TArray<APolyWarAICharacter*>& TeamArray);
+
 public:
 	EOrderType GetCurrentOrder() const {return CurrentOrder;}
 

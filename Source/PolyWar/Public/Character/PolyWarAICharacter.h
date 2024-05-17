@@ -21,11 +21,7 @@ public:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
 
-	void OrderMove(FVector OrderPos);
-	void OrderAttack(FVector OrderPos);
-	void OrderRush(FVector OrderPos);
-	void OrderStop();
-	void OrderHold();
+	void StartOrder(EOrderType Order, FVector OrderPos);
 
 	void AttackInThisOrder(const bool bAttack) {bAttackInThisOrder = bAttack;}
 

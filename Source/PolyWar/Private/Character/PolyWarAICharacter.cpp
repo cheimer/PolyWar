@@ -18,7 +18,7 @@ void APolyWarAICharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	OrderHold();
+	StartOrder(EOrderType::EOD_Hold, GetActorLocation());
 }
 
 void APolyWarAICharacter::Tick(float DeltaSeconds)
@@ -42,56 +42,23 @@ void APolyWarAICharacter::Tick(float DeltaSeconds)
 
 }
 
-// TODO: Add Client Order
-void APolyWarAICharacter::OrderMove(FVector OrderPos)
+void APolyWarAICharacter::StartOrder(EOrderType Order, FVector OrderPos)
 {
-	SetDestination(OrderPos);
+	if(HasAuthority())
+	{
+		SetDestination(OrderPos);
 
-	LastOrder = EOrderType::EOD_Move;
-	LastOrderPos = OrderPos;
-}
-
-void APolyWarAICharacter::OrderAttack(FVector OrderPos)
-{
-	SetDestination(OrderPos);
-
-	LastOrder = EOrderType::EOD_Attack;
-	LastOrderPos = OrderPos;
-}
-
-void APolyWarAICharacter::OrderRush(FVector OrderPos)
-{
-	SetDestination(OrderPos);
-
-	LastOrder = EOrderType::EOD_Rush;
-	LastOrderPos = OrderPos;
-}
-
-void APolyWarAICharacter::OrderStop()
-{
-	SetDestination(GetActorLocation());
-
-	LastOrder = EOrderType::EOD_Stop;
-	LastOrderPos = GetActorLocation();
-}
-
-void APolyWarAICharacter::OrderHold()
-{
-	SetDestination(GetActorLocation());
-
-	LastOrder = EOrderType::EOD_Hold;
-	LastOrderPos = GetActorLocation();
+		LastOrder = Order;
+		LastOrderPos = OrderPos;
+	}
 }
 
 void APolyWarAICharacter::SetDestination(FVector OrderPos)
 {
-	if(!HasAuthority()) return;
-
 	PolyWarAIController = PolyWarAIController == nullptr ? Cast<APolyWarAIController>(GetController()) : PolyWarAIController;
 	if(!PolyWarAIController || !PolyWarAIController->GetBlackboardComponent()) return;
 
 	PolyWarAIController->GetBlackboardComponent()->SetValueAsVector("Destination", OrderPos);
-
 }
 
 void APolyWarAICharacter::SetPlayerDeath()

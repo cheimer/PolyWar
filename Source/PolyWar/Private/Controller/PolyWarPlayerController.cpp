@@ -224,8 +224,9 @@ void APolyWarPlayerController::MapOrderToggle(EOrderType OrderType, UTextBlock* 
 	// Apply Immediately
 	case EOrderType::EOD_Hold :
 	case EOrderType::EOD_Stop :
-	case EOrderType::EOD_Cancel :
 		StartOrder(OrderType);
+		break;
+	case EOrderType::EOD_Cancel :
 		break;
 	}
 }
@@ -265,32 +266,55 @@ void APolyWarPlayerController::StartOrder(EOrderType Order, FVector OrderPos)
 {
 	TArray<APolyWarAICharacter*> TeamArray = GetMyTeam();
 
+	if(HasAuthority())
+	{
+		for(auto TeamAI : TeamArray)
+		{
+			switch (Order)
+			{
+			case EOrderType::EOD_Move :
+			case EOrderType::EOD_Attack :
+			case EOrderType::EOD_Rush :
+				TeamAI->StartOrder(Order, OrderPos);
+				break;
+			case EOrderType::EOD_Hold :
+			case EOrderType::EOD_Stop :
+				TeamAI->StartOrder(Order, TeamAI->GetActorLocation());
+				break;
+			case EOrderType::EOD_Cancel :
+				break;
+			}
+		}
+	}
+	else
+	{
+		ServerStartOrder(Order, OrderPos, TeamArray);
+	}
+
+	ResetMapButtons();
+}
+
+void APolyWarPlayerController::ServerStartOrder_Implementation(EOrderType Order, FVector_NetQuantize OrderPos,
+	const TArray<APolyWarAICharacter*>& TeamArray)
+{
 	for(auto TeamAI : TeamArray)
 	{
 		switch (Order)
 		{
 		case EOrderType::EOD_Move :
-			TeamAI->OrderMove(OrderPos);
-			break;
 		case EOrderType::EOD_Attack :
-			TeamAI->OrderAttack(OrderPos);
-			break;
 		case EOrderType::EOD_Rush :
-			TeamAI->OrderRush(OrderPos);
+			TeamAI->StartOrder(Order, OrderPos);
 			break;
 		case EOrderType::EOD_Hold :
-			TeamAI->OrderHold();
-			break;
 		case EOrderType::EOD_Stop :
-			TeamAI->OrderStop();
+			TeamAI->StartOrder(Order, TeamAI->GetActorLocation());
 			break;
 		case EOrderType::EOD_Cancel :
-			//
 			break;
 		}
 	}
 
-	ResetMapButtons();
 }
 
 TArray<APolyWarAICharacter*> APolyWarPlayerController::GetMyTeam()
@@ -305,5 +329,16 @@ TArray<APolyWarAICharacter*> APolyWarPlayerController::GetMyTeam()
 	GetMapUnitStateArray(EMapUnitState::EMUS_Clicked, UnitNums);
 	PolyWarGameState->GetTeamArray(PolyWarPlayerCharacter->GetTeamType(), UnitNums, TeamArray);
 
+	if(TeamArray.Num() <= 0)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("No"));
+	}
+	else
+	{
+		for(auto Team : TeamArray)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("%s Name"), *Team->GetName());
+		}
+	}
 	return TeamArray;
 }
