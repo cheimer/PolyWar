@@ -70,6 +70,12 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "EnhancedInput")
 	UInputAction* InputMapScroll;
 
+	UPROPERTY(EditDefaultsOnly, Category = "EnhancedInput")
+	UInputAction* InputWeaponSkillFirst;
+
+	UPROPERTY(EditDefaultsOnly, Category = "EnhancedInput")
+	UInputAction* InputWeaponSkillSecond;
+
 	void MoveForwardRight(const FInputActionValue& Value);
 	void LookUpRight(const FInputActionValue& Value);
 	virtual void Jump() override;
@@ -85,6 +91,9 @@ protected:
 	void MapClick(const FInputActionValue& Value);
 	void MapMove(const FInputActionValue& Value);
 	void MapScroll(const FInputActionValue& Value);
+
+	void WeaponSkillFirst(const FInputActionValue& Value);
+	void WeaponSkillSecond(const FInputActionValue& Value);
 	//~ End EnhancedInput
 
 private:

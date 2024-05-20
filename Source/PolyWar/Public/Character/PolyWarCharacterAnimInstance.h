@@ -22,16 +22,19 @@ private:
 	UPROPERTY(BlueprintReadOnly, Category = "Character", meta = (AllowPrivateAccess = "true"))
 	class APolyWarBaseCharacter* PolyWarCharacter;
 
-	UPROPERTY(BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(BlueprintReadOnly, Category = "PolyWar", meta = (AllowPrivateAccess = "true"))
 	float Speed;
 
-	UPROPERTY(BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(BlueprintReadOnly, Category = "PolyWar", meta = (AllowPrivateAccess = "true"))
 	bool bIsRunning;
 
-	UPROPERTY(BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(BlueprintReadOnly, Category = "PolyWar", meta = (AllowPrivateAccess = "true"))
 	bool bIsAttacking;
 
-	UPROPERTY(BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(BlueprintReadOnly, Category = "PolyWar", meta = (AllowPrivateAccess = "true"))
 	bool bIsOpenMap = false;
+
+	UPROPERTY(BlueprintReadOnly, Category = "PolyWar", meta = (AllowPrivateAccess = "true"))
+	bool bUseMirror = false;
 
 };

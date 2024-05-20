@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "PolyWarTypes/WeaponSkill.h"
 #include "Weapon.generated.h"
 
 UENUM(BlueprintType)
@@ -30,8 +31,15 @@ protected:
 	void OnAttackBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
+	// Maybe Not Use
+	// UPROPERTY(EditAnywhere, Category = "Set Should")
+	// EWeaponType WeaponType;
+
 	UPROPERTY(EditAnywhere, Category = "Set Should")
-	EWeaponType WeaponType;
+	EWeaponSkill WeaponSkillFirst;
+
+	UPROPERTY(EditAnywhere, Category = "Set Should")
+	EWeaponSkill WeaponSkillSecond;
 
 	UPROPERTY(EditAnywhere, Category = "Set Should")
 	float WeaponDamage = 50.0f;
@@ -59,5 +67,7 @@ public:
 	float GetAttackDelay() const {return AttackDelay;}
 	float GetAttackRange() const {return AttackRange;}
 	float GetAttackAngle() const {return AttackAngle;}
+	EWeaponSkill GetWeaponSkillFirst() const {return WeaponSkillFirst;}
+	EWeaponSkill GetWeaponSkillSecond() const {return WeaponSkillSecond;}
 
 };

@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "PolyWarTypes/TeamType.h"
+#include "PolyWarTypes/WeaponSkill.h"
 #include "PolyWarBaseCharacter.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCharacterDeathDelegate, class APolyWarBaseCharacter*, DeathCharacter);
@@ -25,10 +26,12 @@ public:
 	virtual void SetPlayerDeath();
 
 	void PlayAttackAnimMontage(bool RandPlay = true, int32 Index = 0);
+	void PlayWeaponSkillAnimMontage(EWeaponSkill WeaponSkill);
 	void PlayDamagedAnimMontage(bool RandPlay = true, int32 Index = 0);
 	void PlayDeathAnimMontage(bool RandPlay = true, int32 Index = 0);
 
-	virtual void Attack();
+	virtual void WeaponAttack();
+	virtual void WeaponSkillAttack(EWeaponSkill WeaponSkill);
 
 protected:
 	virtual void BeginPlay() override;
@@ -64,11 +67,14 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Settable")
 	TArray<UAnimMontage*> AttackAnimMontages;
 
-	UFUNCTION(BlueprintCallable)
-	void WeaponAttackStart();
+	UPROPERTY(EditAnywhere, Category = "Settable")
+	TMap<EWeaponSkill, UAnimMontage*> WeaponSkillAnimMontages;
 
 	UFUNCTION(BlueprintCallable)
-	void WeaponAttackEnd();
+	void WeaponAttackCheckStart();
+
+	UFUNCTION(BlueprintCallable)
+	void WeaponAttackCheckEnd();
 
 	UPROPERTY(EditDefaultsOnly, Category = "Set Should")
 	FName RightHandSocket = "RightHandSocket";
@@ -90,6 +96,16 @@ protected:
 	void DeathTimerFinished();
 	//~ End Health
 
+	//~ Begin Animation Mirror
+	bool bUseMirror = false;
+
+	UFUNCTION(BlueprintCallable)
+	void UseMirrorAnimStart() {bUseMirror = true;}
+
+	UFUNCTION(BlueprintCallable)
+	void UseMirrorAnimEnd() {bUseMirror = false;}
+	//~ End Animation Mirror
+
 	UPROPERTY(EditAnywhere, Category = "Set Should")
 	ETeamType TeamType;
 
@@ -103,6 +119,7 @@ public:
 	float GetWeaponAttackRange() const;
 	float GetWeaponAttackAngle() const;
 	int32 GetAttackAnimMontagesLen() const {return AttackAnimMontages.Num();}
+	float GetWeaponSkillAnimPlayLen(EWeaponSkill WeaponSkill) const;
 	int32 GetDamagedAnimMontagesLen() const {return DamagedAnimMontages.Num();}
 	int32 GetDeathAnimMontagesLen() const {return DeathAnimMontages.Num();}
 	float GetCurrentHealth() const;
@@ -111,5 +128,6 @@ public:
 	void SetIsOpenMap(bool SetIsOpenMap) {bIsOpenMap = SetIsOpenMap;}
 	ETeamType GetTeamType() const {return TeamType;}
 	void SetTeamType(ETeamType InTeamType) {TeamType = InTeamType;}
+	bool GetUseMirror() const {return bUseMirror;}
 
 };

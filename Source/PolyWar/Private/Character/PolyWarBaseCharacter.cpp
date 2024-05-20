@@ -72,6 +72,7 @@ void APolyWarBaseCharacter::BeginPlay()
 	{
 		HealthComponent->UpdateHUDHealth();
 	}
+
 }
 
 void APolyWarBaseCharacter::Tick(float DeltaTime)
@@ -143,12 +144,20 @@ void APolyWarBaseCharacter::SpawnWeapon()
 
 }
 
-void APolyWarBaseCharacter::Attack()
+void APolyWarBaseCharacter::WeaponAttack()
 {
 	if(!CombatComponent || !CombatComponent->GetEquippedWeapon()) return;
 	if(bIsOpenMap) return;
 
-	CombatComponent->BeginAttack();
+	CombatComponent->BeginWeaponAttack();
+}
+
+void APolyWarBaseCharacter::WeaponSkillAttack(EWeaponSkill WeaponSkill)
+{
+	if(!CombatComponent || !CombatComponent->GetEquippedWeapon()) return;
+	if(bIsOpenMap) return;
+
+	CombatComponent->BeginWeaponSkill(WeaponSkill);
 }
 
 void APolyWarBaseCharacter::PlayAttackAnimMontage(bool RandPlay, int32 Index)
@@ -166,6 +175,14 @@ void APolyWarBaseCharacter::PlayAttackAnimMontage(bool RandPlay, int32 Index)
 	{
 		if(AttackAnimMontages.Num() <= Index || !AttackAnimMontages[Index]) return;
 		PlayAnimMontage(AttackAnimMontages[Index]);
+	}
+}
+
+void APolyWarBaseCharacter::PlayWeaponSkillAnimMontage(EWeaponSkill WeaponSkill)
+{
+	if(WeaponSkillAnimMontages[WeaponSkill])
+	{
+		PlayAnimMontage(WeaponSkillAnimMontages[WeaponSkill]);
 	}
 }
 
@@ -206,19 +223,19 @@ void APolyWarBaseCharacter::PlayDeathAnimMontage(bool RandPlay, int32 Index)
 
 }
 
-void APolyWarBaseCharacter::WeaponAttackStart()
+void APolyWarBaseCharacter::WeaponAttackCheckStart()
 {
 	if(CombatComponent)
 	{
-		CombatComponent->WeaponAttackStart();
+		CombatComponent->WeaponAttackCheckStart();
 	}
 }
 
-void APolyWarBaseCharacter::WeaponAttackEnd()
+void APolyWarBaseCharacter::WeaponAttackCheckEnd()
 {
 	if(CombatComponent)
 	{
-		CombatComponent->WeaponAttackEnd();
+		CombatComponent->WeaponAttackCheckEnd();
 	}
 }
 
@@ -254,6 +271,15 @@ float APolyWarBaseCharacter::GetWeaponAttackAngle() const
 	if(!CombatComponent || !CombatComponent->GetEquippedWeapon()) return -1.0f;
 
 	return CombatComponent->GetEquippedWeapon()->GetAttackAngle();
+}
+
+// If not possible, -1 is returned
+float APolyWarBaseCharacter::GetWeaponSkillAnimPlayLen(EWeaponSkill WeaponSkill) const
+{
+	if(!CombatComponent || !CombatComponent->GetEquippedWeapon()) return -1.0f;
+	if(!WeaponSkillAnimMontages[WeaponSkill]) return -1.0f;
+
+	return WeaponSkillAnimMontages[WeaponSkill]->GetPlayLength();
 }
 
 float APolyWarBaseCharacter::GetCurrentHealth() const

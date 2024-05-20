@@ -26,5 +26,6 @@ void UPolyWarCharacterAnimInstance::NativeUpdateAnimation(float DeltaTime)
 	bIsRunning = PolyWarCharacter->GetIsRunning();
 	bIsAttacking = PolyWarCharacter->GetIsAttacking();
 	bIsOpenMap = PolyWarCharacter->GetIsOpenMap();
+	bUseMirror = PolyWarCharacter->GetUseMirror();
 
 }

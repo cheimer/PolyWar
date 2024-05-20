@@ -22,7 +22,7 @@ EBTNodeResult::Type UPolyWarAttackTask::ExecuteTask(UBehaviorTreeComponent& Owne
 	APolyWarAICharacter* TaskOwner = Cast<APolyWarAICharacter>(Controller->GetPawn());
 	if (!TaskOwner) return EBTNodeResult::Failed;
 
-	TaskOwner->Attack();
+	TaskOwner->WeaponAttack();
 	TaskOwner->AttackInThisOrder(true);
 
 	return EBTNodeResult::Succeeded;

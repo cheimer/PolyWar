@@ -4,8 +4,21 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "PolyWarTypes/WeaponSkill.h"
 #include "CombatComponent.generated.h"
 
+
+UENUM(BlueprintType)
+enum class ECombatState : uint8
+{
+	ECS_Wait,
+	ECS_WeaponAttack,
+	ECS_WeaponSkill,
+	ECS_SpellCasting,
+	ECS_SpellAttack,
+
+	ECS_MAX UMETA(Hidden)
+};
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class POLYWAR_API UCombatComponent : public UActorComponent
@@ -16,10 +29,11 @@ public:
 	UCombatComponent();
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-	void BeginAttack();
+	void BeginWeaponAttack();
+	void BeginWeaponSkill(EWeaponSkill WeaponSkill);
 
-	void WeaponAttackStart();
-	void WeaponAttackEnd();
+	void WeaponAttackCheckStart();
+	void WeaponAttackCheckEnd();
 
 protected:
 	virtual void BeginPlay() override;
@@ -29,19 +43,27 @@ private:
 	UPROPERTY(Replicated)
 	TObjectPtr<class AWeapon> EquippedWeapon;
 
-	UPROPERTY(ReplicatedUsing = "OnRep_IsAttacking")
-	bool bIsAttacking = false;
+	UPROPERTY(ReplicatedUsing = "OnRep_CombatState")
+	ECombatState CombatState = ECombatState::ECS_Wait;
 	UFUNCTION()
-	void OnRep_IsAttacking();
+	void OnRep_CombatState();
 
-	void Attack(int32 AnimIndex = 0);
+	void WeaponAttack(int32 AnimIndex = 0);
 	UFUNCTION(Server, Reliable)
-	void ServerAttack(int32 AnimIndex = 0);
+	void ServerWeaponAttack(int32 AnimIndex = 0);
 	UFUNCTION(NetMulticast, Reliable)
-	void MulticastAttack(int32 AnimIndex = 0);
+	void MulticastWeaponAttack(int32 AnimIndex = 0);
+
+	void WeaponSkillAttack(EWeaponSkill WeaponSkill);
+	UFUNCTION(Server, Reliable)
+	void ServerWeaponSkillAttack(EWeaponSkill WeaponSkill);
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastWeaponSkillAttack(EWeaponSkill WeaponSkill);
 
 	void AttackEnd();
 
+	UPROPERTY(Replicated)
+	EWeaponSkill CurrentWeaponSkill;
 	UPROPERTY(Replicated)
 	int32 CurrentAnimIndex = 0;
 	void SetCurrentAnimIndexRand();
@@ -50,6 +72,6 @@ public:
 	void SetOwnerCharacter(APolyWarBaseCharacter* InOwnerCharacter);
 	void SetEquippedWeapon(AWeapon* InEquippedWeapon);
 	AWeapon* GetEquippedWeapon() const {return EquippedWeapon;}
-	bool GetIsAttacking() const {return bIsAttacking;}
+	bool GetIsAttacking() const;
 
 };

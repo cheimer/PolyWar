@@ -13,6 +13,7 @@
 #include "Controller/PolyWarPlayerController.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Weapon/Weapon.h"
 
 APolyWarPlayerCharacter::APolyWarPlayerCharacter()
 {
@@ -141,6 +142,14 @@ void APolyWarPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerI
 		{
 			EnhancedInputComponent->BindAction(InputMapScroll, ETriggerEvent::Triggered, this, &ThisClass::MapScroll);
 		}
+		if(InputWeaponSkillFirst)
+		{
+			EnhancedInputComponent->BindAction(InputWeaponSkillFirst, ETriggerEvent::Triggered, this, &ThisClass::WeaponSkillFirst);
+		}
+		if(InputWeaponSkillSecond)
+		{
+			EnhancedInputComponent->BindAction(InputWeaponSkillSecond, ETriggerEvent::Triggered, this, &ThisClass::WeaponSkillSecond);
+		}
 	}
 }
 
@@ -182,7 +191,7 @@ void APolyWarPlayerCharacter::Jump()
 
 void APolyWarPlayerCharacter::LeftMousePressedAndReleased(const FInputActionValue& Value)
 {
-	Attack();
+	WeaponAttack();
 
 }
 
@@ -297,4 +306,16 @@ FVector APolyWarPlayerCharacter::GetMapCameraPos()
 {
 	if(!MapSpringArm) return FVector();
 	return MapSpringArm->GetComponentLocation();
+}
+
+void APolyWarPlayerCharacter::WeaponSkillFirst(const FInputActionValue& Value)
+{
+	if(!GetEquippedWeapon()) return;
+	WeaponSkillAttack(GetEquippedWeapon()->GetWeaponSkillFirst());
+}
+
+void APolyWarPlayerCharacter::WeaponSkillSecond(const FInputActionValue& Value)
+{
+	if(!GetEquippedWeapon()) return;
+	WeaponSkillAttack(GetEquippedWeapon()->GetWeaponSkillSecond());
 }

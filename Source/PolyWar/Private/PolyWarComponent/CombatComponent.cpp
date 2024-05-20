@@ -17,8 +17,9 @@ void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(UCombatComponent, bIsAttacking);
+	DOREPLIFETIME(UCombatComponent, CombatState);
 	DOREPLIFETIME(UCombatComponent, CurrentAnimIndex)
+	DOREPLIFETIME(UCombatComponent, CurrentWeaponSkill)
 	DOREPLIFETIME(UCombatComponent, EquippedWeapon)
 }
 
@@ -28,31 +29,51 @@ void UCombatComponent::BeginPlay()
 	
 }
 
-void UCombatComponent::BeginAttack()
+void UCombatComponent::BeginWeaponAttack()
 {
-	if(!OwnerCharacter || bIsAttacking) return;
+	if(!OwnerCharacter || CombatState != ECombatState::ECS_Wait) return;
 
-	bIsAttacking = true;
+	CombatState = ECombatState::ECS_WeaponAttack;
 
 	SetCurrentAnimIndexRand();
-	Attack(CurrentAnimIndex);
+	WeaponAttack(CurrentAnimIndex);
 
 	if(!OwnerCharacter->HasAuthority())
 	{
-		ServerAttack(CurrentAnimIndex);
+		ServerWeaponAttack(CurrentAnimIndex);
 	}
 
 }
 
-void UCombatComponent::OnRep_IsAttacking()
+void UCombatComponent::BeginWeaponSkill(EWeaponSkill WeaponSkill)
 {
-	if(bIsAttacking)
+	if(!OwnerCharacter || CombatState != ECombatState::ECS_Wait) return;
+
+	CombatState = ECombatState::ECS_WeaponSkill;
+	CurrentWeaponSkill = WeaponSkill;
+
+	WeaponSkillAttack(CurrentWeaponSkill);
+
+	if(!OwnerCharacter->HasAuthority())
 	{
-		Attack(CurrentAnimIndex);
+		ServerWeaponSkillAttack(CurrentWeaponSkill);
 	}
 }
 
-void UCombatComponent::Attack(int32 AnimIndex)
+void UCombatComponent::OnRep_CombatState()
+{
+	switch (CombatState)
+	{
+	case ECombatState::ECS_WeaponAttack:
+		WeaponAttack(CurrentAnimIndex);
+		break;
+	case ECombatState::ECS_WeaponSkill:
+		WeaponSkillAttack(CurrentWeaponSkill);
+		break;
+	}
+}
+
+void UCombatComponent::WeaponAttack(int32 AnimIndex)
 {
 	if(!OwnerCharacter || !EquippedWeapon) return;
 	OwnerCharacter->PlayAttackAnimMontage(false, AnimIndex);
@@ -62,12 +83,12 @@ void UCombatComponent::Attack(int32 AnimIndex)
 
 }
 
-void UCombatComponent::ServerAttack_Implementation(int32 AnimIndex)
+void UCombatComponent::ServerWeaponAttack_Implementation(int32 AnimIndex)
 {
-	MulticastAttack(AnimIndex);
+	MulticastWeaponAttack(AnimIndex);
 }
 
-void UCombatComponent::MulticastAttack_Implementation(int32 AnimIndex)
+void UCombatComponent::MulticastWeaponAttack_Implementation(int32 AnimIndex)
 {
 	if(!OwnerCharacter || !EquippedWeapon) return;
 	OwnerCharacter->PlayAttackAnimMontage(false, AnimIndex);
@@ -75,14 +96,39 @@ void UCombatComponent::MulticastAttack_Implementation(int32 AnimIndex)
 	FTimerHandle AttackTimer;
 	OwnerCharacter->GetWorldTimerManager().SetTimer(AttackTimer, this, &ThisClass::AttackEnd, EquippedWeapon->GetAttackDelay());
 
+}
+
+void UCombatComponent::WeaponSkillAttack(EWeaponSkill WeaponSkill)
+{
+	if(!OwnerCharacter || !EquippedWeapon) return;
+	OwnerCharacter->PlayWeaponSkillAnimMontage(WeaponSkill);
+
+	FTimerHandle AttackTimer;
+	OwnerCharacter->GetWorldTimerManager().SetTimer(
+		AttackTimer, this, &ThisClass::AttackEnd, OwnerCharacter->GetWeaponSkillAnimPlayLen(WeaponSkill));
+}
+
+void UCombatComponent::ServerWeaponSkillAttack_Implementation(EWeaponSkill WeaponSkill)
+{
+	MulticastWeaponSkillAttack(WeaponSkill);
+}
+
+void UCombatComponent::MulticastWeaponSkillAttack_Implementation(EWeaponSkill WeaponSkill)
+{
+	if(!OwnerCharacter || !EquippedWeapon) return;
+	OwnerCharacter->PlayWeaponSkillAnimMontage(WeaponSkill);
+
+	FTimerHandle AttackTimer;
+	OwnerCharacter->GetWorldTimerManager().SetTimer(
+		AttackTimer, this, &ThisClass::AttackEnd, OwnerCharacter->GetWeaponSkillAnimPlayLen(WeaponSkill));
 }
 
 void UCombatComponent::AttackEnd()
 {
-	bIsAttacking = false;
+	CombatState = ECombatState::ECS_Wait;
 }
 
-void UCombatComponent::WeaponAttackStart()
+void UCombatComponent::WeaponAttackCheckStart()
 {
 	if(!OwnerCharacter || !EquippedWeapon) return;
 
@@ -90,7 +136,7 @@ void UCombatComponent::WeaponAttackStart()
 
 }
 
-void UCombatComponent::WeaponAttackEnd()
+void UCombatComponent::WeaponAttackCheckEnd()
 {
 	if(!OwnerCharacter || !EquippedWeapon) return;
 
@@ -119,4 +165,16 @@ void UCombatComponent::SetEquippedWeapon(AWeapon* InEquippedWeapon)
 	if(!InEquippedWeapon) return;
 
 	EquippedWeapon = InEquippedWeapon;
+}
+
+bool UCombatComponent::GetIsAttacking() const
+{
+	if(CombatState == ECombatState::ECS_Wait)
+	{
+		return false;
+	}
+	else
+	{
+		return true;
+	}
 }

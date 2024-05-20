@@ -14,4 +14,5 @@ enum class EUnitNum : uint8
 
 	EUN_MAX UMETA(Hidden)
 };
+
 ENUM_RANGE_BY_COUNT(EUnitNum, EUnitNum::EUN_MAX);
