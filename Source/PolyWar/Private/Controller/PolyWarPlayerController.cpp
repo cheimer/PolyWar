@@ -16,6 +16,7 @@
 #include "GameState/PolyWarGameStateBase.h"
 #include "Kismet/GameplayStatics.h"
 #include "UI/CharacterWidget.h"
+#include "UI/MapButton.h"
 #include "UI/MapWidget.h"
 
 
@@ -69,7 +70,62 @@ void APolyWarPlayerController::SetupInputComponent()
 	if(!InputComponent) return;
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(InputComponent))
 	{
-
+		if(InputUnitNum1)
+		{
+			EnhancedInputComponent->BindAction(InputUnitNum1, ETriggerEvent::Triggered, this, &ThisClass::ToggleUnitNum1);
+		}
+		if(InputUnitNum2)
+		{
+			EnhancedInputComponent->BindAction(InputUnitNum2, ETriggerEvent::Triggered, this, &ThisClass::ToggleUnitNum2);
+		}
+		if(InputUnitNum3)
+		{
+			EnhancedInputComponent->BindAction(InputUnitNum3, ETriggerEvent::Triggered, this, &ThisClass::ToggleUnitNum3);
+		}
+		if(InputUnitNum4)
+		{
+			EnhancedInputComponent->BindAction(InputUnitNum4, ETriggerEvent::Triggered, this, &ThisClass::ToggleUnitNum4);
+		}
+		if(InputUnitNum5)
+		{
+			EnhancedInputComponent->BindAction(InputUnitNum5, ETriggerEvent::Triggered, this, &ThisClass::ToggleUnitNum5);
+		}
+		if(InputUnitNum6)
+		{
+			EnhancedInputComponent->BindAction(InputUnitNum6, ETriggerEvent::Triggered, this, &ThisClass::ToggleUnitNum6);
+		}
+		if(InputUnitNum7)
+		{
+			EnhancedInputComponent->BindAction(InputUnitNum7, ETriggerEvent::Triggered, this, &ThisClass::ToggleUnitNum7);
+		}
+		if(InputUnitNum8)
+		{
+			EnhancedInputComponent->BindAction(InputUnitNum8, ETriggerEvent::Triggered, this, &ThisClass::ToggleUnitNum8);
+		}
+		if(InputOrderAttack)
+		{
+			EnhancedInputComponent->BindAction(InputOrderAttack, ETriggerEvent::Triggered, this, &ThisClass::ToggleOrderAttack);
+		}
+		if(InputOrderMove)
+		{
+			EnhancedInputComponent->BindAction(InputOrderMove, ETriggerEvent::Triggered, this, &ThisClass::ToggleOrderMove);
+		}
+		if(InputOrderStop)
+		{
+			EnhancedInputComponent->BindAction(InputOrderStop, ETriggerEvent::Triggered, this, &ThisClass::ToggleOrderStop);
+		}
+		if(InputOrderRush)
+		{
+			EnhancedInputComponent->BindAction(InputOrderRush, ETriggerEvent::Triggered, this, &ThisClass::ToggleOrderRush);
+		}
+		if(InputOrderHold)
+		{
+			EnhancedInputComponent->BindAction(InputOrderHold, ETriggerEvent::Triggered, this, &ThisClass::ToggleOrderHold);
+		}
+		if(InputOrderCancel)
+		{
+			EnhancedInputComponent->BindAction(InputOrderCancel, ETriggerEvent::Triggered, this, &ThisClass::ToggleOrderCancel);
+		}
 	}
 }
 
@@ -227,6 +283,7 @@ void APolyWarPlayerController::MapOrderToggle(EOrderType OrderType, UTextBlock* 
 		StartOrder(OrderType);
 		break;
 	case EOrderType::EOD_Cancel :
+		ResetMapButtons();
 		break;
 	}
 }
@@ -329,16 +386,93 @@ TArray<APolyWarAICharacter*> APolyWarPlayerController::GetMyTeam()
 	GetMapUnitStateArray(EMapUnitState::EMUS_Clicked, UnitNums);
 	PolyWarGameState->GetTeamArray(PolyWarPlayerCharacter->GetTeamType(), UnitNums, TeamArray);
 
-	if(TeamArray.Num() <= 0)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("No"));
-	}
-	else
-	{
-		for(auto Team : TeamArray)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("%s Name"), *Team->GetName());
-		}
-	}
 	return TeamArray;
+}
+
+void APolyWarPlayerController::ToggleUnitNum(EUnitNum UnitNum)
+{
+	PolyWarHUD = PolyWarHUD == nullptr ? Cast<APolyWarHUD>(GetHUD()) : PolyWarHUD;
+	if(!PolyWarHUD) return;
+
+	if(!PolyWarHUD->MapWidget || !PolyWarHUD->MapWidget->UnitNumMapButtons[UnitNum]) return;
+	PolyWarHUD->MapWidget->UnitNumMapButtons[UnitNum]->OnUnitButtonClicked.Broadcast(UnitNum);
+}
+
+void APolyWarPlayerController::ToggleOrder(EOrderType Order)
+{
+	PolyWarHUD = PolyWarHUD == nullptr ? Cast<APolyWarHUD>(GetHUD()) : PolyWarHUD;
+	if(!PolyWarHUD) return;
+
+	if(!PolyWarHUD->MapWidget || !PolyWarHUD->MapWidget->OrderMapButtons[Order]) return;
+	PolyWarHUD->MapWidget->OrderMapButtons[Order]->OnOrderButtonClicked.Broadcast(Order);
+}
+
+void APolyWarPlayerController::ToggleUnitNum1(const FInputActionValue& Value)
+{
+	ToggleUnitNum(EUnitNum::EUN_Unit1);
+}
+
+void APolyWarPlayerController::ToggleUnitNum2(const FInputActionValue& Value)
+{
+	ToggleUnitNum(EUnitNum::EUN_Unit2);
+}
+
+void APolyWarPlayerController::ToggleUnitNum3(const FInputActionValue& Value)
+{
+	ToggleUnitNum(EUnitNum::EUN_Unit3);
+}
+
+void APolyWarPlayerController::ToggleUnitNum4(const FInputActionValue& Value)
+{
+	ToggleUnitNum(EUnitNum::EUN_Unit4);
+}
+
+void APolyWarPlayerController::ToggleUnitNum5(const FInputActionValue& Value)
+{
+	ToggleUnitNum(EUnitNum::EUN_Unit5);
+}
+
+void APolyWarPlayerController::ToggleUnitNum6(const FInputActionValue& Value)
+{
+	ToggleUnitNum(EUnitNum::EUN_Unit6);
+}
+
+void APolyWarPlayerController::ToggleUnitNum7(const FInputActionValue& Value)
+{
+	ToggleUnitNum(EUnitNum::EUN_Unit7);
+}
+
+void APolyWarPlayerController::ToggleUnitNum8(const FInputActionValue& Value)
+{
+	ToggleUnitNum(EUnitNum::EUN_Unit8);
+}
+
+void APolyWarPlayerController::ToggleOrderAttack(const FInputActionValue& Value)
+{
+	ToggleOrder(EOrderType::EOD_Attack);
+}
+
+void APolyWarPlayerController::ToggleOrderStop(const FInputActionValue& Value)
+{
+	ToggleOrder(EOrderType::EOD_Stop);
+}
+
+void APolyWarPlayerController::ToggleOrderHold(const FInputActionValue& Value)
+{
+	ToggleOrder(EOrderType::EOD_Hold);
+}
+
+void APolyWarPlayerController::ToggleOrderRush(const FInputActionValue& Value)
+{
+	ToggleOrder(EOrderType::EOD_Rush);
+}
+
+void APolyWarPlayerController::ToggleOrderMove(const FInputActionValue& Value)
+{
+	ToggleOrder(EOrderType::EOD_Move);
+}
+
+void APolyWarPlayerController::ToggleOrderCancel(const FInputActionValue& Value)
+{
+	ToggleOrder(EOrderType::EOD_Cancel);
 }

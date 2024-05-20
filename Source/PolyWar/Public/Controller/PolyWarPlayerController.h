@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "InputActionValue.h"
 #include "GameFramework/PlayerController.h"
 #include "PolyWarTypes/OrderType.h"
 #include "PolyWarTypes/UnitNum.h"
@@ -37,7 +38,52 @@ protected:
 	class UInputMappingContext* ControllerInputMapping;
 
 	UPROPERTY(EditDefaultsOnly, Category = "EnhancedInput")
-	class UInputAction* QuitAction;
+	class UInputAction* InputUnitNum1;
+	UPROPERTY(EditDefaultsOnly, Category = "EnhancedInput")
+	class UInputAction* InputUnitNum2;
+	UPROPERTY(EditDefaultsOnly, Category = "EnhancedInput")
+	class UInputAction* InputUnitNum3;
+	UPROPERTY(EditDefaultsOnly, Category = "EnhancedInput")
+	class UInputAction* InputUnitNum4;
+	UPROPERTY(EditDefaultsOnly, Category = "EnhancedInput")
+	class UInputAction* InputUnitNum5;
+	UPROPERTY(EditDefaultsOnly, Category = "EnhancedInput")
+	class UInputAction* InputUnitNum6;
+	UPROPERTY(EditDefaultsOnly, Category = "EnhancedInput")
+	class UInputAction* InputUnitNum7;
+	UPROPERTY(EditDefaultsOnly, Category = "EnhancedInput")
+	class UInputAction* InputUnitNum8;
+
+	UPROPERTY(EditDefaultsOnly, Category = "EnhancedInput")
+	class UInputAction* InputOrderAttack;
+	UPROPERTY(EditDefaultsOnly, Category = "EnhancedInput")
+	class UInputAction* InputOrderStop;
+	UPROPERTY(EditDefaultsOnly, Category = "EnhancedInput")
+	class UInputAction* InputOrderHold;
+	UPROPERTY(EditDefaultsOnly, Category = "EnhancedInput")
+	class UInputAction* InputOrderRush;
+	UPROPERTY(EditDefaultsOnly, Category = "EnhancedInput")
+	class UInputAction* InputOrderMove;
+	UPROPERTY(EditDefaultsOnly, Category = "EnhancedInput")
+	class UInputAction* InputOrderCancel;
+
+	void ToggleUnitNum1(const FInputActionValue& Value);
+	void ToggleUnitNum2(const FInputActionValue& Value);
+	void ToggleUnitNum3(const FInputActionValue& Value);
+	void ToggleUnitNum4(const FInputActionValue& Value);
+	void ToggleUnitNum5(const FInputActionValue& Value);
+	void ToggleUnitNum6(const FInputActionValue& Value);
+	void ToggleUnitNum7(const FInputActionValue& Value);
+	void ToggleUnitNum8(const FInputActionValue& Value);
+	void ToggleUnitNum(EUnitNum UnitNum);
+
+	void ToggleOrderAttack(const FInputActionValue& Value);
+	void ToggleOrderStop(const FInputActionValue& Value);
+	void ToggleOrderHold(const FInputActionValue& Value);
+	void ToggleOrderRush(const FInputActionValue& Value);
+	void ToggleOrderMove(const FInputActionValue& Value);
+	void ToggleOrderCancel(const FInputActionValue& Value);
+	void ToggleOrder(EOrderType Order);
 	//~ End Enhanced Input
 
 private:

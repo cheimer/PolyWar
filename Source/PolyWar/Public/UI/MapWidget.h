@@ -85,6 +85,12 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* CancelText;
 
+	TMap<EUnitNum, UMapButton*> UnitNumMapButtons;
+	TMap<EUnitNum, UTextBlock*> UnitNumTextBlocks;
+
+	TMap<EOrderType, UMapButton*> OrderMapButtons;
+	TMap<EOrderType, UTextBlock*> OrderTextBlocks;
+
 protected:
 	virtual void NativeOnInitialized() override;
 
@@ -98,12 +104,11 @@ private:
 	FEventReply MapClick(FGeometry MyGeometry, const FPointerEvent& MouseEvent);
 
 	UFUNCTION()
-	void UnitButtonClicked(EUnitNum UnitNum, UTextBlock* TextBlock);
+	void UnitButtonClicked(EUnitNum UnitNum);
 	void SetUnitButton(UMapButton* UnitButton, EUnitNum UnitNum, UTextBlock* TextBlock);
 
 	UFUNCTION()
-	void OrderButtonClicked(EOrderType OrderType, UTextBlock* TextBlock);
+	void OrderButtonClicked(EOrderType OrderType);
 	void SetOrderButton(UMapButton* OrderButton, EOrderType OrderType, UTextBlock* TextBlock);
-
 
 };

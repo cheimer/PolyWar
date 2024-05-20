@@ -90,32 +90,36 @@ void UMapWidget::SetUnitButton(UMapButton* UnitButton, EUnitNum UnitNum, UTextBl
 {
 	UnitButton->bIsUnitButton = true;
 	UnitButton->UnitNum = UnitNum;
-	UnitButton->UnitText = TextBlock;
 	UnitButton->OnUnitButtonClicked.AddDynamic(this, &ThisClass::UnitButtonClicked);
+
+	UnitNumMapButtons.Emplace(UnitNum, UnitButton);
+	UnitNumTextBlocks.Emplace(UnitNum, TextBlock);
 }
 
 void UMapWidget::SetOrderButton(UMapButton* OrderButton, EOrderType OrderType, UTextBlock* TextBlock)
 {
 	OrderButton->bIsOrderButton = true;
 	OrderButton->OrderType = OrderType;
-	OrderButton->OrderText = TextBlock;
 	OrderButton->OnOrderButtonClicked.AddDynamic(this, &ThisClass::OrderButtonClicked);
+
+	OrderMapButtons.Emplace(OrderType, OrderButton);
+	OrderTextBlocks.Emplace(OrderType, TextBlock);
 }
 
-void UMapWidget::UnitButtonClicked(EUnitNum UnitNum, UTextBlock* TextBlock)
+void UMapWidget::UnitButtonClicked(EUnitNum UnitNum)
 {
 	PlayerController = PlayerController == nullptr ? Cast<APolyWarPlayerController>(GetOwningPlayer()) : PlayerController;
 	if(!PlayerController) return;
 
-	PlayerController->MapUnitToggle(UnitNum, TextBlock);
+	PlayerController->MapUnitToggle(UnitNum, UnitNumTextBlocks[UnitNum]);
 }
 
-void UMapWidget::OrderButtonClicked(EOrderType OrderType, UTextBlock* TextBlock)
+void UMapWidget::OrderButtonClicked(EOrderType OrderType)
 {
 	PlayerController = PlayerController == nullptr ? Cast<APolyWarPlayerController>(GetOwningPlayer()) : PlayerController;
 	if(!PlayerController) return;
 
-	PlayerController->MapOrderToggle(OrderType, TextBlock);
+	PlayerController->MapOrderToggle(OrderType, OrderTextBlocks[OrderType]);
 }
 
 void UMapWidget::ExitMap()

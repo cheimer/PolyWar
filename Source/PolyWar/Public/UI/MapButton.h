@@ -9,8 +9,8 @@
 #include "MapButton.generated.h"
 
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnUnitButtonClickedEvent, EUnitNum, UnitNum, class UTextBlock*, UnitText);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnOrderButtonClickedEvent, EOrderType, OrderType, class UTextBlock*, OrderText);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnUnitButtonClickedEvent, EUnitNum, UnitNum);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnOrderButtonClickedEvent, EOrderType, OrderType);
 
 /**
  * 
@@ -26,12 +26,10 @@ public:
 	bool bIsUnitButton = false;
 	FOnUnitButtonClickedEvent OnUnitButtonClicked;
 	EUnitNum UnitNum;
-	TObjectPtr<class UTextBlock> UnitText;
 
 	bool bIsOrderButton = false;
 	FOnOrderButtonClickedEvent OnOrderButtonClicked;
 	EOrderType OrderType;
-	TObjectPtr<class UTextBlock> OrderText;
 
 protected:
 	UFUNCTION()

@@ -14,11 +14,11 @@ void UMapButton::MapButtonClicked()
 {
 	if(bIsUnitButton)
 	{
-		OnUnitButtonClicked.Broadcast(UnitNum, UnitText);
+		OnUnitButtonClicked.Broadcast(UnitNum);
 	}
 	else if (bIsOrderButton)
 	{
-		OnOrderButtonClicked.Broadcast(OrderType, OrderText);
+		OnOrderButtonClicked.Broadcast(OrderType);
 	}
 
 }
