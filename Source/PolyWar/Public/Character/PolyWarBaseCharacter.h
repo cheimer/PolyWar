@@ -61,15 +61,6 @@ protected:
 	//~ End Move
 
 	//~ Begin Weapon
-	UPROPERTY(EditAnywhere, Category = "Settable")
-	TSubclassOf<class AWeapon> EquippedWeaponClass;
-
-	UPROPERTY(EditAnywhere, Category = "Settable")
-	TArray<UAnimMontage*> AttackAnimMontages;
-
-	UPROPERTY(EditAnywhere, Category = "Settable")
-	TMap<EWeaponSkill, UAnimMontage*> WeaponSkillAnimMontages;
-
 	UFUNCTION(BlueprintCallable)
 	void WeaponAttackCheckStart();
 
@@ -96,6 +87,29 @@ protected:
 	void DeathTimerFinished();
 	//~ End Health
 
+	UPROPERTY(EditAnywhere, Category = "Set Should")
+	ETeamType TeamType;
+
+private:
+	//~ Begin Weapon
+	class AWeapon* SpawnWeapon(bool IsAttach);
+
+	UFUNCTION(BlueprintCallable, meta = (AllowPrivateAccess = "true"))
+	void ThrowWeapon();
+
+	UFUNCTION(Server, Reliable)
+	void ServerThrowWeapon(const FVector& Direction);
+
+	UPROPERTY(EditAnywhere, Category = "Settable")
+	TSubclassOf<AWeapon> EquippedWeaponClass;
+
+	UPROPERTY(EditAnywhere, Category = "Settable")
+	TArray<UAnimMontage*> AttackAnimMontages;
+
+	UPROPERTY(EditAnywhere, Category = "Settable")
+	TMap<EWeaponSkill, UAnimMontage*> WeaponSkillAnimMontages;
+	//~ End Weapon
+
 	//~ Begin Animation Mirror
 	bool bUseMirror = false;
 
@@ -105,12 +119,6 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	void UseMirrorAnimEnd() {bUseMirror = false;}
 	//~ End Animation Mirror
-
-	UPROPERTY(EditAnywhere, Category = "Set Should")
-	ETeamType TeamType;
-
-private:
-	void SpawnWeapon();
 
 public:
 	bool GetIsRunning() const {return bIsRunning;}

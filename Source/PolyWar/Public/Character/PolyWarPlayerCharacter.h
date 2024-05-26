@@ -17,9 +17,11 @@ class POLYWAR_API APolyWarPlayerCharacter : public APolyWarBaseCharacter
 	
 public:
 	APolyWarPlayerCharacter();
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void PostInitializeComponents() override;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual void Tick(float DeltaSeconds) override;
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	void ResetMapCameraLocation();
 	FVector GetMapCameraPos();
@@ -124,9 +126,17 @@ private:
 	bool bHoldMouseClick = false;
 	//~ End EnhancedInput
 
+	UPROPERTY(Replicated)
+	bool bFocusOnScreen = false;
+
+	UFUNCTION(Server, Unreliable)
+	void ServerSetActorRotation(const FRotator& RotateDirection);
+
 public:
 	USpringArmComponent* GetMapSpringArm() const {return MapSpringArm;}
 	float GetMapHeightMaxLimit() const {return MapHeightMaxLimit;}
 	float GetMapHeightMinLimit() const {return MapHeightMinLimit;}
+	void SetIsFocusOnScreen(const bool InIsFocus) {bFocusOnScreen = InIsFocus;}
+
 
 };

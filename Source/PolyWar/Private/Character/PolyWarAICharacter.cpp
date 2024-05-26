@@ -34,12 +34,12 @@ void APolyWarAICharacter::Tick(float DeltaSeconds)
 			const FVector ToVector = ClosestEnemy->GetActorLocation();
 			const FVector FromVector = GetActorLocation();
 			const FRotator TargetRotator = (ToVector - FromVector).Rotation();
+			const FRotator TargetYawRotator = FRotator(0.0f, TargetRotator.Yaw, 0.0f);
 
 			SetActorRotation(FMath::RInterpTo(
-				GetActorRotation(), TargetRotator, DeltaSeconds, 5.0f));
+				GetActorRotation(), TargetYawRotator, DeltaSeconds, 5.0f));
 		}
 	}
-
 }
 
 void APolyWarAICharacter::StartOrder(EOrderType Order, FVector OrderPos)

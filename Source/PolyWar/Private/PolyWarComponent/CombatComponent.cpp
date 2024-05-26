@@ -4,7 +4,11 @@
 #include "PolyWarComponent/CombatComponent.h"
 
 #include "Character/PolyWarBaseCharacter.h"
+#include "Character/PolyWarPlayerCharacter.h"
+#include "GameFramework/ProjectileMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
+#include "Weapon/ThrowableWeapon.h"
 #include "Weapon/Weapon.h"
 
 UCombatComponent::UCombatComponent()
@@ -31,14 +35,17 @@ void UCombatComponent::BeginPlay()
 
 void UCombatComponent::BeginWeaponAttack()
 {
-	if(!OwnerCharacter || CombatState != ECombatState::ECS_Wait) return;
+	if(!OwnerCharacter || !OwnerCharacter->GetEquippedWeapon() || CombatState != ECombatState::ECS_Wait) return;
 
 	CombatState = ECombatState::ECS_WeaponAttack;
 
 	SetCurrentAnimIndexRand();
-	WeaponAttack(CurrentAnimIndex);
 
-	if(!OwnerCharacter->HasAuthority())
+	if(OwnerCharacter->HasAuthority())
+	{
+		WeaponAttack(CurrentAnimIndex);
+	}
+	else if(!OwnerCharacter->HasAuthority())
 	{
 		ServerWeaponAttack(CurrentAnimIndex);
 	}
@@ -47,16 +54,18 @@ void UCombatComponent::BeginWeaponAttack()
 
 void UCombatComponent::BeginWeaponSkill(EWeaponSkill WeaponSkill)
 {
-	if(!OwnerCharacter || CombatState != ECombatState::ECS_Wait) return;
+	if(!OwnerCharacter || !EquippedWeapon || CombatState != ECombatState::ECS_Wait) return;
+	if(!EquippedWeapon->GetWeaponSkillAble(WeaponSkill)) return;
 
 	CombatState = ECombatState::ECS_WeaponSkill;
-	CurrentWeaponSkill = WeaponSkill;
 
-	WeaponSkillAttack(CurrentWeaponSkill);
-
+	if(OwnerCharacter->HasAuthority())
+	{
+		WeaponSkillAttack(WeaponSkill);
+	}
 	if(!OwnerCharacter->HasAuthority())
 	{
-		ServerWeaponSkillAttack(CurrentWeaponSkill);
+		ServerWeaponSkillAttack(WeaponSkill);
 	}
 }
 
@@ -79,7 +88,7 @@ void UCombatComponent::WeaponAttack(int32 AnimIndex)
 	OwnerCharacter->PlayAttackAnimMontage(false, AnimIndex);
 
 	FTimerHandle AttackTimer;
-	OwnerCharacter->GetWorldTimerManager().SetTimer(AttackTimer, this, &ThisClass::AttackEnd, EquippedWeapon->GetAttackDelay());
+	OwnerCharacter->GetWorldTimerManager().SetTimer(AttackTimer, this, &ThisClass::WeaponAttackEnd, EquippedWeapon->GetAttackDelay());
 
 }
 
@@ -90,22 +99,30 @@ void UCombatComponent::ServerWeaponAttack_Implementation(int32 AnimIndex)
 
 void UCombatComponent::MulticastWeaponAttack_Implementation(int32 AnimIndex)
 {
-	if(!OwnerCharacter || !EquippedWeapon) return;
-	OwnerCharacter->PlayAttackAnimMontage(false, AnimIndex);
-
-	FTimerHandle AttackTimer;
-	OwnerCharacter->GetWorldTimerManager().SetTimer(AttackTimer, this, &ThisClass::AttackEnd, EquippedWeapon->GetAttackDelay());
-
+	WeaponAttack(AnimIndex);
 }
 
 void UCombatComponent::WeaponSkillAttack(EWeaponSkill WeaponSkill)
 {
 	if(!OwnerCharacter || !EquippedWeapon) return;
+
+	if(EquippedWeapon->SkillFocusOnScreen(WeaponSkill))
+	{
+		APolyWarPlayerCharacter* OwnerPlayerCharacter = Cast<APolyWarPlayerCharacter>(OwnerCharacter);
+		if(OwnerPlayerCharacter)
+		{
+			OwnerPlayerCharacter->SetIsFocusOnScreen(true);
+		}
+	}
+
+	CurrentWeaponSkill = WeaponSkill;
+	EquippedWeapon->SetWeaponSkill(WeaponSkill);
+	EquippedWeapon->WeaponSkillStart(WeaponSkill);
 	OwnerCharacter->PlayWeaponSkillAnimMontage(WeaponSkill);
 
 	FTimerHandle AttackTimer;
 	OwnerCharacter->GetWorldTimerManager().SetTimer(
-		AttackTimer, this, &ThisClass::AttackEnd, OwnerCharacter->GetWeaponSkillAnimPlayLen(WeaponSkill));
+		AttackTimer, this, &ThisClass::WeaponSkillEnd, OwnerCharacter->GetWeaponSkillAnimPlayLen(WeaponSkill));
 }
 
 void UCombatComponent::ServerWeaponSkillAttack_Implementation(EWeaponSkill WeaponSkill)
@@ -115,16 +132,22 @@ void UCombatComponent::ServerWeaponSkillAttack_Implementation(EWeaponSkill Weapo
 
 void UCombatComponent::MulticastWeaponSkillAttack_Implementation(EWeaponSkill WeaponSkill)
 {
-	if(!OwnerCharacter || !EquippedWeapon) return;
-	OwnerCharacter->PlayWeaponSkillAnimMontage(WeaponSkill);
-
-	FTimerHandle AttackTimer;
-	OwnerCharacter->GetWorldTimerManager().SetTimer(
-		AttackTimer, this, &ThisClass::AttackEnd, OwnerCharacter->GetWeaponSkillAnimPlayLen(WeaponSkill));
+	WeaponSkillAttack(WeaponSkill);
 }
 
-void UCombatComponent::AttackEnd()
+void UCombatComponent::WeaponAttackEnd()
 {
+	CombatState = ECombatState::ECS_Wait;
+}
+
+void UCombatComponent::WeaponSkillEnd()
+{
+	if(OwnerCharacter && OwnerCharacter->GetEquippedWeapon())
+	{
+		OwnerCharacter->GetEquippedWeapon()->SetWeaponSkill(EWeaponSkill::EWS_MAX);
+	}
+
+	CurrentWeaponSkill = EWeaponSkill::EWS_MAX;
 	CombatState = ECombatState::ECS_Wait;
 }
 
@@ -141,6 +164,26 @@ void UCombatComponent::WeaponAttackCheckEnd()
 	if(!OwnerCharacter || !EquippedWeapon) return;
 
 	EquippedWeapon->SetCollisionEnabled(false);
+}
+
+void UCombatComponent::ThrowWeapon(AWeapon* Weapon, const FVector& Direction)
+{
+	if(!Weapon || !OwnerCharacter || !OwnerCharacter->HasAuthority()) return;
+
+	APolyWarPlayerCharacter* OwnerPlayerCharacter = Cast<APolyWarPlayerCharacter>(OwnerCharacter);
+	if(OwnerPlayerCharacter)
+	{
+		OwnerPlayerCharacter->SetIsFocusOnScreen(false);
+	}
+
+	AThrowableWeapon* ThrowableWeapon = Cast<AThrowableWeapon>(Weapon);
+	if(!ThrowableWeapon) return;
+
+	ThrowableWeapon->SetCollisionEnabled(true);
+	ThrowableWeapon->SetWeaponSkill(CurrentWeaponSkill);
+	ThrowableWeapon->SetProjectile(true);
+	ThrowableWeapon->ThrowWeaponStart(Weapon->GetActorLocation(), Direction);
+
 }
 
 void UCombatComponent::SetCurrentAnimIndexRand()

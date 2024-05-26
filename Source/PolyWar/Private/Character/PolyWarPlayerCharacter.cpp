@@ -13,6 +13,8 @@
 #include "Controller/PolyWarPlayerController.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "Net/UnrealNetwork.h"
 #include "Weapon/Weapon.h"
 
 APolyWarPlayerCharacter::APolyWarPlayerCharacter()
@@ -98,6 +100,52 @@ void APolyWarPlayerCharacter::PostInitializeComponents()
 
 	ResetMapCameraLocation();
 
+}
+
+void APolyWarPlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(APolyWarPlayerCharacter, bFocusOnScreen);
+}
+
+void APolyWarPlayerCharacter::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	if(bFocusOnScreen)
+	{
+		APlayerController* PlayerController = Cast<APlayerController>(GetInstigatorController());
+		if(!PlayerController) return;
+
+		FVector2D ViewportSize;
+		if(GEngine && GEngine->GameViewport)
+		{
+			GEngine->GameViewport->GetViewportSize(ViewportSize);
+		}
+
+		FVector2D Center(ViewportSize.X / 2, ViewportSize.Y / 2);
+		FVector CenterWorldPosition;
+		FVector CenterWorldDirection;
+		bool bScreenToWorld = UGameplayStatics::DeprojectScreenToWorld(
+			PlayerController, Center, CenterWorldPosition, CenterWorldDirection);
+		if(!bScreenToWorld) return;
+
+		FRotator Rotator = CenterWorldDirection.Rotation();
+		FRotator RotateDirection = FRotator(0.0f, Rotator.Yaw, 0.0f);
+
+
+		SetActorRotation(RotateDirection);
+		if(!HasAuthority())
+		{
+			ServerSetActorRotation(RotateDirection);
+		}
+	}
+}
+
+void APolyWarPlayerCharacter::ServerSetActorRotation_Implementation(const FRotator& RotateDirection)
+{
+	SetActorRotation(RotateDirection);
 }
 
 void APolyWarPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)

@@ -22,45 +22,60 @@ class POLYWAR_API AWeapon : public AActor
 public:
 	AWeapon();
 
-	void SetCollisionEnabled(bool IsEnabled);
+	virtual void SetCollisionEnabled(bool IsEnabled);
+
+	virtual bool SkillFocusOnScreen(EWeaponSkill WeaponSkill) {return false;}
+
+	void WeaponSkillStart(EWeaponSkill WeaponSkill);
 
 protected:
 	virtual void BeginPlay() override;
 
 	UFUNCTION()
-	void OnAttackBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	virtual void OnAttackBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
-	// Maybe Not Use
-	// UPROPERTY(EditAnywhere, Category = "Set Should")
-	// EWeaponType WeaponType;
-
-	UPROPERTY(EditAnywhere, Category = "Set Should")
-	EWeaponSkill WeaponSkillFirst;
-
-	UPROPERTY(EditAnywhere, Category = "Set Should")
-	EWeaponSkill WeaponSkillSecond;
-
-	UPROPERTY(EditAnywhere, Category = "Set Should")
-	float WeaponDamage = 50.0f;
-
-	UPROPERTY(EditAnywhere, Category = "Set Should")
-	float AttackDelay = 3.0f;
-
-	UPROPERTY(EditAnywhere, Category = "Set Should")
-	float AttackRange = 50.0f;
-
-	UPROPERTY(EditAnywhere, Category = "Set Should")
-	float AttackAngle = 60.0f;
-
-private:
 	UPROPERTY(VisibleAnywhere, Category = "Component")
 	UStaticMeshComponent* WeaponMesh;
 
 	UPROPERTY(VisibleAnywhere, Category = "Component")
 	class UBoxComponent* AttackCollision;
 
+	UPROPERTY(EditAnywhere, Category = "Set Should")
+	EWeaponSkill WeaponSkillFirst;
+	UPROPERTY(EditAnywhere, Category = "Set Should")
+	float WeaponSkillFirstCoolDown = 10.0f;
+	UPROPERTY(EditAnywhere, Category = "Set Should")
+	float WeaponSkillFirstDamage = 50.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Set Should")
+	EWeaponSkill WeaponSkillSecond;
+	UPROPERTY(EditAnywhere, Category = "Set Should")
+	float WeaponSkillSecondCoolDown = 10.0f;
+	UPROPERTY(EditAnywhere, Category = "Set Should")
+	float WeaponSkillSecondDamage = 50.0f;
+
+	EWeaponSkill CurrentWeaponSkill = EWeaponSkill::EWS_MAX;
+
+	virtual void WeaponSkillAttack(class APolyWarBaseCharacter* Victim);
+
+	UPROPERTY(EditAnywhere, Category = "Set Should")
+	float WeaponDamage = 50.0f;
+	UPROPERTY(EditAnywhere, Category = "Set Should")
+	float AttackDelay = 2.0f;
+	UPROPERTY(EditAnywhere, Category = "Set Should")
+	float AttackRange = 50.0f;
+	UPROPERTY(EditAnywhere, Category = "Set Should")
+	float AttackAngle = 60.0f;
+
+private:
 	TArray<TObjectPtr<AActor>> HitActors;
+
+	bool bWeaponSkillFirstAble = true;
+	bool bWeaponSkillSecondAble = true;
+
+	void WeaponSkillFirstReady();
+	void WeaponSkillSecondReady();
 
 public:
 	float GetWeaponDamage() const {return WeaponDamage;}
@@ -69,5 +84,7 @@ public:
 	float GetAttackAngle() const {return AttackAngle;}
 	EWeaponSkill GetWeaponSkillFirst() const {return WeaponSkillFirst;}
 	EWeaponSkill GetWeaponSkillSecond() const {return WeaponSkillSecond;}
+	void SetWeaponSkill(const EWeaponSkill WeaponSkill);
+	bool GetWeaponSkillAble(EWeaponSkill WeaponSkill);
 
 };

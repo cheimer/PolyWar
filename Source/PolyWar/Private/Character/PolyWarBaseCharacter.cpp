@@ -6,6 +6,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 #include "Perception/AIPerceptionStimuliSourceComponent.h"
 #include "Perception/AISense_Sight.h"
@@ -61,7 +62,7 @@ void APolyWarBaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	SpawnWeapon();
+	SpawnWeapon(true);
 
 	if(HasAuthority())
 	{
@@ -125,9 +126,9 @@ void APolyWarBaseCharacter::DeathTimerFinished()
 	Destroy();
 }
 
-void APolyWarBaseCharacter::SpawnWeapon()
+AWeapon* APolyWarBaseCharacter::SpawnWeapon(bool IsAttach)
 {
-	if(!EquippedWeaponClass || !GetMesh() || !GetWorld() || !HasAuthority()) return;
+	if(!EquippedWeaponClass || !GetMesh() || !GetWorld() || !HasAuthority()) return nullptr;
 
 	AWeapon* Weapon = GetWorld()->SpawnActor<AWeapon>(EquippedWeaponClass);
 	Weapon->SetOwner(this);
@@ -135,13 +136,66 @@ void APolyWarBaseCharacter::SpawnWeapon()
 	const USkeletalMeshSocket* HandSocket = GetMesh()->GetSocketByName(RightHandSocket);
 	if(HandSocket)
 	{
-		HandSocket->AttachActor(Weapon, GetMesh());
+		if(IsAttach)
+		{
+			HandSocket->AttachActor(Weapon, GetMesh());
+		}
+		else
+		{
+			Weapon->SetActorLocation(HandSocket->GetSocketLocation(GetMesh()));
+		}
+
 	}
-	if(CombatComponent && Weapon)
+	if(Weapon && CombatComponent && !CombatComponent->GetEquippedWeapon())
 	{
 		CombatComponent->SetEquippedWeapon(Weapon);
 	}
 
+	return Weapon;
+}
+
+void APolyWarBaseCharacter::ThrowWeapon()
+{
+	if(!CombatComponent || !IsLocallyControlled()) return;
+
+	APlayerController* PlayerController = Cast<APlayerController>(GetInstigatorController());
+	if(!PlayerController) return;
+
+	FVector2D ViewportSize;
+	if(GEngine && GEngine->GameViewport)
+	{
+		GEngine->GameViewport->GetViewportSize(ViewportSize);
+	}
+
+	FVector2D Center(ViewportSize.X / 2, ViewportSize.Y / 2);
+	FVector CenterWorldPosition;
+	FVector CenterWorldDirection;
+	bool bScreenToWorld = UGameplayStatics::DeprojectScreenToWorld(
+		PlayerController, Center, CenterWorldPosition, CenterWorldDirection);
+	if(!bScreenToWorld) return;
+
+	if(HasAuthority())
+	{
+		AWeapon* SpawnedWeapon = SpawnWeapon(false);
+
+		if(!SpawnedWeapon) return;
+		CombatComponent->ThrowWeapon(SpawnedWeapon, CenterWorldDirection);
+	}
+	else if (!HasAuthority())
+	{
+		ServerThrowWeapon(CenterWorldDirection);
+	}
+
+}
+
+void APolyWarBaseCharacter::ServerThrowWeapon_Implementation(const FVector& Direction)
+{
+	if(!CombatComponent) return;
+
+	AWeapon* SpawnedWeapon = SpawnWeapon(false);
+
+	if(!SpawnedWeapon) return;
+	CombatComponent->ThrowWeapon(SpawnedWeapon, Direction);
 }
 
 void APolyWarBaseCharacter::WeaponAttack()
@@ -180,7 +234,7 @@ void APolyWarBaseCharacter::PlayAttackAnimMontage(bool RandPlay, int32 Index)
 
 void APolyWarBaseCharacter::PlayWeaponSkillAnimMontage(EWeaponSkill WeaponSkill)
 {
-	if(WeaponSkillAnimMontages[WeaponSkill])
+	if(WeaponSkillAnimMontages.Contains(WeaponSkill))
 	{
 		PlayAnimMontage(WeaponSkillAnimMontages[WeaponSkill]);
 	}
@@ -277,7 +331,7 @@ float APolyWarBaseCharacter::GetWeaponAttackAngle() const
 float APolyWarBaseCharacter::GetWeaponSkillAnimPlayLen(EWeaponSkill WeaponSkill) const
 {
 	if(!CombatComponent || !CombatComponent->GetEquippedWeapon()) return -1.0f;
-	if(!WeaponSkillAnimMontages[WeaponSkill]) return -1.0f;
+	if(!WeaponSkillAnimMontages.Contains(WeaponSkill)) return -1.0f;
 
 	return WeaponSkillAnimMontages[WeaponSkill]->GetPlayLength();
 }

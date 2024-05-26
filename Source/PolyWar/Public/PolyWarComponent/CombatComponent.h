@@ -35,13 +35,15 @@ public:
 	void WeaponAttackCheckStart();
 	void WeaponAttackCheckEnd();
 
+	void ThrowWeapon(class AWeapon* Weapon, const FVector& Direction);
+
 protected:
 	virtual void BeginPlay() override;
 
 private:
 	TObjectPtr<class APolyWarBaseCharacter> OwnerCharacter;
 	UPROPERTY(Replicated)
-	TObjectPtr<class AWeapon> EquippedWeapon;
+	TObjectPtr<AWeapon> EquippedWeapon;
 
 	UPROPERTY(ReplicatedUsing = "OnRep_CombatState")
 	ECombatState CombatState = ECombatState::ECS_Wait;
@@ -60,7 +62,8 @@ private:
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastWeaponSkillAttack(EWeaponSkill WeaponSkill);
 
-	void AttackEnd();
+	void WeaponAttackEnd();
+	void WeaponSkillEnd();
 
 	UPROPERTY(Replicated)
 	EWeaponSkill CurrentWeaponSkill;

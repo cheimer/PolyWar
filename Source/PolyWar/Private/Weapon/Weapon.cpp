@@ -5,7 +5,6 @@
 
 #include "Character/PolyWarBaseCharacter.h"
 #include "Components/BoxComponent.h"
-#include "Engine/DamageEvents.h"
 #include "Kismet/GameplayStatics.h"
 
 AWeapon::AWeapon()
@@ -17,7 +16,7 @@ AWeapon::AWeapon()
 	WeaponMesh = CreateDefaultSubobject<UStaticMeshComponent>("WeaponMesh");
 	SetRootComponent(WeaponMesh);
 	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	WeaponMesh->SetCollisionResponseToAllChannels(ECR_Block);
+	WeaponMesh->SetCollisionResponseToAllChannels(ECR_Ignore);
 	WeaponMesh->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 
 	AttackCollision = CreateDefaultSubobject<UBoxComponent>("AttackCollision");
@@ -63,11 +62,80 @@ void AWeapon::OnAttackBeginOverlap(UPrimitiveComponent* OverlappedComponent, AAc
 			return;
 		}
 		HitActors.Emplace(Victim);
-		if(GetOwner()->GetInstigatorController())
+		if(CurrentWeaponSkill == EWeaponSkill::EWS_MAX)
 		{
-			UGameplayStatics::ApplyDamage(Victim, WeaponDamage,
-				GetOwner()->GetInstigatorController(), GetOwner(), UDamageType::StaticClass());
+			if(GetOwner()->GetInstigatorController())
+			{
+				UGameplayStatics::ApplyDamage(Victim, WeaponDamage,
+					GetOwner()->GetInstigatorController(), GetOwner(), UDamageType::StaticClass());
+			}
+		}
+		else
+		{
+			WeaponSkillAttack(Victim);
 		}
 	}
 
+}
+
+void AWeapon::WeaponSkillAttack(APolyWarBaseCharacter* Victim)
+{
+	UGameplayStatics::ApplyDamage(Victim, WeaponDamage,
+		GetOwner()->GetInstigatorController(), GetOwner(), UDamageType::StaticClass());
+}
+
+void AWeapon::WeaponSkillStart(EWeaponSkill WeaponSkill)
+{
+	if(!GetOwner()) return;
+	FTimerHandle SkillCoolTimer;
+
+	if(WeaponSkill == WeaponSkillFirst)
+	{
+		bWeaponSkillFirstAble = false;
+		GetWorldTimerManager().SetTimer(SkillCoolTimer, this, &ThisClass::WeaponSkillFirstReady, WeaponSkillFirstCoolDown);
+	}
+	else if(WeaponSkill == WeaponSkillSecond)
+	{
+		bWeaponSkillSecondAble = false;
+		GetWorldTimerManager().SetTimer(SkillCoolTimer, this, &ThisClass::WeaponSkillSecondReady, WeaponSkillSecondCoolDown);
+	}
+}
+
+void AWeapon::WeaponSkillFirstReady()
+{
+	bWeaponSkillFirstAble = true;
+}
+
+void AWeapon::WeaponSkillSecondReady()
+{
+	bWeaponSkillSecondAble = true;
+}
+
+/*
+ * Get, Set Func
+ */
+void AWeapon::SetWeaponSkill(const EWeaponSkill WeaponSkill)
+{
+	if(WeaponSkill == WeaponSkillFirst || WeaponSkill == WeaponSkillSecond)
+	{
+		CurrentWeaponSkill = WeaponSkill;
+	}
+	else
+	{
+		CurrentWeaponSkill = EWeaponSkill::EWS_MAX;
+	}
+}
+
+bool AWeapon::GetWeaponSkillAble(EWeaponSkill WeaponSkill)
+{
+	if(WeaponSkill == WeaponSkillFirst)
+	{
+		return bWeaponSkillFirstAble;
+	}
+	if(WeaponSkill == WeaponSkillSecond)
+	{
+		return bWeaponSkillSecondAble;
+	}
+
+	return false;
 }
