@@ -8,6 +8,7 @@
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
+#include "Weapon/Spell.h"
 #include "Weapon/ThrowableWeapon.h"
 #include "Weapon/Weapon.h"
 
@@ -67,6 +68,12 @@ void UCombatComponent::BeginWeaponSkill(EWeaponSkill WeaponSkill)
 	{
 		ServerWeaponSkillAttack(WeaponSkill);
 	}
+}
+
+void UCombatComponent::BeginSpell(TSubclassOf<ASpell> Spell)
+{
+	if(!Spell) return;
+	UE_LOG(LogTemp, Warning, TEXT("%s"), *Spell->GetName());
 }
 
 void UCombatComponent::OnRep_CombatState()

@@ -12,6 +12,7 @@
 #include "Perception/AISense_Sight.h"
 #include "PolyWarComponent/CombatComponent.h"
 #include "PolyWarComponent/HealthComponent.h"
+#include "PolyWarComponent/SpellComponent.h"
 #include "Weapon/Weapon.h"
 
 APolyWarBaseCharacter::APolyWarBaseCharacter()
@@ -31,6 +32,9 @@ APolyWarBaseCharacter::APolyWarBaseCharacter()
 	HealthComponent = CreateDefaultSubobject<UHealthComponent>("HealthComponent");
 	HealthComponent->SetIsReplicated(true);
 
+	SpellComponent = CreateDefaultSubobject<USpellComponent>("SpellComponent");
+	SpellComponent->SetIsReplicated(true);
+
 	AIPerceptionSourceComponent = CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>("AIPerceptionSourceComponent");
 	AIPerceptionSourceComponent->RegisterForSense(UAISense_Sight::StaticClass());
 	AIPerceptionSourceComponent->RegisterWithPerceptionSystem();
@@ -48,6 +52,10 @@ void APolyWarBaseCharacter::PostInitializeComponents()
 	if(HealthComponent)
 	{
 		HealthComponent->SetOwnerCharacter(this);
+	}
+	if(SpellComponent)
+	{
+		SpellComponent->SetOwnerCharacter(this);
 	}
 }
 
@@ -212,6 +220,14 @@ void APolyWarBaseCharacter::WeaponSkillAttack(EWeaponSkill WeaponSkill)
 	if(bIsOpenMap) return;
 
 	CombatComponent->BeginWeaponSkill(WeaponSkill);
+}
+
+void APolyWarBaseCharacter::SpellAttack(TSubclassOf<ASpell> Spell)
+{
+	if(!CombatComponent || !SpellComponent) return;
+	if(bIsOpenMap) return;
+
+	CombatComponent->BeginSpell(Spell);
 }
 
 void APolyWarBaseCharacter::PlayAttackAnimMontage(bool RandPlay, int32 Index)

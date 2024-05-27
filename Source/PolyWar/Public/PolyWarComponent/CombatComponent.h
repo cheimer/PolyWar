@@ -31,6 +31,7 @@ public:
 
 	void BeginWeaponAttack();
 	void BeginWeaponSkill(EWeaponSkill WeaponSkill);
+	void BeginSpell(TSubclassOf<class ASpell> Spell);
 
 	void WeaponAttackCheckStart();
 	void WeaponAttackCheckEnd();

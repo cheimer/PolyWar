@@ -15,6 +15,8 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
+#include "PolyWarComponent/SpellComponent.h"
+#include "Weapon/Spell.h"
 #include "Weapon/Weapon.h"
 
 APolyWarPlayerCharacter::APolyWarPlayerCharacter()
@@ -198,6 +200,18 @@ void APolyWarPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerI
 		{
 			EnhancedInputComponent->BindAction(InputWeaponSkillSecond, ETriggerEvent::Triggered, this, &ThisClass::WeaponSkillSecond);
 		}
+		if(InputSpellFirst)
+		{
+			EnhancedInputComponent->BindAction(InputSpellFirst, ETriggerEvent::Triggered, this, &ThisClass::SpellFirst);
+		}
+		if(InputSpellSecond)
+		{
+			EnhancedInputComponent->BindAction(InputSpellSecond, ETriggerEvent::Triggered, this, &ThisClass::SpellSecond);
+		}
+		if(InputSpellUlt)
+		{
+			EnhancedInputComponent->BindAction(InputSpellUlt, ETriggerEvent::Triggered, this, &ThisClass::SpellUlt);
+		}
 	}
 }
 
@@ -366,4 +380,25 @@ void APolyWarPlayerCharacter::WeaponSkillSecond(const FInputActionValue& Value)
 {
 	if(!GetEquippedWeapon()) return;
 	WeaponSkillAttack(GetEquippedWeapon()->GetWeaponSkillSecond());
+}
+
+void APolyWarPlayerCharacter::SpellFirst(const FInputActionValue& Value)
+{
+	if(!SpellComponent || !SpellComponent->GetSpellFirstClass()) return;
+
+	SpellAttack(SpellComponent->GetSpellFirstClass());
+}
+
+void APolyWarPlayerCharacter::SpellSecond(const FInputActionValue& Value)
+{
+	if(!SpellComponent || !SpellComponent->GetSpellSecondClass()) return;
+
+	SpellAttack(SpellComponent->GetSpellSecondClass());
+}
+
+void APolyWarPlayerCharacter::SpellUlt(const FInputActionValue& Value)
+{
+	if(!SpellComponent || !SpellComponent->GetSpellUltClass()) return;
+
+	SpellAttack(SpellComponent->GetSpellUltClass());
 }

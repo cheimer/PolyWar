@@ -32,6 +32,7 @@ public:
 
 	virtual void WeaponAttack();
 	virtual void WeaponSkillAttack(EWeaponSkill WeaponSkill);
+	virtual void SpellAttack(TSubclassOf<class ASpell> Spell);
 
 protected:
 	virtual void BeginPlay() override;
@@ -45,7 +46,11 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Component")
 	class UHealthComponent* HealthComponent;
 
-	TObjectPtr<class UAIPerceptionStimuliSourceComponent> AIPerceptionSourceComponent;
+	UPROPERTY(VisibleAnywhere, Category = "Component")
+	class USpellComponent* SpellComponent;
+
+	UPROPERTY(VisibleAnywhere, Category = "Component")
+	class UAIPerceptionStimuliSourceComponent* AIPerceptionSourceComponent;
 	//~ End Components
 
 	//~ Begin Move
@@ -110,16 +115,6 @@ private:
 	TMap<EWeaponSkill, UAnimMontage*> WeaponSkillAnimMontages;
 	//~ End Weapon
 
-	//~ Begin Animation Mirror
-	bool bUseMirror = false;
-
-	UFUNCTION(BlueprintCallable)
-	void UseMirrorAnimStart() {bUseMirror = true;}
-
-	UFUNCTION(BlueprintCallable)
-	void UseMirrorAnimEnd() {bUseMirror = false;}
-	//~ End Animation Mirror
-
 public:
 	bool GetIsRunning() const {return bIsRunning;}
 	bool GetIsAttacking() const;
@@ -136,6 +131,5 @@ public:
 	void SetIsOpenMap(bool SetIsOpenMap) {bIsOpenMap = SetIsOpenMap;}
 	ETeamType GetTeamType() const {return TeamType;}
 	void SetTeamType(ETeamType InTeamType) {TeamType = InTeamType;}
-	bool GetUseMirror() const {return bUseMirror;}
 
 };

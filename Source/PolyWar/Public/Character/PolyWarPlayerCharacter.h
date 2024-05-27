@@ -78,6 +78,15 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "EnhancedInput")
 	UInputAction* InputWeaponSkillSecond;
 
+	UPROPERTY(EditDefaultsOnly, Category = "EnhancedInput")
+	UInputAction* InputSpellFirst;
+
+	UPROPERTY(EditDefaultsOnly, Category = "EnhancedInput")
+	UInputAction* InputSpellSecond;
+
+	UPROPERTY(EditDefaultsOnly, Category = "EnhancedInput")
+	UInputAction* InputSpellUlt;
+
 	void MoveForwardRight(const FInputActionValue& Value);
 	void LookUpRight(const FInputActionValue& Value);
 	virtual void Jump() override;
@@ -96,6 +105,10 @@ protected:
 
 	void WeaponSkillFirst(const FInputActionValue& Value);
 	void WeaponSkillSecond(const FInputActionValue& Value);
+
+	void SpellFirst(const FInputActionValue& Value);
+	void SpellSecond(const FInputActionValue& Value);
+	void SpellUlt(const FInputActionValue& Value);
 	//~ End EnhancedInput
 
 private:

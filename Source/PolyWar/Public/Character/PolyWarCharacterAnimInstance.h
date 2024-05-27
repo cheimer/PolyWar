@@ -34,7 +34,4 @@ private:
 	UPROPERTY(BlueprintReadOnly, Category = "PolyWar", meta = (AllowPrivateAccess = "true"))
 	bool bIsOpenMap = false;
 
-	UPROPERTY(BlueprintReadOnly, Category = "PolyWar", meta = (AllowPrivateAccess = "true"))
-	bool bUseMirror = false;
-
 };
