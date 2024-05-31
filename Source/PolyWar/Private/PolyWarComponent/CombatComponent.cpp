@@ -5,9 +5,8 @@
 
 #include "Character/PolyWarBaseCharacter.h"
 #include "Character/PolyWarPlayerCharacter.h"
-#include "GameFramework/ProjectileMovementComponent.h"
-#include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
+#include "PolyWarComponent/SpellComponent.h"
 #include "Weapon/Spell.h"
 #include "Weapon/ThrowableWeapon.h"
 #include "Weapon/Weapon.h"
@@ -25,6 +24,7 @@ void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	DOREPLIFETIME(UCombatComponent, CombatState);
 	DOREPLIFETIME(UCombatComponent, CurrentAnimIndex)
 	DOREPLIFETIME(UCombatComponent, CurrentWeaponSkill)
+	DOREPLIFETIME(UCombatComponent, CurrentSpell);
 	DOREPLIFETIME(UCombatComponent, EquippedWeapon)
 }
 
@@ -38,9 +38,9 @@ void UCombatComponent::BeginWeaponAttack()
 {
 	if(!OwnerCharacter || !OwnerCharacter->GetEquippedWeapon() || CombatState != ECombatState::ECS_Wait) return;
 
-	CombatState = ECombatState::ECS_WeaponAttack;
-
 	SetCurrentAnimIndexRand();
+
+	CombatState = ECombatState::ECS_WeaponAttack;
 
 	if(OwnerCharacter->HasAuthority())
 	{
@@ -58,6 +58,7 @@ void UCombatComponent::BeginWeaponSkill(EWeaponSkill WeaponSkill)
 	if(!OwnerCharacter || !EquippedWeapon || CombatState != ECombatState::ECS_Wait) return;
 	if(!EquippedWeapon->GetWeaponSkillAble(WeaponSkill)) return;
 
+	CurrentWeaponSkill = WeaponSkill;
 	CombatState = ECombatState::ECS_WeaponSkill;
 
 	if(OwnerCharacter->HasAuthority())
@@ -72,8 +73,19 @@ void UCombatComponent::BeginWeaponSkill(EWeaponSkill WeaponSkill)
 
 void UCombatComponent::BeginSpell(TSubclassOf<ASpell> Spell)
 {
-	if(!Spell) return;
-	UE_LOG(LogTemp, Warning, TEXT("%s"), *Spell->GetName());
+	if(!OwnerCharacter || !SpellComponent || CombatState != ECombatState::ECS_Wait || !Spell) return;
+
+	CurrentSpell = Spell;
+	CombatState = ECombatState::ECS_SpellCast;
+
+	if(OwnerCharacter->HasAuthority())
+	{
+		SpellCast(Spell);
+	}
+	if(!OwnerCharacter->HasAuthority())
+	{
+		ServerSpellCast(Spell);
+	}
 }
 
 void UCombatComponent::OnRep_CombatState()
@@ -86,6 +98,9 @@ void UCombatComponent::OnRep_CombatState()
 	case ECombatState::ECS_WeaponSkill:
 		WeaponSkillAttack(CurrentWeaponSkill);
 		break;
+	case ECombatState::ECS_SpellCast:
+		SpellCast(CurrentSpell);
+		break;
 	}
 }
 
@@ -95,7 +110,9 @@ void UCombatComponent::WeaponAttack(int32 AnimIndex)
 	OwnerCharacter->PlayAttackAnimMontage(false, AnimIndex);
 
 	FTimerHandle AttackTimer;
-	OwnerCharacter->GetWorldTimerManager().SetTimer(AttackTimer, this, &ThisClass::WeaponAttackEnd, EquippedWeapon->GetAttackDelay());
+	float Delay = EquippedWeapon->GetAttackDelay() > OwnerCharacter->GetAttackAnimMontageLen(AnimIndex) ?
+		EquippedWeapon->GetAttackDelay() : OwnerCharacter->GetAttackAnimMontageLen(AnimIndex);
+	OwnerCharacter->GetWorldTimerManager().SetTimer(AttackTimer, this, &ThisClass::WeaponAttackEnd, Delay * 0.9f);
 
 }
 
@@ -129,7 +146,7 @@ void UCombatComponent::WeaponSkillAttack(EWeaponSkill WeaponSkill)
 
 	FTimerHandle AttackTimer;
 	OwnerCharacter->GetWorldTimerManager().SetTimer(
-		AttackTimer, this, &ThisClass::WeaponSkillEnd, OwnerCharacter->GetWeaponSkillAnimPlayLen(WeaponSkill));
+		AttackTimer, this, &ThisClass::WeaponSkillEnd, OwnerCharacter->GetWeaponSkillAnimPlayLen(WeaponSkill) * 0.9f);
 }
 
 void UCombatComponent::ServerWeaponSkillAttack_Implementation(EWeaponSkill WeaponSkill)
@@ -140,6 +157,37 @@ void UCombatComponent::ServerWeaponSkillAttack_Implementation(EWeaponSkill Weapo
 void UCombatComponent::MulticastWeaponSkillAttack_Implementation(EWeaponSkill WeaponSkill)
 {
 	WeaponSkillAttack(WeaponSkill);
+}
+
+void UCombatComponent::SpellCast(TSubclassOf<ASpell> Spell)
+{
+	if(!OwnerCharacter || !SpellComponent || !Spell) return;
+
+	APolyWarPlayerCharacter* OwnerPlayerCharacter = Cast<APolyWarPlayerCharacter>(OwnerCharacter);
+	if(OwnerPlayerCharacter)
+	{
+		OwnerPlayerCharacter->SetIsFocusOnScreen(true);
+	}
+
+	CurrentSpell = Spell;
+
+	UAnimMontage* SpellAnimMontage = SpellComponent->GetSpellAnimMontage(Spell);
+	if(SpellAnimMontage)
+	{
+		OwnerCharacter->PlaySpellAnimMontage(SpellAnimMontage);
+	}
+
+	SpellComponent->SpellStart(Spell);
+}
+
+void UCombatComponent::ServerSpellCast_Implementation(TSubclassOf<ASpell> Spell)
+{
+	MulticastSpellCast(Spell);
+}
+
+void UCombatComponent::MulticastSpellCast_Implementation(TSubclassOf<ASpell> Spell)
+{
+	SpellCast(Spell);
 }
 
 void UCombatComponent::WeaponAttackEnd()
@@ -155,6 +203,11 @@ void UCombatComponent::WeaponSkillEnd()
 	}
 
 	CurrentWeaponSkill = EWeaponSkill::EWS_MAX;
+	CombatState = ECombatState::ECS_Wait;
+}
+
+void UCombatComponent::SpellCastEnd()
+{
 	CombatState = ECombatState::ECS_Wait;
 }
 
@@ -193,6 +246,19 @@ void UCombatComponent::ThrowWeapon(AWeapon* Weapon, const FVector& Direction)
 
 }
 
+void UCombatComponent::SpellEffect()
+{
+	if(!SpellComponent) return;
+
+	APolyWarPlayerCharacter* OwnerPlayerCharacter = Cast<APolyWarPlayerCharacter>(OwnerCharacter);
+	if(OwnerPlayerCharacter)
+	{
+		OwnerPlayerCharacter->SetIsFocusOnScreen(false);
+	}
+
+	SpellComponent->SpellEffect();
+}
+
 void UCombatComponent::SetCurrentAnimIndexRand()
 {
 	if(!OwnerCharacter || OwnerCharacter->GetAttackAnimMontagesLen() == 0) return;
@@ -208,6 +274,13 @@ void UCombatComponent::SetOwnerCharacter(APolyWarBaseCharacter* InOwnerCharacter
 	if(!InOwnerCharacter) return;
 
 	OwnerCharacter = InOwnerCharacter;
+}
+
+void UCombatComponent::SetSpellComponent(USpellComponent* InSpellComponent)
+{
+	if(!InSpellComponent) return;
+
+	SpellComponent = InSpellComponent;
 }
 
 void UCombatComponent::SetEquippedWeapon(AWeapon* InEquippedWeapon)

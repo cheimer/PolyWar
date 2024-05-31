@@ -27,12 +27,15 @@ public:
 
 	void PlayAttackAnimMontage(bool RandPlay = true, int32 Index = 0);
 	void PlayWeaponSkillAnimMontage(EWeaponSkill WeaponSkill);
+	void PlaySpellAnimMontage(UAnimMontage* SpellAnimMontage);
 	void PlayDamagedAnimMontage(bool RandPlay = true, int32 Index = 0);
 	void PlayDeathAnimMontage(bool RandPlay = true, int32 Index = 0);
 
 	virtual void WeaponAttack();
 	virtual void WeaponSkillAttack(EWeaponSkill WeaponSkill);
 	virtual void SpellAttack(TSubclassOf<class ASpell> Spell);
+
+	bool GetViewportCenter(FVector& CenterWorldPosition, FVector& CenterWorldDirection);
 
 protected:
 	virtual void BeginPlay() override;
@@ -115,6 +118,10 @@ private:
 	TMap<EWeaponSkill, UAnimMontage*> WeaponSkillAnimMontages;
 	//~ End Weapon
 
+	UFUNCTION(BlueprintCallable, meta = (AllowPrivateAccess = "true"))
+	void SpellEffect();
+
+
 public:
 	bool GetIsRunning() const {return bIsRunning;}
 	bool GetIsAttacking() const;
@@ -122,6 +129,7 @@ public:
 	float GetWeaponAttackRange() const;
 	float GetWeaponAttackAngle() const;
 	int32 GetAttackAnimMontagesLen() const {return AttackAnimMontages.Num();}
+	float GetAttackAnimMontageLen (int32 MontageNum);
 	float GetWeaponSkillAnimPlayLen(EWeaponSkill WeaponSkill) const;
 	int32 GetDamagedAnimMontagesLen() const {return DamagedAnimMontages.Num();}
 	int32 GetDeathAnimMontagesLen() const {return DeathAnimMontages.Num();}

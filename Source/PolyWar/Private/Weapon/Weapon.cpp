@@ -54,10 +54,11 @@ void AWeapon::OnAttackBeginOverlap(UPrimitiveComponent* OverlappedComponent, AAc
 {
 	if(!GetOwner() || GetOwner() == OtherActor) return;
 
+	APolyWarBaseCharacter* OwnerCharacter = Cast<APolyWarBaseCharacter>(GetOwner());
 	APolyWarBaseCharacter* Victim = Cast<APolyWarBaseCharacter>(OtherActor);
-	if(Victim)
+	if(OwnerCharacter && Victim)
 	{
-		if(HitActors.Contains(Victim))
+		if(HitActors.Contains(Victim))// TODO: For Test || Victim->GetTeamType() == OwnerCharacter->GetTeamType())
 		{
 			return;
 		}

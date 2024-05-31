@@ -14,8 +14,7 @@ enum class ECombatState : uint8
 	ECS_Wait,
 	ECS_WeaponAttack,
 	ECS_WeaponSkill,
-	ECS_SpellCasting,
-	ECS_SpellAttack,
+	ECS_SpellCast,
 
 	ECS_MAX UMETA(Hidden)
 };
@@ -38,11 +37,15 @@ public:
 
 	void ThrowWeapon(class AWeapon* Weapon, const FVector& Direction);
 
+	void SpellCastEnd();
+	void SpellEffect();
+
 protected:
 	virtual void BeginPlay() override;
 
 private:
 	TObjectPtr<class APolyWarBaseCharacter> OwnerCharacter;
+	TObjectPtr<class USpellComponent> SpellComponent;
 	UPROPERTY(Replicated)
 	TObjectPtr<AWeapon> EquippedWeapon;
 
@@ -63,17 +66,27 @@ private:
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastWeaponSkillAttack(EWeaponSkill WeaponSkill);
 
+	void SpellCast(TSubclassOf<ASpell> Spell);
+	UFUNCTION(Server, Reliable)
+	void ServerSpellCast(TSubclassOf<ASpell> Spell);
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastSpellCast(TSubclassOf<ASpell> Spell);
+
 	void WeaponAttackEnd();
 	void WeaponSkillEnd();
 
 	UPROPERTY(Replicated)
 	EWeaponSkill CurrentWeaponSkill;
 	UPROPERTY(Replicated)
+	TSubclassOf<ASpell> CurrentSpell;
+	UPROPERTY(Replicated)
 	int32 CurrentAnimIndex = 0;
 	void SetCurrentAnimIndexRand();
 
 public:
+	USpellComponent* GetSpellComponent() const {return SpellComponent;}
 	void SetOwnerCharacter(APolyWarBaseCharacter* InOwnerCharacter);
+	void SetSpellComponent(USpellComponent* InSpellComponent);
 	void SetEquippedWeapon(AWeapon* InEquippedWeapon);
 	AWeapon* GetEquippedWeapon() const {return EquippedWeapon;}
 	bool GetIsAttacking() const;

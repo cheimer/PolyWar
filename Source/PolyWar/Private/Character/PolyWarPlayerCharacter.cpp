@@ -15,6 +15,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
+#include "PolyWarComponent/CombatComponent.h"
 #include "PolyWarComponent/SpellComponent.h"
 #include "Weapon/Spell.h"
 #include "Weapon/Weapon.h"
@@ -117,20 +118,9 @@ void APolyWarPlayerCharacter::Tick(float DeltaSeconds)
 
 	if(bFocusOnScreen)
 	{
-		APlayerController* PlayerController = Cast<APlayerController>(GetInstigatorController());
-		if(!PlayerController) return;
-
-		FVector2D ViewportSize;
-		if(GEngine && GEngine->GameViewport)
-		{
-			GEngine->GameViewport->GetViewportSize(ViewportSize);
-		}
-
-		FVector2D Center(ViewportSize.X / 2, ViewportSize.Y / 2);
 		FVector CenterWorldPosition;
 		FVector CenterWorldDirection;
-		bool bScreenToWorld = UGameplayStatics::DeprojectScreenToWorld(
-			PlayerController, Center, CenterWorldPosition, CenterWorldDirection);
+		bool bScreenToWorld = GetViewportCenter(CenterWorldPosition, CenterWorldDirection);
 		if(!bScreenToWorld) return;
 
 		FRotator Rotator = CenterWorldDirection.Rotation();
@@ -384,21 +374,21 @@ void APolyWarPlayerCharacter::WeaponSkillSecond(const FInputActionValue& Value)
 
 void APolyWarPlayerCharacter::SpellFirst(const FInputActionValue& Value)
 {
-	if(!SpellComponent || !SpellComponent->GetSpellFirstClass()) return;
+	if(!CombatComponent || !CombatComponent->GetSpellComponent() || !CombatComponent->GetSpellComponent()->GetSpellFirstClass()) return;
 
-	SpellAttack(SpellComponent->GetSpellFirstClass());
+	SpellAttack(CombatComponent->GetSpellComponent()->GetSpellFirstClass());
 }
 
 void APolyWarPlayerCharacter::SpellSecond(const FInputActionValue& Value)
 {
-	if(!SpellComponent || !SpellComponent->GetSpellSecondClass()) return;
+	if(!CombatComponent || !CombatComponent->GetSpellComponent() || !CombatComponent->GetSpellComponent()->GetSpellSecondClass()) return;
 
-	SpellAttack(SpellComponent->GetSpellSecondClass());
+	SpellAttack(CombatComponent->GetSpellComponent()->GetSpellSecondClass());
 }
 
 void APolyWarPlayerCharacter::SpellUlt(const FInputActionValue& Value)
 {
-	if(!SpellComponent || !SpellComponent->GetSpellUltClass()) return;
+	if(!CombatComponent || !CombatComponent->GetSpellComponent() || !CombatComponent->GetSpellComponent()->GetSpellUltClass()) return;
 
-	SpellAttack(SpellComponent->GetSpellUltClass());
+	SpellAttack(CombatComponent->GetSpellComponent()->GetSpellUltClass());
 }

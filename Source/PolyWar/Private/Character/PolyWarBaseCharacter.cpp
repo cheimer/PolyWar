@@ -24,7 +24,7 @@ APolyWarBaseCharacter::APolyWarBaseCharacter()
 	MinNetUpdateFrequency = 33.0f;
 
 	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
-	GetCharacterMovement()->RotationRate = FRotator(0.0f, 360.0f, 0.0f);
+	GetCharacterMovement()->RotationRate = FRotator(0.0f, 720.0f, 0.0f);
 
 	CombatComponent = CreateDefaultSubobject<UCombatComponent>("CombatComponent");
 	CombatComponent->SetIsReplicated(true);
@@ -49,13 +49,17 @@ void APolyWarBaseCharacter::PostInitializeComponents()
 	{
 		CombatComponent->SetOwnerCharacter(this);
 	}
-	if(HealthComponent)
-	{
-		HealthComponent->SetOwnerCharacter(this);
-	}
 	if(SpellComponent)
 	{
 		SpellComponent->SetOwnerCharacter(this);
+	}
+	if(CombatComponent && SpellComponent)
+	{
+		CombatComponent->SetSpellComponent(SpellComponent);
+	}
+	if(HealthComponent)
+	{
+		HealthComponent->SetOwnerCharacter(this);
 	}
 }
 
@@ -166,20 +170,9 @@ void APolyWarBaseCharacter::ThrowWeapon()
 {
 	if(!CombatComponent || !IsLocallyControlled()) return;
 
-	APlayerController* PlayerController = Cast<APlayerController>(GetInstigatorController());
-	if(!PlayerController) return;
-
-	FVector2D ViewportSize;
-	if(GEngine && GEngine->GameViewport)
-	{
-		GEngine->GameViewport->GetViewportSize(ViewportSize);
-	}
-
-	FVector2D Center(ViewportSize.X / 2, ViewportSize.Y / 2);
 	FVector CenterWorldPosition;
 	FVector CenterWorldDirection;
-	bool bScreenToWorld = UGameplayStatics::DeprojectScreenToWorld(
-		PlayerController, Center, CenterWorldPosition, CenterWorldDirection);
+	bool bScreenToWorld = GetViewportCenter(CenterWorldPosition, CenterWorldDirection);
 	if(!bScreenToWorld) return;
 
 	if(HasAuthority())
@@ -206,6 +199,13 @@ void APolyWarBaseCharacter::ServerThrowWeapon_Implementation(const FVector& Dire
 	CombatComponent->ThrowWeapon(SpawnedWeapon, Direction);
 }
 
+void APolyWarBaseCharacter::SpellEffect()
+{
+	if(!CombatComponent) return;
+
+	CombatComponent->SpellEffect();
+}
+
 void APolyWarBaseCharacter::WeaponAttack()
 {
 	if(!CombatComponent || !CombatComponent->GetEquippedWeapon()) return;
@@ -224,7 +224,7 @@ void APolyWarBaseCharacter::WeaponSkillAttack(EWeaponSkill WeaponSkill)
 
 void APolyWarBaseCharacter::SpellAttack(TSubclassOf<ASpell> Spell)
 {
-	if(!CombatComponent || !SpellComponent) return;
+	if(!CombatComponent || !CombatComponent->GetSpellComponent()) return;
 	if(bIsOpenMap) return;
 
 	CombatComponent->BeginSpell(Spell);
@@ -254,6 +254,11 @@ void APolyWarBaseCharacter::PlayWeaponSkillAnimMontage(EWeaponSkill WeaponSkill)
 	{
 		PlayAnimMontage(WeaponSkillAnimMontages[WeaponSkill]);
 	}
+}
+
+void APolyWarBaseCharacter::PlaySpellAnimMontage(UAnimMontage* SpellAnimMontage)
+{
+	PlayAnimMontage(SpellAnimMontage);
 }
 
 void APolyWarBaseCharacter::PlayDamagedAnimMontage(bool RandPlay, int32 Index)
@@ -309,6 +314,22 @@ void APolyWarBaseCharacter::WeaponAttackCheckEnd()
 	}
 }
 
+bool APolyWarBaseCharacter::GetViewportCenter(FVector& CenterWorldPosition, FVector& CenterWorldDirection)
+{
+	APlayerController* PlayerController = Cast<APlayerController>(GetInstigatorController());
+	if(!PlayerController) return false;
+
+	FVector2D ViewportSize;
+	if(GEngine && GEngine->GameViewport)
+	{
+		GEngine->GameViewport->GetViewportSize(ViewportSize);
+	}
+
+	FVector2D Center(ViewportSize.X / 2, ViewportSize.Y / 2);
+	return UGameplayStatics::DeprojectScreenToWorld(
+		PlayerController, Center, CenterWorldPosition, CenterWorldDirection);
+}
+
 
 /*
  * Get, Set Func
@@ -341,6 +362,14 @@ float APolyWarBaseCharacter::GetWeaponAttackAngle() const
 	if(!CombatComponent || !CombatComponent->GetEquippedWeapon()) return -1.0f;
 
 	return CombatComponent->GetEquippedWeapon()->GetAttackAngle();
+}
+
+// If not possible, -1 is returned
+float APolyWarBaseCharacter::GetAttackAnimMontageLen(int32 MontageNum)
+{
+	if(AttackAnimMontages.Num() < MontageNum) return -1.0f;
+
+	return AttackAnimMontages[MontageNum]->GetPlayLength();
 }
 
 // If not possible, -1 is returned

@@ -15,26 +15,49 @@ class POLYWAR_API USpellComponent : public UActorComponent
 
 public:
 	USpellComponent();
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	void SpellStart(TSubclassOf<class ASpell> Spell);
+	void SpellEffect();
+	void SpellEnd();
 
 protected:
 	virtual void BeginPlay() override;
-
 private:
 	TObjectPtr<class APolyWarBaseCharacter> OwnerCharacter;
 
+	TObjectPtr<ASpell> CurrentSpell;
+	TObjectPtr<UAnimMontage> CurrentAnimMontage;
+
 	UPROPERTY(EditAnywhere, Category = "Settable")
-	TSubclassOf<class ASpell> SpellFirstClass;
+	TSubclassOf<ASpell> SpellFirstClass;
+	UPROPERTY(EditAnywhere, Category = "Settable")
+	UAnimMontage* SpellFirstAnimMontage;
 
 	UPROPERTY(EditAnywhere, Category = "Settable")
 	TSubclassOf<ASpell> SpellSecondClass;
+	UPROPERTY(EditAnywhere, Category = "Settable")
+	UAnimMontage* SpellSecondAnimMontage;
 
 	UPROPERTY(EditAnywhere, Category = "Settable")
 	TSubclassOf<ASpell> SpellUltClass;
+	UPROPERTY(EditAnywhere, Category = "Settable")
+	UAnimMontage* SpellUltAnimMontage;
+
+	bool IsValidSpell(TSubclassOf<ASpell> Spell);
+	void SpellCastingEnd();
+
+	void SetCurrentSpellTransform(FTransform& SpawnTransform);
+
+	UFUNCTION(Server, Reliable)
+	void ServerFinishSpawning(const FTransform& SpawnTransform);
 
 public:
 	void SetOwnerCharacter(APolyWarBaseCharacter* OwnerCharacter);
 	TSubclassOf<ASpell> GetSpellFirstClass() const;
 	TSubclassOf<ASpell> GetSpellSecondClass() const;
 	TSubclassOf<ASpell> GetSpellUltClass() const;
+
+	UAnimMontage* GetSpellAnimMontage(TSubclassOf<ASpell> Spell);
 
 };

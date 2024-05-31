@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "PolyWarTypes/SpellName.h"
+#include "PolyWarTypes/SpellType.h"
 #include "Spell.generated.h"
 
 UCLASS()
@@ -14,8 +15,6 @@ class POLYWAR_API ASpell : public AActor
 	
 public:
 	ASpell();
-
-	ESpellName aa;
 
 protected:
 	virtual void BeginPlay() override;
@@ -30,16 +29,39 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Set Should")
 	UParticleSystem* SpellParticle;
 
-	ESpellName CurrentSpellName = ESpellName::ESN_MAX;
+	UPROPERTY(EditAnywhere, Category = "Set Should")
+	ESpellName SpellName;
 
 	UPROPERTY(EditAnywhere, Category = "Set Should")
-	float WeaponDamage = 50.0f;
+	ESpellType SpellType;
+
 	UPROPERTY(EditAnywhere, Category = "Set Should")
-	float AttackDelay = 2.0f;
+	float SpellDamage = 50.0f;
 	UPROPERTY(EditAnywhere, Category = "Set Should")
-	float AttackRange = 50.0f;
+	float SpellCastingTime = -1.0f;
+	UPROPERTY(EditAnywhere, Category = "Set Should")
+	float SpellRange = 500.0f;
+	UPROPERTY(EditAnywhere, Category = "Set Should")
+	float SpellDuration = 1.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Set Should")
+	bool bEffectEnemy = false;
+	UPROPERTY(EditAnywhere, Category = "Set Should")
+	bool bEffectTeam = false;
+	UPROPERTY(EditAnywhere, Category = "Set Should")
+	bool bEffectOwner = false;
+
+	virtual void ApplyEffectOnce(class APolyWarBaseCharacter* EffectedActor);
 
 private:
 	TArray<TObjectPtr<AActor>> HitActors;
+
+	void DestroySpell();
+
+public:
+	float GetSpellCastingTime() const {return SpellCastingTime;}
+	float GetSpellDamage() const {return SpellDamage;}
+	float GetSpellRange() const {return SpellRange;}
+	ESpellType GetSpellType() const {return SpellType;}
 
 };

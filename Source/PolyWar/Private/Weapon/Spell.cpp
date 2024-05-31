@@ -3,7 +3,10 @@
 
 #include "Weapon/Spell.h"
 
+#include "Character/PolyWarBaseCharacter.h"
 #include "Components/SphereComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "Particles/ParticleSystem.h"
 
 ASpell::ASpell()
 {
@@ -23,9 +26,59 @@ void ASpell::BeginPlay()
 	Super::BeginPlay();
 
 	SpellCollision->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnSpellBeginOverlap);
+
+	if(SpellParticle)
+	{
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), SpellParticle, GetActorLocation(), FRotator::ZeroRotator, true);
+	}
+
+	FTimerHandle DestroyTimer;
+	GetWorldTimerManager().SetTimer(DestroyTimer, this, &ThisClass::DestroySpell, SpellDuration);
 	
 }
 
-void ASpell::OnSpellBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void ASpell::OnSpellBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
+	if(!GetOwner()) return;
+	if(GetOwner() == OtherActor && !bEffectOwner) return;
+
+	APolyWarBaseCharacter* OwnerCharacter = Cast<APolyWarBaseCharacter>(GetOwner());
+	APolyWarBaseCharacter* EffectedActor = Cast<APolyWarBaseCharacter>(OtherActor);
+
+	if(OwnerCharacter && EffectedActor)
+	{
+		if(bEffectEnemy && OwnerCharacter->GetTeamType() != EffectedActor->GetTeamType())
+		{
+			ApplyEffectOnce(EffectedActor);
+		}
+		if(bEffectTeam && OwnerCharacter->GetTeamType() == EffectedActor->GetTeamType())
+		{
+			ApplyEffectOnce(EffectedActor);
+		}
+	}
+
+}
+
+void ASpell::ApplyEffectOnce(APolyWarBaseCharacter* EffectedActor)
+{
+	if(HitActors.Contains(EffectedActor))
+	{
+		return;
+	}
+	HitActors.Emplace(EffectedActor);
+
+	// TODO Switch Effect by (SpellName?)
+
+	// TEMP DAMAGE
+	if(GetOwner() && GetOwner()->GetInstigatorController())
+	{
+		UGameplayStatics::ApplyDamage(EffectedActor, SpellDamage,
+			GetOwner()->GetInstigatorController(), GetOwner(), UDamageType::StaticClass());
+	}
+}
+
+void ASpell::DestroySpell()
+{
+	Destroy();
 }
