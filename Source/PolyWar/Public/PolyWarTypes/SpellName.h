@@ -4,13 +4,14 @@ UENUM(BlueprintType)
 enum class ESpellName : uint8
 {
     // AttackSpell
-    ESN_Meteor,
+    ESN_Fireball,
+    ESN_Flare,
 
     // BuffSpell
     ESN_SpeedUp,
 
 	// UltSpell
-	ESN_UltMeteor,
+	ESN_Meteor,
 
 	ESN_MAX UMETA(Hidden)
 };

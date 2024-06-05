@@ -1,12 +1,14 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Weapon/Spell.h"
+#include "Spell/Spell.h"
 
+#include "ParticleHelper.h"
 #include "Character/PolyWarBaseCharacter.h"
 #include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Particles/ParticleSystem.h"
+#include "Particles/ParticleSystemComponent.h"
 
 ASpell::ASpell()
 {
@@ -29,7 +31,8 @@ void ASpell::BeginPlay()
 
 	if(SpellParticle)
 	{
-		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), SpellParticle, GetActorLocation(), FRotator::ZeroRotator, true);
+		CurrentParticle = UGameplayStatics::SpawnEmitterAttached(SpellParticle, SpellCollision);
+		CurrentParticle->OnSystemFinished.AddDynamic(this, &ThisClass::FinishParticle);
 	}
 
 	FTimerHandle DestroyTimer;
@@ -68,9 +71,6 @@ void ASpell::ApplyEffectOnce(APolyWarBaseCharacter* EffectedActor)
 	}
 	HitActors.Emplace(EffectedActor);
 
-	// TODO Switch Effect by (SpellName?)
-
-	// TEMP DAMAGE
 	if(GetOwner() && GetOwner()->GetInstigatorController())
 	{
 		UGameplayStatics::ApplyDamage(EffectedActor, SpellDamage,
@@ -80,5 +80,48 @@ void ASpell::ApplyEffectOnce(APolyWarBaseCharacter* EffectedActor)
 
 void ASpell::DestroySpell()
 {
-	Destroy();
+	SpellCollision->SetSimulatePhysics(false);
+	SpellCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	SpellCollision->SetCollisionResponseToAllChannels(ECR_Ignore);
+
+	if(CurrentParticle->bWasCompleted)
+	{
+		Destroy();
+	}
+	else
+	{
+		CurrentParticle->Deactivate();
+	}
+
+}
+
+void ASpell::FinishParticle(UParticleSystemComponent* PSystem)
+{
+	if(CurrentParticle == PSystem)
+	{
+		Destroy();
+	}
+}
+
+bool ASpell::GetSpawnLocation(FVector& Location)
+{
+	return false;
+}
+
+bool ASpell::LineTraceSpellRange(FHitResult& HitResult)
+{
+	if(!GetOwner()) return false;
+
+	APolyWarBaseCharacter* OwnerCharacter = Cast<APolyWarBaseCharacter>(GetOwner());
+	if(!OwnerCharacter) return false;
+
+	FVector CenterWorldPosition;
+	FVector CenterWorldDirection;
+	bool bScreenToWorld = OwnerCharacter->GetViewportCenter(CenterWorldPosition, CenterWorldDirection);
+	if(!bScreenToWorld) return false;
+
+	FVector EndPosition = CenterWorldPosition + CenterWorldDirection * SpellRange;
+	GetWorld()->LineTraceSingleByChannel(HitResult, CenterWorldPosition, EndPosition, ECC_Visibility);
+
+	return true;
 }

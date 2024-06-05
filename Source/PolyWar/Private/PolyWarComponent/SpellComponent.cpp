@@ -7,7 +7,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 #include "PolyWarComponent/CombatComponent.h"
-#include "Weapon/Spell.h"
+#include "Spell/Spell.h"
 
 USpellComponent::USpellComponent()
 {
@@ -33,7 +33,8 @@ void USpellComponent::SpellStart(TSubclassOf<ASpell> Spell)
 
 	CurrentAnimMontage = GetSpellAnimMontage(Spell);
 
-	CurrentSpell = GetWorld()->SpawnActorDeferred<ASpell>(Spell, OwnerCharacter->GetTransform(), OwnerCharacter, OwnerCharacter);
+	CurrentSpell = GetWorld()->SpawnActorDeferred<ASpell>(Spell, OwnerCharacter->GetTransform(),
+		OwnerCharacter, OwnerCharacter, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
 
 	if(!CurrentAnimMontage || CurrentAnimMontage->GetNumSections() < 3 || !CurrentSpell) return;
 
@@ -73,7 +74,7 @@ void USpellComponent::SpellEffect()
 {
 	if(!GetWorld() || !OwnerCharacter || !CurrentSpell) return;
 
-	// SpellStart->SpawnActor<ASpell> On Server, Client. So Need to remove Client's Spell.
+	// SpellStart->SpawnActor<ASpell> Worked Server, Client. So Need to remove Client's Spell.
 	if(!OwnerCharacter->IsLocallyControlled())
 	{
 		if(!OwnerCharacter->HasAuthority())
@@ -83,13 +84,18 @@ void USpellComponent::SpellEffect()
 		return;
 	}
 
-	FTransform SpawnTransform;
-	SetCurrentSpellTransform(SpawnTransform);
+	FVector SpawnLocation;
+	if(!CurrentSpell->GetSpawnLocation(SpawnLocation)) return;
+
+	FTransform SpawnTransform = OwnerCharacter->GetActorTransform();
+	SpawnTransform.SetLocation(SpawnLocation);
 
 	if(OwnerCharacter->HasAuthority())
+	{
 		CurrentSpell->FinishSpawning(SpawnTransform);
-
-	if(!OwnerCharacter->HasAuthority())
+		CurrentSpell->SetSpawnDefault();
+	}
+	else if(!OwnerCharacter->HasAuthority())
 	{
 		CurrentSpell->Destroy();
 		ServerFinishSpawning(SpawnTransform);
@@ -113,6 +119,7 @@ void USpellComponent::SpellEnd()
 void USpellComponent::ServerFinishSpawning_Implementation(const FTransform& SpawnTransform)
 {
 	CurrentSpell->FinishSpawning(SpawnTransform);
+	CurrentSpell->SetSpawnDefault();
 }
 
 bool USpellComponent::IsValidSpell(TSubclassOf<ASpell> Spell)
@@ -137,46 +144,8 @@ void USpellComponent::SetCurrentSpellTransform(FTransform& SpawnTransform)
 {
 	if(!OwnerCharacter || !CurrentSpell) return;
 
-	FVector CenterWorldPosition;
-	FVector CenterWorldDirection;
-	bool bScreenToWorld = OwnerCharacter->GetViewportCenter(CenterWorldPosition, CenterWorldDirection);
-	if(!bScreenToWorld) return;
-
-	FHitResult HitResult;
-	FVector EndPosition = CenterWorldPosition + CenterWorldDirection * CurrentSpell->GetSpellRange();
-	GetWorld()->LineTraceSingleByChannel(HitResult, CenterWorldPosition, EndPosition, ECC_Visibility);
-
 	FVector SpawnLocation;
-	switch(CurrentSpell->GetSpellType())
-	{
-	case ESpellType::EST_MyAOE:
-		SpawnLocation = OwnerCharacter->GetActorLocation();
-		break;
-	case ESpellType::EST_TargetAOE:
-		if(HitResult.bBlockingHit)
-		{
-			SpawnLocation = HitResult.Location;
-		}
-		else
-		{
-			SpawnLocation = EndPosition;
-		}
-		break;
-	case ESpellType::EST_TargetOverhead:
-		if(HitResult.bBlockingHit)
-		{
-			SpawnLocation = HitResult.ImpactPoint;
-			SpawnLocation.Z += 3000.0f; // TEMP
-		}
-		else
-		{
-			SpawnLocation = EndPosition;
-			SpawnLocation.Z += 3000.0f; // TEMP
-		}
-		break;
-	case ESpellType::EST_MAX:
-		return;
-	}
+	if(!CurrentSpell->GetSpawnLocation(SpawnLocation)) return;
 
 	SpawnTransform = OwnerCharacter->GetActorTransform();
 	SpawnTransform.SetLocation(SpawnLocation);

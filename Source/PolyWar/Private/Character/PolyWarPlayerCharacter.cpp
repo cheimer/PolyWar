@@ -17,7 +17,7 @@
 #include "Net/UnrealNetwork.h"
 #include "PolyWarComponent/CombatComponent.h"
 #include "PolyWarComponent/SpellComponent.h"
-#include "Weapon/Spell.h"
+#include "Spell/Spell.h"
 #include "Weapon/Weapon.h"
 
 APolyWarPlayerCharacter::APolyWarPlayerCharacter()

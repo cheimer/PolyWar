@@ -3,16 +3,19 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Weapon/Spell.h"
-#include "DamageSpell.generated.h"
+#include "Spell/Spell.h"
+#include "SelfSpell.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class POLYWAR_API ADamageSpell : public ASpell
+class POLYWAR_API ASelfSpell : public ASpell
 {
 	GENERATED_BODY()
+
+public:
+	virtual bool GetSpawnLocation(FVector& SpawnLocation) override;
 
 protected:
 	virtual void ApplyEffectOnce(class APolyWarBaseCharacter* EffectedActor) override;

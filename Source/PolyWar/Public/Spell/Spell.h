@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "PolyWarTypes/SpellName.h"
-#include "PolyWarTypes/SpellType.h"
 #include "Spell.generated.h"
 
 UCLASS()
@@ -15,6 +14,10 @@ class POLYWAR_API ASpell : public AActor
 	
 public:
 	ASpell();
+
+	virtual bool GetSpawnLocation(FVector& SpawnLocation);
+
+	virtual void SetSpawnDefault() {}
 
 protected:
 	virtual void BeginPlay() override;
@@ -31,9 +34,6 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Set Should")
 	ESpellName SpellName;
-
-	UPROPERTY(EditAnywhere, Category = "Set Should")
-	ESpellType SpellType;
 
 	UPROPERTY(EditAnywhere, Category = "Set Should")
 	float SpellDamage = 50.0f;
@@ -53,15 +53,20 @@ protected:
 
 	virtual void ApplyEffectOnce(class APolyWarBaseCharacter* EffectedActor);
 
-private:
-	TArray<TObjectPtr<AActor>> HitActors;
+	bool LineTraceSpellRange(FHitResult& HitResult);
+
+	TObjectPtr<class UParticleSystemComponent> CurrentParticle;
 
 	void DestroySpell();
+
+	UFUNCTION()
+	void FinishParticle(UParticleSystemComponent* PSystem);
+
+private:
+	TArray<TObjectPtr<AActor>> HitActors;
 
 public:
 	float GetSpellCastingTime() const {return SpellCastingTime;}
 	float GetSpellDamage() const {return SpellDamage;}
-	float GetSpellRange() const {return SpellRange;}
-	ESpellType GetSpellType() const {return SpellType;}
 
 };

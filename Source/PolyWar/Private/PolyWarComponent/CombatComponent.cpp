@@ -7,7 +7,7 @@
 #include "Character/PolyWarPlayerCharacter.h"
 #include "Net/UnrealNetwork.h"
 #include "PolyWarComponent/SpellComponent.h"
-#include "Weapon/Spell.h"
+#include "Spell/Spell.h"
 #include "Weapon/ThrowableWeapon.h"
 #include "Weapon/Weapon.h"
 
