@@ -241,7 +241,7 @@ void UCombatComponent::ThrowWeapon(AWeapon* Weapon, const FVector& Direction)
 
 	ThrowableWeapon->SetCollisionEnabled(true);
 	ThrowableWeapon->SetWeaponSkill(CurrentWeaponSkill);
-	ThrowableWeapon->SetProjectile(true);
+	ThrowableWeapon->SetProjectile();
 	ThrowableWeapon->ThrowWeaponStart(Weapon->GetActorLocation(), Direction);
 
 }

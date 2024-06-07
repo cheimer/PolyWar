@@ -47,8 +47,6 @@ private:
 	bool IsValidSpell(TSubclassOf<ASpell> Spell);
 	void SpellCastingEnd();
 
-	void SetCurrentSpellTransform(FTransform& SpawnTransform);
-
 	UFUNCTION(Server, Reliable)
 	void ServerFinishSpawning(const FTransform& SpawnTransform);
 

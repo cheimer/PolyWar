@@ -10,8 +10,3 @@ bool ASelfSpell::GetSpawnLocation(FVector& SpawnLocation)
 	SpawnLocation = GetOwner()->GetActorLocation();
 	return true;
 }
-
-void ASelfSpell::ApplyEffectOnce(APolyWarBaseCharacter* EffectedActor)
-{
-	Super::ApplyEffectOnce(EffectedActor);
-}

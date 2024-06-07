@@ -156,7 +156,6 @@ AWeapon* APolyWarBaseCharacter::SpawnWeapon(bool IsAttach)
 		{
 			Weapon->SetActorLocation(HandSocket->GetSocketLocation(GetMesh()));
 		}
-
 	}
 	if(Weapon && CombatComponent && !CombatComponent->GetEquippedWeapon())
 	{
@@ -178,25 +177,31 @@ void APolyWarBaseCharacter::ThrowWeapon()
 	if(HasAuthority())
 	{
 		AWeapon* SpawnedWeapon = SpawnWeapon(false);
-
 		if(!SpawnedWeapon) return;
-		CombatComponent->ThrowWeapon(SpawnedWeapon, CenterWorldDirection);
+
+		FVector Destination = CenterWorldPosition + CenterWorldDirection * AdjustThrowPosVal;
+		FVector WeaponDirection = (Destination - SpawnedWeapon->GetActorLocation()).GetSafeNormal();
+
+		CombatComponent->ThrowWeapon(SpawnedWeapon, WeaponDirection);
 	}
 	else if (!HasAuthority())
 	{
-		ServerThrowWeapon(CenterWorldDirection);
+		ServerThrowWeapon(CenterWorldPosition, CenterWorldDirection);
 	}
 
 }
 
-void APolyWarBaseCharacter::ServerThrowWeapon_Implementation(const FVector& Direction)
+void APolyWarBaseCharacter::ServerThrowWeapon_Implementation(const FVector& Position, const FVector& Direction)
 {
 	if(!CombatComponent) return;
 
 	AWeapon* SpawnedWeapon = SpawnWeapon(false);
-
 	if(!SpawnedWeapon) return;
-	CombatComponent->ThrowWeapon(SpawnedWeapon, Direction);
+
+	FVector Destination = Position + Direction * AdjustThrowPosVal;
+	FVector WeaponDirection = (Destination - SpawnedWeapon->GetActorLocation()).GetSafeNormal();
+
+	CombatComponent->ThrowWeapon(SpawnedWeapon, WeaponDirection);
 }
 
 void APolyWarBaseCharacter::SpellEffect()
@@ -328,6 +333,16 @@ bool APolyWarBaseCharacter::GetViewportCenter(FVector& CenterWorldPosition, FVec
 	FVector2D Center(ViewportSize.X / 2, ViewportSize.Y / 2);
 	return UGameplayStatics::DeprojectScreenToWorld(
 		PlayerController, Center, CenterWorldPosition, CenterWorldDirection);
+}
+
+FVector APolyWarBaseCharacter::GetRightHandLocation()
+{
+	if(!GetMesh()) return FVector::ZeroVector;
+
+	const USkeletalMeshSocket* HandSocket = GetMesh()->GetSocketByName(RightHandSocket);
+	if(!HandSocket) return FVector::ZeroVector;
+
+	return HandSocket->GetSocketLocation(GetMesh());
 }
 
 

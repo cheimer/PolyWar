@@ -27,7 +27,7 @@ ASpearWeapon::ASpearWeapon()
 	SpearSlashKnockBackAmount = 5000.0f;
 
 	SpearThrowKnockBackAmount = 5000.0f;
-	SpearThrowSpeed = 100000.0f;
+	SpearThrowSpeed = 1000.0f;
 	SpearThrowDuration = 2.0f;
 }
 
@@ -37,50 +37,32 @@ void ASpearWeapon::PostInitializeComponents()
 
 	WeaponProjectile->InitialSpeed = SpearThrowSpeed;
 	WeaponProjectile->MaxSpeed = SpearThrowSpeed;
-	WeaponProjectile->Velocity = FVector::UpVector;
-}
 
-void ASpearWeapon::SetCollisionEnabled(bool IsEnabled)
-{
-	Super::SetCollisionEnabled(IsEnabled);
-
-	if(IsEnabled)
-	{
-		AttackCollision->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
-		AttackCollision->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Overlap);
-		AttackCollision->SetCollisionResponseToChannel(ECC_Visibility, ECR_Overlap);
-	}
-	else
-	{
-		AttackCollision->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Ignore);
-		AttackCollision->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Ignore);
-		AttackCollision->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
-	}
 }
 
 void ASpearWeapon::OnAttackBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-                                        UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	Super::OnAttackBeginOverlap(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
 
-	auto CollisionComponent = Cast<UPrimitiveComponent>(OtherActor->GetRootComponent());
-	if(CollisionComponent)
+	if(OtherComp)
 	{
-		ECollisionChannel CollisionChannel = CollisionComponent->GetCollisionObjectType();
-		if(CollisionChannel == ECC_WorldDynamic || CollisionChannel == ECC_WorldStatic)
+		ECollisionChannel CollisionChannel = OtherComp->GetCollisionObjectType();
+		if(CollisionChannel == ECC_WorldStatic)
 		{
+			DestroyWeapon();
 		}
 	}
 }
 
 void ASpearWeapon::ThrowWeaponStart(const FVector& StartPos, const FVector& Direction)
 {
-	Super::ThrowWeaponStart(StartPos, Direction);
-
 	FRotator Rotator = Direction.Rotation();
 	FRotator RotateDirection = FRotator(Rotator.Pitch - 90.0f, Rotator.Yaw, Rotator.Roll);
 	SetActorRotation(RotateDirection);
-	WeaponProjectile->AddForce(Direction * SpearThrowSpeed);
+
+	WeaponProjectile->Velocity = Direction * SpearThrowSpeed;
+	//WeaponProjectile->AddForce(Direction * SpearThrowSpeed);
 
 	FTimerHandle DestroyTimerHandle;
 	GetWorldTimerManager().SetTimer(DestroyTimerHandle, this, &ThisClass::DestroyWeapon, SpearThrowDuration);

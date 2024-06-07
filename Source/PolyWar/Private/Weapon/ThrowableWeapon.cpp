@@ -3,6 +3,7 @@
 
 #include "Weapon/ThrowableWeapon.h"
 
+#include "Components/BoxComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 
 AThrowableWeapon::AThrowableWeapon()
@@ -12,14 +13,16 @@ AThrowableWeapon::AThrowableWeapon()
 	WeaponProjectile->ProjectileGravityScale = 0.0f;
 }
 
-void AThrowableWeapon::SetProjectile(bool IsActivated)
+void AThrowableWeapon::PostInitializeComponents()
 {
-	if(IsActivated)
-	{
-		WeaponProjectile->Activate();
-	}
-	else
-	{
-		WeaponProjectile->Deactivate();
-	}
+	Super::PostInitializeComponents();
+
+}
+
+void AThrowableWeapon::SetProjectile()
+{
+	WeaponProjectile->Activate();
+
+	AttackCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	AttackCollision->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Overlap);
 }

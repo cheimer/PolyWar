@@ -140,17 +140,6 @@ bool USpellComponent::IsValidSpell(TSubclassOf<ASpell> Spell)
 	return false;
 }
 
-void USpellComponent::SetCurrentSpellTransform(FTransform& SpawnTransform)
-{
-	if(!OwnerCharacter || !CurrentSpell) return;
-
-	FVector SpawnLocation;
-	if(!CurrentSpell->GetSpawnLocation(SpawnLocation)) return;
-
-	SpawnTransform = OwnerCharacter->GetActorTransform();
-	SpawnTransform.SetLocation(SpawnLocation);
-}
-
 /*
  * Get, Set Func
  */

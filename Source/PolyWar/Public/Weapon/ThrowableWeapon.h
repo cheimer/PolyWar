@@ -19,9 +19,11 @@ public:
 
 	virtual void ThrowWeaponStart(const FVector& StartPos, const FVector& Direction) {};
 
-	void SetProjectile(bool IsActivated);
+	void SetProjectile();
 
 protected:
+	virtual void PostInitializeComponents() override;
+
 	UPROPERTY(EditAnywhere, Category = "Component")
 	class UProjectileMovementComponent* WeaponProjectile;
 

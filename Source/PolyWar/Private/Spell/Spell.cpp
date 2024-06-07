@@ -71,7 +71,7 @@ void ASpell::ApplyEffectOnce(APolyWarBaseCharacter* EffectedActor)
 	}
 	HitActors.Emplace(EffectedActor);
 
-	if(GetOwner() && GetOwner()->GetInstigatorController())
+	if(SpellDamage > 0.0f && GetOwner() && GetOwner()->GetInstigatorController())
 	{
 		UGameplayStatics::ApplyDamage(EffectedActor, SpellDamage,
 			GetOwner()->GetInstigatorController(), GetOwner(), UDamageType::StaticClass());
@@ -84,13 +84,16 @@ void ASpell::DestroySpell()
 	SpellCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	SpellCollision->SetCollisionResponseToAllChannels(ECR_Ignore);
 
-	if(CurrentParticle->bWasCompleted)
+	if(CurrentParticle)
 	{
-		Destroy();
-	}
-	else
-	{
-		CurrentParticle->Deactivate();
+		if(CurrentParticle->bWasCompleted)
+		{
+			Destroy();
+		}
+		else
+		{
+			CurrentParticle->Deactivate();
+		}
 	}
 
 }

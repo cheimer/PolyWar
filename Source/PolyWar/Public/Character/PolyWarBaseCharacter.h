@@ -37,6 +37,12 @@ public:
 
 	bool GetViewportCenter(FVector& CenterWorldPosition, FVector& CenterWorldDirection);
 
+	FVector GetRightHandLocation();
+
+	// Lower Value -> Throw weapon close viewport
+	// Higher Value -> Throw weapon close character
+	float AdjustThrowPosVal = 5000.f;
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -106,7 +112,7 @@ private:
 	void ThrowWeapon();
 
 	UFUNCTION(Server, Reliable)
-	void ServerThrowWeapon(const FVector& Direction);
+	void ServerThrowWeapon(const FVector& Position, const FVector& Direction);
 
 	UPROPERTY(EditAnywhere, Category = "Settable")
 	TSubclassOf<AWeapon> EquippedWeaponClass;
@@ -120,7 +126,6 @@ private:
 
 	UFUNCTION(BlueprintCallable, meta = (AllowPrivateAccess = "true"))
 	void SpellEffect();
-
 
 public:
 	bool GetIsRunning() const {return bIsRunning;}

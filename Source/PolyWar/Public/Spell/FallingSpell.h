@@ -26,8 +26,6 @@ protected:
 	virtual void OnSpellBeginHit(UPrimitiveComponent* HitComponent, AActor* OtherActor,
 		UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
-	virtual void ApplyEffectOnce(class APolyWarBaseCharacter* EffectedActor) override;
-
 	void SpellHitGround();
 
 	UPROPERTY(EditAnywhere, Category = "Set Should")
@@ -39,7 +37,5 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Set Should")
 	float SpellDurationAfterGround = 1.0f;
-
-	TObjectPtr<UParticleSystemComponent> CurrentHitGroundParticle;
 
 };

@@ -19,12 +19,10 @@ public:
 
 	virtual void ThrowWeaponStart(const FVector& StartPos, const FVector& Direction) override;
 
-	virtual void SetCollisionEnabled(bool IsEnabled) override;
-
 	virtual bool SkillFocusOnScreen(EWeaponSkill WeaponSkill) override;
 
 protected:
-	void PostInitializeComponents() override;
+	virtual void PostInitializeComponents() override;
 
 	virtual void OnAttackBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) override;

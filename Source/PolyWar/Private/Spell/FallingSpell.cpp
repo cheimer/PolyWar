@@ -27,12 +27,6 @@ void AFallingSpell::OnSpellBeginHit(UPrimitiveComponent* HitComponent, AActor* O
 	}
 }
 
-void AFallingSpell::ApplyEffectOnce(APolyWarBaseCharacter* EffectedActor)
-{
-	Super::ApplyEffectOnce(EffectedActor);
-
-}
-
 void AFallingSpell::SpellHitGround()
 {
 	SpellCollision->SetSimulatePhysics(false);
@@ -48,9 +42,9 @@ void AFallingSpell::SpellHitGround()
 	if(SpellHitGroundParticle)
 	{
 		CurrentParticle->Deactivate();
-		CurrentHitGroundParticle = UGameplayStatics::SpawnEmitterAttached(SpellHitGroundParticle, SpellCollision);
-		CurrentHitGroundParticle->OnSystemFinished.AddDynamic(this, &ThisClass::FinishParticle);
-		CurrentParticle = CurrentHitGroundParticle;
+		UParticleSystemComponent* HitParticleComponent = UGameplayStatics::SpawnEmitterAttached(SpellHitGroundParticle, SpellCollision);
+		HitParticleComponent->OnSystemFinished.AddDynamic(this, &ThisClass::FinishParticle);
+		CurrentParticle = HitParticleComponent;
 	}
 }
 

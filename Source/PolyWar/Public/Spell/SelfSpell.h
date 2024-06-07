@@ -17,7 +17,4 @@ class POLYWAR_API ASelfSpell : public ASpell
 public:
 	virtual bool GetSpawnLocation(FVector& SpawnLocation) override;
 
-protected:
-	virtual void ApplyEffectOnce(class APolyWarBaseCharacter* EffectedActor) override;
-
 };

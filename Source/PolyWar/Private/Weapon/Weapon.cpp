@@ -23,7 +23,7 @@ AWeapon::AWeapon()
 	AttackCollision->SetupAttachment(WeaponMesh);
 	AttackCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	AttackCollision->SetCollisionResponseToAllChannels(ECR_Ignore);
-	AttackCollision->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+	AttackCollision->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 
 }
 
@@ -31,11 +31,11 @@ void AWeapon::BeginPlay()
 {
 	Super::BeginPlay();
 
-	AttackCollision->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 	AttackCollision->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnAttackBeginOverlap);
 	
 }
 
+// Set Overlap Pawn
 void AWeapon::SetCollisionEnabled(bool IsEnabled)
 {
 	if(IsEnabled)

@@ -21,9 +21,3 @@ bool AAOESpell::GetSpawnLocation(FVector& SpawnLocation)
 
 	return true;
 }
-
-void AAOESpell::ApplyEffectOnce(APolyWarBaseCharacter* EffectedActor)
-{
-	Super::ApplyEffectOnce(EffectedActor);
-
-}
