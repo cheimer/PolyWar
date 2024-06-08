@@ -4,15 +4,15 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "HealthComponent.generated.h"
+#include "StateComponent.generated.h"
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class POLYWAR_API UHealthComponent : public UActorComponent
+class POLYWAR_API UStateComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
 public:
-	UHealthComponent();
+	UStateComponent();
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	UFUNCTION()

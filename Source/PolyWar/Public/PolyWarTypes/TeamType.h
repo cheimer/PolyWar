@@ -8,5 +8,5 @@ enum class ETeamType : uint8
 	ET_AllTeam,
 	ET_NoTeam,
 
-	ET_MAX
+	ET_MAX UMETA(Hidden)
 };

@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "PolyWarTypes/SpellName.h"
+#include "PolyWarTypes/SpellType.h"
 #include "Spell.generated.h"
 
 UCLASS()
@@ -33,7 +33,7 @@ protected:
 	UParticleSystem* SpellParticle;
 
 	UPROPERTY(EditAnywhere, Category = "Set Should")
-	ESpellName SpellName;
+	ESpellType SpellType = ESpellType::EST_None;
 
 	UPROPERTY(EditAnywhere, Category = "Set Should")
 	float SpellDamage = 50.0f;

@@ -1,35 +1,32 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "PolyWarComponent/HealthComponent.h"
+#include "PolyWarComponent/StateComponent.h"
 
 #include "Character/PolyWarBaseCharacter.h"
 #include "Controller/PolyWarPlayerController.h"
-#include "GameMode/PolyWarGameModeBase.h"
-#include "GameState/PolyWarGameStateBase.h"
 #include "Net/UnrealNetwork.h"
-#include "Weapon/Weapon.h"
 
-UHealthComponent::UHealthComponent()
+UStateComponent::UStateComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
 
 }
 
-void UHealthComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+void UStateComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(UHealthComponent, CurrentHealth);
+	DOREPLIFETIME(UStateComponent, CurrentHealth);
 }
 
-void UHealthComponent::BeginPlay()
+void UStateComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
 }
 
-void UHealthComponent::ReceiveDamage(float Damage, AController* InstigatedBy, AActor* DamageCauser)
+void UStateComponent::ReceiveDamage(float Damage, AController* InstigatedBy, AActor* DamageCauser)
 {
 	if(!OwnerCharacter || !DamageCauser || Damage <= 0.0f) return;
 
@@ -47,7 +44,7 @@ void UHealthComponent::ReceiveDamage(float Damage, AController* InstigatedBy, AA
 
 }
 
-void UHealthComponent::OnRep_CurrentHealth()
+void UStateComponent::OnRep_CurrentHealth()
 {
 	if(!OwnerCharacter) return;
 
@@ -62,7 +59,7 @@ void UHealthComponent::OnRep_CurrentHealth()
 	}
 }
 
-void UHealthComponent::UpdateHUDHealth()
+void UStateComponent::UpdateHUDHealth()
 {
 	OwnerPlayerController = OwnerPlayerController == nullptr ? Cast<APolyWarPlayerController>(OwnerCharacter->GetController()) : OwnerPlayerController;
 	if(OwnerPlayerController)
@@ -71,7 +68,7 @@ void UHealthComponent::UpdateHUDHealth()
 	}
 }
 
-bool UHealthComponent::IsDead()
+bool UStateComponent::IsDead()
 {
 	if(CurrentHealth <= 0.0f)
 	{
@@ -83,7 +80,7 @@ bool UHealthComponent::IsDead()
 	}
 }
 
-void UHealthComponent::Damaged()
+void UStateComponent::Damaged()
 {
 	APolyWarBaseCharacter* DamagedPolyCharacter = Cast<APolyWarBaseCharacter>(OwnerCharacter);
 
@@ -94,7 +91,7 @@ void UHealthComponent::Damaged()
 
 }
 
-void UHealthComponent::Death()
+void UStateComponent::Death()
 {
 	APolyWarBaseCharacter* DamagedPolyCharacter = Cast<APolyWarBaseCharacter>(OwnerCharacter);
 
@@ -107,7 +104,7 @@ void UHealthComponent::Death()
 /*
  * Get, Set Func
  */
-void UHealthComponent::SetOwnerCharacter(APolyWarBaseCharacter* InOwnerCharacter)
+void UStateComponent::SetOwnerCharacter(APolyWarBaseCharacter* InOwnerCharacter)
 {
 	if(!InOwnerCharacter) return;
 

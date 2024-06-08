@@ -14,6 +14,7 @@ ASpell::ASpell()
 {
 	PrimaryActorTick.bCanEverTick = false;
 	bReplicates = true;
+	AActor::SetReplicateMovement(true);
 
 	SpellCollision = CreateDefaultSubobject<USphereComponent>("SpellCollision");
 	SetRootComponent(SpellCollision);
@@ -27,7 +28,10 @@ void ASpell::BeginPlay()
 {
 	Super::BeginPlay();
 
-	SpellCollision->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnSpellBeginOverlap);
+	if(SpellCollision)
+	{
+		SpellCollision->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnSpellBeginOverlap);
+	}
 
 	if(SpellParticle)
 	{

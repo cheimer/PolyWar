@@ -38,4 +38,7 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Set Should")
 	float SpellDurationAfterGround = 1.0f;
 
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastSetCollision();
+
 };

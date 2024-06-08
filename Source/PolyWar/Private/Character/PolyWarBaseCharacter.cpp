@@ -11,7 +11,7 @@
 #include "Perception/AIPerceptionStimuliSourceComponent.h"
 #include "Perception/AISense_Sight.h"
 #include "PolyWarComponent/CombatComponent.h"
-#include "PolyWarComponent/HealthComponent.h"
+#include "PolyWarComponent/StateComponent.h"
 #include "PolyWarComponent/SpellComponent.h"
 #include "Weapon/Weapon.h"
 
@@ -29,8 +29,8 @@ APolyWarBaseCharacter::APolyWarBaseCharacter()
 	CombatComponent = CreateDefaultSubobject<UCombatComponent>("CombatComponent");
 	CombatComponent->SetIsReplicated(true);
 
-	HealthComponent = CreateDefaultSubobject<UHealthComponent>("HealthComponent");
-	HealthComponent->SetIsReplicated(true);
+	StateComponent = CreateDefaultSubobject<UStateComponent>("StateComponent");
+	StateComponent->SetIsReplicated(true);
 
 	SpellComponent = CreateDefaultSubobject<USpellComponent>("SpellComponent");
 	SpellComponent->SetIsReplicated(true);
@@ -57,9 +57,9 @@ void APolyWarBaseCharacter::PostInitializeComponents()
 	{
 		CombatComponent->SetSpellComponent(SpellComponent);
 	}
-	if(HealthComponent)
+	if(StateComponent)
 	{
-		HealthComponent->SetOwnerCharacter(this);
+		StateComponent->SetOwnerCharacter(this);
 	}
 }
 
@@ -81,9 +81,9 @@ void APolyWarBaseCharacter::BeginPlay()
 		OnTakeAnyDamage.AddDynamic(this, &ThisClass::ReceiveDamage);
 	}
 
-	if(HealthComponent)
+	if(StateComponent)
 	{
-		HealthComponent->UpdateHUDHealth();
+		StateComponent->UpdateHUDHealth();
 	}
 
 }
@@ -97,16 +97,16 @@ void APolyWarBaseCharacter::Tick(float DeltaTime)
 void APolyWarBaseCharacter::ReceiveDamage(AActor* DamagedActor, float Damage,
                                           const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser)
 {
-	if(!HealthComponent) return;
+	if(!StateComponent) return;
 
-	HealthComponent->ReceiveDamage(Damage, InstigatedBy, DamageCauser);
+	StateComponent->ReceiveDamage(Damage, InstigatedBy, DamageCauser);
 }
 
 bool APolyWarBaseCharacter::IsDead()
 {
-	if(!HealthComponent) return false;
+	if(!StateComponent) return false;
 
-	return HealthComponent->IsDead();
+	return StateComponent->IsDead();
 }
 
 void APolyWarBaseCharacter::SetPlayerDeath()
@@ -398,14 +398,14 @@ float APolyWarBaseCharacter::GetWeaponSkillAnimPlayLen(EWeaponSkill WeaponSkill)
 
 float APolyWarBaseCharacter::GetCurrentHealth() const
 {
-	if(!HealthComponent) return 0.0f;
+	if(!StateComponent) return 0.0f;
 
-	return HealthComponent->GetCurrentHealth();
+	return StateComponent->GetCurrentHealth();
 }
 
 float APolyWarBaseCharacter::GetMaxHealth() const
 {
-	if(!HealthComponent) return 0.0f;
+	if(!StateComponent) return 0.0f;
 
-	return HealthComponent->GetMaxHealth();
+	return StateComponent->GetMaxHealth();
 }

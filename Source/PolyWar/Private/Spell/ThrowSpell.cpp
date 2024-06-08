@@ -12,11 +12,26 @@
 AThrowSpell::AThrowSpell()
 {
 	SpellProjectile = CreateDefaultSubobject<UProjectileMovementComponent>("WeaponProjectile");
+	SpellProjectile->SetIsReplicated(true);
 	SpellProjectile->SetAutoActivate(false);
-	SpellProjectile->ProjectileGravityScale = 0.0f;
 
+	SpellProjectile->ProjectileGravityScale = 0.0f;
 	SpellProjectile->InitialSpeed = SpellThrowSpeed;
 	SpellProjectile->MaxSpeed = SpellThrowSpeed;
+}
+
+void AThrowSpell::OnSpellBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	Super::OnSpellBeginOverlap(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
+
+	if(OtherComp)
+	{
+		ECollisionChannel CollisionChannel = OtherComp->GetCollisionObjectType();
+		if(CollisionChannel == ECC_WorldStatic)
+		{
+			SpellDestroyHit();
+		}
+	}
 }
 
 bool AThrowSpell::GetSpawnLocation(FVector& SpawnLocation)
@@ -33,40 +48,48 @@ void AThrowSpell::ApplyEffectOnce(APolyWarBaseCharacter* EffectedActor)
 
 	if(!SpellIsPassing)
 	{
-		SpellCollision->SetSimulatePhysics(false);
-		SpellCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		SpellCollision->SetCollisionResponseToAllChannels(ECR_Ignore);
+		SpellDestroyHit();
+	}
+}
 
-		if(SpellHitParticle)
-		{
-			CurrentParticle->Deactivate();
-			UParticleSystemComponent* HitParticleComponent = UGameplayStatics::SpawnEmitterAttached(SpellHitParticle, SpellCollision);
-			HitParticleComponent->OnSystemFinished.AddDynamic(this, &ThisClass::FinishParticle);
-			CurrentParticle = HitParticleComponent;
-		}
-		else
-		{
-			DestroySpell();
-		}
+void AThrowSpell::SpellDestroyHit()
+{
+	SpellCollision->SetSimulatePhysics(false);
+	SpellCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	SpellCollision->SetCollisionResponseToAllChannels(ECR_Ignore);
+
+	if(SpellHitParticle)
+	{
+		CurrentParticle->DestroyComponent();
+		UParticleSystemComponent* HitParticleComponent =
+			UGameplayStatics::SpawnEmitterAtLocation(this, SpellHitParticle, GetActorLocation());
+		HitParticleComponent->OnSystemFinished.AddDynamic(this, &ThisClass::FinishParticle);
+		CurrentParticle = HitParticleComponent;
+	}
+	else
+	{
+		DestroySpell();
 	}
 }
 
 void AThrowSpell::SetSpawnDefault()
 {
+	UE_LOG(LogTemp, Warning, TEXT("ThrowSpell: Need to use SetSpawnDefault(FVector)"));
+}
+
+void AThrowSpell::SetSpawnDefault(FVector Direction)
+{
 	Super::SetSpawnDefault();
 
-	if(!GetOwner()) return;
+	if(GetOwner() && GetOwner()->HasAuthority())
+	{
+		MulticastSetProjectile(Direction);
+	}
+}
 
-	APolyWarBaseCharacter* OwnerCharacter = Cast<APolyWarBaseCharacter>(GetOwner());
-	if(!OwnerCharacter) return;
-
-	FVector CenterWorldPosition;
-	FVector CenterWorldDirection;
-	bool bScreenToWorld = OwnerCharacter->GetViewportCenter(CenterWorldPosition, CenterWorldDirection);
-	if(!bScreenToWorld) return;
-
-	FVector EndPosition = CenterWorldPosition + CenterWorldDirection * OwnerCharacter->AdjustThrowPosVal;
-	FVector Direction = (EndPosition - GetActorLocation()).GetSafeNormal();
+void AThrowSpell::MulticastSetProjectile_Implementation(FVector_NetQuantize Direction)
+{
+	SpellCollision->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Overlap);
 
 	SpellProjectile->Activate();
 	SpellProjectile->Velocity = Direction * SpellThrowSpeed;

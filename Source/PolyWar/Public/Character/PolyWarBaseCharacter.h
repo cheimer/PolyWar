@@ -53,7 +53,7 @@ protected:
 	class UCombatComponent* CombatComponent;
 
 	UPROPERTY(VisibleAnywhere, Category = "Component")
-	class UHealthComponent* HealthComponent;
+	class UStateComponent* StateComponent;
 
 	UPROPERTY(VisibleAnywhere, Category = "Component")
 	class USpellComponent* SpellComponent;

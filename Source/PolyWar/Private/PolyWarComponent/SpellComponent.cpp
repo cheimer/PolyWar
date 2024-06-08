@@ -8,6 +8,7 @@
 #include "Net/UnrealNetwork.h"
 #include "PolyWarComponent/CombatComponent.h"
 #include "Spell/Spell.h"
+#include "Spell/ThrowSpell.h"
 
 USpellComponent::USpellComponent()
 {
@@ -74,9 +75,9 @@ void USpellComponent::SpellEffect()
 {
 	if(!GetWorld() || !OwnerCharacter || !CurrentSpell) return;
 
-	// SpellStart->SpawnActor<ASpell> Worked Server, Client. So Need to remove Client's Spell.
 	if(!OwnerCharacter->IsLocallyControlled())
 	{
+		// SpellStart->SpawnActor<ASpell> Worked Server, Client. So Need to remove Client's Spell.
 		if(!OwnerCharacter->HasAuthority())
 		{
 			CurrentSpell->Destroy();
@@ -93,12 +94,28 @@ void USpellComponent::SpellEffect()
 	if(OwnerCharacter->HasAuthority())
 	{
 		CurrentSpell->FinishSpawning(SpawnTransform);
-		CurrentSpell->SetSpawnDefault();
+
+		if(Cast<AThrowSpell>(CurrentSpell))
+		{
+			Cast<AThrowSpell>(CurrentSpell)->SetSpawnDefault(GetThrowSpellDirection(SpawnLocation));
+		}
+		else
+		{
+			CurrentSpell->SetSpawnDefault();
+		}
 	}
-	else if(!OwnerCharacter->HasAuthority())
+	else
 	{
 		CurrentSpell->Destroy();
-		ServerFinishSpawning(SpawnTransform);
+
+		if(Cast<AThrowSpell>(CurrentSpell))
+		{
+			ServerThrowSpellFinishSpawning(SpawnTransform, GetThrowSpellDirection(SpawnLocation));
+		}
+		else
+		{
+			ServerSpellFinishSpawning(SpawnTransform);
+		}
 	}
 
 }
@@ -116,10 +133,19 @@ void USpellComponent::SpellEnd()
 	CombatComponent->SpellCastEnd();
 }
 
-void USpellComponent::ServerFinishSpawning_Implementation(const FTransform& SpawnTransform)
+void USpellComponent::ServerSpellFinishSpawning_Implementation(const FTransform& SpawnTransform)
 {
 	CurrentSpell->FinishSpawning(SpawnTransform);
 	CurrentSpell->SetSpawnDefault();
+}
+
+void USpellComponent::ServerThrowSpellFinishSpawning_Implementation(const FTransform& SpawnTransform, const FVector& Direction)
+{
+	CurrentSpell->FinishSpawning(SpawnTransform);
+	if(Cast<AThrowSpell>(CurrentSpell))
+	{
+		Cast<AThrowSpell>(CurrentSpell)->SetSpawnDefault(Direction);
+	}
 }
 
 bool USpellComponent::IsValidSpell(TSubclassOf<ASpell> Spell)
@@ -138,6 +164,19 @@ bool USpellComponent::IsValidSpell(TSubclassOf<ASpell> Spell)
 	}
 
 	return false;
+}
+
+FVector USpellComponent::GetThrowSpellDirection(const FVector& SpellLocation)
+{
+	if(!OwnerCharacter) return FVector::Zero();
+
+	FVector CenterWorldPosition;
+	FVector CenterWorldDirection;
+	bool bScreenToWorld = OwnerCharacter->GetViewportCenter(CenterWorldPosition, CenterWorldDirection);
+	if(!bScreenToWorld) return FVector::Zero();
+
+	FVector Destination = CenterWorldPosition + CenterWorldDirection * OwnerCharacter->AdjustThrowPosVal;
+	return (Destination - SpellLocation).GetSafeNormal();
 }
 
 /*

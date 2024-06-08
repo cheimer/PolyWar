@@ -84,6 +84,14 @@ void AFallingSpell::SetSpawnDefault()
 {
 	Super::SetSpawnDefault();
 
+	if(GetOwner() && GetOwner()->HasAuthority())
+	{
+		MulticastSetCollision();
+	}
+}
+
+void AFallingSpell::MulticastSetCollision_Implementation()
+{
 	SpellCollision->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	SpellCollision->SetCollisionResponseToAllChannels(ECR_Ignore);
 	SpellCollision->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);

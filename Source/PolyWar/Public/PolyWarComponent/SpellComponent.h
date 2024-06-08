@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "PolyWarTypes/SpellName.h"
 #include "SpellComponent.generated.h"
 
 
@@ -23,6 +22,7 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+
 private:
 	TObjectPtr<class APolyWarBaseCharacter> OwnerCharacter;
 
@@ -48,7 +48,12 @@ private:
 	void SpellCastingEnd();
 
 	UFUNCTION(Server, Reliable)
-	void ServerFinishSpawning(const FTransform& SpawnTransform);
+	void ServerSpellFinishSpawning(const FTransform& SpawnTransform);
+
+	UFUNCTION(Server, Reliable)
+	void ServerThrowSpellFinishSpawning(const FTransform& SpawnTransform, const FVector& Direction);
+
+	FVector GetThrowSpellDirection(const FVector& SpellLocation);
 
 public:
 	void SetOwnerCharacter(APolyWarBaseCharacter* OwnerCharacter);

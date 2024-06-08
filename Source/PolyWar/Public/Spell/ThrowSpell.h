@@ -17,9 +17,13 @@ class POLYWAR_API AThrowSpell : public ASpell
 public:
 	AThrowSpell();
 
+	virtual void OnSpellBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) override;
+
 	virtual bool GetSpawnLocation(FVector& SpawnLocation) override;
 
 	virtual void SetSpawnDefault() override;
+	virtual void SetSpawnDefault(FVector Direction);
 
 protected:
 	UPROPERTY(EditAnywhere, Category = "Component")
@@ -38,5 +42,11 @@ protected:
 	UParticleSystem* SpellHitParticle;
 
 	virtual void ApplyEffectOnce(class APolyWarBaseCharacter* EffectedActor) override;
+
+private:
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastSetProjectile(FVector_NetQuantize Direction);
+
+	void SpellDestroyHit();
 
 };
