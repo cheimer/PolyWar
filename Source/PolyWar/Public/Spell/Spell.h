@@ -53,6 +53,8 @@ protected:
 
 	virtual void ApplyEffectOnce(class APolyWarBaseCharacter* EffectedActor);
 
+	virtual void ApplySpellType(AActor* EffectedActor, AActor* DamageCauser);
+
 	bool LineTraceSpellRange(FHitResult& HitResult);
 
 	TObjectPtr<class UParticleSystemComponent> CurrentParticle;
@@ -68,5 +70,6 @@ private:
 public:
 	float GetSpellCastingTime() const {return SpellCastingTime;}
 	float GetSpellDamage() const {return SpellDamage;}
+	ESpellType GetSpellType() const {return SpellType;}
 
 };

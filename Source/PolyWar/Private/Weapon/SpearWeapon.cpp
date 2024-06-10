@@ -77,26 +77,31 @@ void ASpearWeapon::WeaponSkillAttack(APolyWarBaseCharacter* Victim)
 {
 	//Super::WeaponSkillAttack(Victim, WeaponSkill);
 
+	if(!GetOwner()) return;
+
+	APolyWarBaseCharacter* OwnerCharacter = Cast<APolyWarBaseCharacter>(GetOwner());
+	if(!OwnerCharacter) return;
+
 	if(CurrentWeaponSkill == EWeaponSkill::EWS_SpearSlash)
 	{
 		if(CurrentWeaponSkill == WeaponSkillFirst)
 		{
-			HitSpearSlash(Victim, WeaponSkillFirstDamage);
+			HitSpearSlash(Victim, WeaponSkillFirstDamage * OwnerCharacter->GetPowerRate());
 		}
 		else if(CurrentWeaponSkill == WeaponSkillSecond)
 		{
-			HitSpearSlash(Victim, WeaponSkillSecondDamage);
+			HitSpearSlash(Victim, WeaponSkillSecondDamage * OwnerCharacter->GetPowerRate());
 		}
 	}
 	else if (CurrentWeaponSkill == EWeaponSkill::EWS_SpearThrow)
 	{
 		if(CurrentWeaponSkill == WeaponSkillFirst)
 		{
-			HitSpearThrow(Victim, WeaponSkillFirstDamage);
+			HitSpearThrow(Victim, WeaponSkillFirstDamage * OwnerCharacter->GetPowerRate());
 		}
 		else if(CurrentWeaponSkill == WeaponSkillSecond)
 		{
-			HitSpearThrow(Victim, WeaponSkillSecondDamage);
+			HitSpearThrow(Victim, WeaponSkillSecondDamage * OwnerCharacter->GetPowerRate());
 		}
 	}
 }

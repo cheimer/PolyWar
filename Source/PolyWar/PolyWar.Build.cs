@@ -16,6 +16,7 @@ public class PolyWar : ModuleRules
 			"InputCore",
 			"EnhancedInput",
 			"UMG",
+			"Niagara",
 
 			"MultiplayerSessions",
 			"OnlineSubsystem",

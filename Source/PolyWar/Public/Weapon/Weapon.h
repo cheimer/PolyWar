@@ -57,7 +57,7 @@ protected:
 
 	EWeaponSkill CurrentWeaponSkill = EWeaponSkill::EWS_MAX;
 
-	virtual void WeaponSkillAttack(class APolyWarBaseCharacter* Victim);
+	virtual void WeaponSkillAttack(class APolyWarBaseCharacter* Victim) {}
 
 	UPROPERTY(EditAnywhere, Category = "Set Should")
 	float WeaponDamage = 50.0f;

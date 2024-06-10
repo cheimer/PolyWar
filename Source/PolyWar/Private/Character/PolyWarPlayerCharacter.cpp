@@ -243,8 +243,8 @@ void APolyWarPlayerCharacter::Jump()
 
 void APolyWarPlayerCharacter::LeftMousePressedAndReleased(const FInputActionValue& Value)
 {
+	if(GetIsAttacking()) return;
 	WeaponAttack();
-
 }
 
 void APolyWarPlayerCharacter::Run(const FInputActionValue& Value)
@@ -256,12 +256,12 @@ void APolyWarPlayerCharacter::Run(const FInputActionValue& Value)
 	}
 	if(IsTriggering)
 	{
-		GetCharacterMovement()->MaxWalkSpeed = RunSpeed;
+		GetCharacterMovement()->MaxWalkSpeed = CurrentRunSpeed;
 		bIsRunning = true;
 	}
 	else
 	{
-		GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+		GetCharacterMovement()->MaxWalkSpeed = CurrentWalkSpeed;
 		bIsRunning = false;
 	}
 }
@@ -270,12 +270,12 @@ void APolyWarPlayerCharacter::ServerRun_Implementation(bool InIsRun)
 {
 	if(InIsRun)
 	{
-		GetCharacterMovement()->MaxWalkSpeed = RunSpeed;
+		GetCharacterMovement()->MaxWalkSpeed = CurrentRunSpeed;
 		bIsRunning = true;
 	}
 	else
 	{
-		GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+		GetCharacterMovement()->MaxWalkSpeed = CurrentWalkSpeed;
 		bIsRunning = false;
 	}
 }

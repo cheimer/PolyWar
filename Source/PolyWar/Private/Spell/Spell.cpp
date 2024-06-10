@@ -9,6 +9,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "Particles/ParticleSystem.h"
 #include "Particles/ParticleSystemComponent.h"
+#include "PolyWarComponent/StateComponent.h"
+#include "NiagaraComponent.h"
 
 ASpell::ASpell()
 {
@@ -69,6 +71,10 @@ void ASpell::OnSpellBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActo
 
 void ASpell::ApplyEffectOnce(APolyWarBaseCharacter* EffectedActor)
 {
+	if(!GetOwner()) return;
+	APolyWarBaseCharacter* OwnerCharacter = Cast<APolyWarBaseCharacter>(GetOwner());
+	if(!OwnerCharacter) return;
+
 	if(HitActors.Contains(EffectedActor))
 	{
 		return;
@@ -77,9 +83,45 @@ void ASpell::ApplyEffectOnce(APolyWarBaseCharacter* EffectedActor)
 
 	if(SpellDamage > 0.0f && GetOwner() && GetOwner()->GetInstigatorController())
 	{
-		UGameplayStatics::ApplyDamage(EffectedActor, SpellDamage,
+		UGameplayStatics::ApplyDamage(EffectedActor, SpellDamage * OwnerCharacter->GetSpellPowerRate(),
 			GetOwner()->GetInstigatorController(), GetOwner(), UDamageType::StaticClass());
 	}
+
+	if(SpellType != ESpellType::EST_None)
+	{
+		ApplySpellType(EffectedActor, GetOwner());
+	}
+}
+
+void ASpell::ApplySpellType(AActor* EffectedActor, AActor* DamageCauser)
+{
+	if(!GetOwner()) return;
+
+	UStateComponent* EffectedState = EffectedActor->GetComponentByClass<UStateComponent>();
+	if(!EffectedState) return;
+
+	switch(SpellType)
+	{
+	case ESpellType::EST_None:
+	case ESpellType::ET_MAX:
+		break;
+	case ESpellType::EST_Fire:
+		EffectedState->DOTDamaged(5.0f, 3.0f);
+		break;
+	case ESpellType::EST_Ice:
+		EffectedState->Slowed(0.5f, 5.0f);
+		break;
+	case ESpellType::EST_SpeedBuf:
+		EffectedState->SpeedBuf(2.0f, 5.0f);
+		break;
+	case ESpellType::EST_PowerBuf:
+		EffectedState->PowerBuf(1.5f, 10.0f);
+		break;
+	case ESpellType::EST_SpellBuf:
+		EffectedState->SpellBuf(1.5f, 10.0f);
+		break;
+	}
+
 }
 
 void ASpell::DestroySpell()

@@ -24,6 +24,7 @@ public:
 	FOnCharacterDeathDelegate OnCharacterDeathDelegate;
 
 	virtual void SetPlayerDeath();
+	void UpdateWalkSpeed();
 
 	void PlayAttackAnimMontage(bool RandPlay = true, int32 Index = 0);
 	void PlayWeaponSkillAnimMontage(EWeaponSkill WeaponSkill);
@@ -34,6 +35,9 @@ public:
 	virtual void WeaponAttack();
 	virtual void WeaponSkillAttack(EWeaponSkill WeaponSkill);
 	virtual void SpellAttack(TSubclassOf<class ASpell> Spell);
+
+	float GetPowerRate();
+	float GetSpellPowerRate();
 
 	bool GetViewportCenter(FVector& CenterWorldPosition, FVector& CenterWorldDirection);
 
@@ -64,10 +68,12 @@ protected:
 
 	//~ Begin Move
 	UPROPERTY(EditAnywhere, Category = "Settable")
-	float WalkSpeed = 600.0f;
+	float DefaultWalkSpeed = 600.0f;
+	float CurrentWalkSpeed = DefaultWalkSpeed;
 
 	UPROPERTY(EditAnywhere, Category = "Settable")
-	float RunSpeed = 900.0f;
+	float DefaultRunSpeed = 1200.0f;
+	float CurrentRunSpeed = DefaultRunSpeed;
 
 	UPROPERTY(Replicated)
 	bool bIsRunning = false;
@@ -130,6 +136,7 @@ private:
 public:
 	bool GetIsRunning() const {return bIsRunning;}
 	bool GetIsAttacking() const;
+
 	AWeapon* GetEquippedWeapon() const;
 	float GetWeaponAttackRange() const;
 	float GetWeaponAttackAngle() const;
@@ -138,8 +145,14 @@ public:
 	float GetWeaponSkillAnimPlayLen(EWeaponSkill WeaponSkill) const;
 	int32 GetDamagedAnimMontagesLen() const {return DamagedAnimMontages.Num();}
 	int32 GetDeathAnimMontagesLen() const {return DeathAnimMontages.Num();}
+
 	float GetCurrentHealth() const;
 	float GetMaxHealth() const;
+	float GetDefaultWalkSpeed() const {return DefaultWalkSpeed;}
+	float GetDefaultRunSpeed() const {return DefaultRunSpeed;}
+	void SetWalkSpeed(float InWalkSpeed) {CurrentWalkSpeed = InWalkSpeed;}
+	void SetRunSpeed(float InRunSpeed) {CurrentRunSpeed = InRunSpeed;}
+
 	bool GetIsOpenMap() const {return bIsOpenMap;}
 	void SetIsOpenMap(bool SetIsOpenMap) {bIsOpenMap = SetIsOpenMap;}
 	ETeamType GetTeamType() const {return TeamType;}

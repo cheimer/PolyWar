@@ -16,11 +16,17 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	UFUNCTION()
-	void ReceiveDamage(float Damage, AController* InstigatedBy, AActor* DamageCauser);
+	void ReceiveDamage(float Damage, AActor* DamageCauser);
 
 	void UpdateHUDHealth();
 
 	bool IsDead();
+
+	void DOTDamaged(float DamagePerSecond, float Seconds);
+	void Slowed(float Rate, float Seconds);
+	void SpeedBuf(float Rate, float Seconds);
+	void PowerBuf(float Rate, float Seconds);
+	void SpellBuf(float Rate, float Seconds);
 
 protected:
 	virtual void BeginPlay() override;
@@ -41,9 +47,24 @@ private:
 	void Damaged();
 	void Death();
 
+	void ArrayValuePlus(TArray<float>& OutArray, float Value, float Seconds);
+	void ArrayValueMultiply(TArray<float>& OutArray, float Value, float Seconds);
+
+	void DotDamageManage();
+	void BufManage();
+
+	TArray<float> DotDamageRemains;
+	TArray<float> SpeedRates;
+	TArray<float> PowerRates;
+	TArray<float> SpellPowerRates;
+
+	void SpeedChange(float Rate, AActor* ChangedActor);
+
 public:
 	void SetOwnerCharacter(APolyWarBaseCharacter* InOwnerCharacter);
 	float GetMaxHealth() const {return MaxHealth;}
 	float GetCurrentHealth() const {return CurrentHealth;}
+	float GetPowerRate() const;
+	float GetSpellPowerRate() const;
 
 };

@@ -67,7 +67,7 @@ void AWeapon::OnAttackBeginOverlap(UPrimitiveComponent* OverlappedComponent, AAc
 		{
 			if(GetOwner()->GetInstigatorController())
 			{
-				UGameplayStatics::ApplyDamage(Victim, WeaponDamage,
+				UGameplayStatics::ApplyDamage(Victim, WeaponDamage * OwnerCharacter->GetPowerRate(),
 					GetOwner()->GetInstigatorController(), GetOwner(), UDamageType::StaticClass());
 			}
 		}
@@ -77,12 +77,6 @@ void AWeapon::OnAttackBeginOverlap(UPrimitiveComponent* OverlappedComponent, AAc
 		}
 	}
 
-}
-
-void AWeapon::WeaponSkillAttack(APolyWarBaseCharacter* Victim)
-{
-	UGameplayStatics::ApplyDamage(Victim, WeaponDamage,
-		GetOwner()->GetInstigatorController(), GetOwner(), UDamageType::StaticClass());
 }
 
 void AWeapon::WeaponSkillStart(EWeaponSkill WeaponSkill)

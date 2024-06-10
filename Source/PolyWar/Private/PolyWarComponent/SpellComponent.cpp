@@ -106,8 +106,6 @@ void USpellComponent::SpellEffect()
 	}
 	else
 	{
-		CurrentSpell->Destroy();
-
 		if(Cast<AThrowSpell>(CurrentSpell))
 		{
 			ServerThrowSpellFinishSpawning(SpawnTransform, GetThrowSpellDirection(SpawnLocation));
@@ -116,6 +114,8 @@ void USpellComponent::SpellEffect()
 		{
 			ServerSpellFinishSpawning(SpawnTransform);
 		}
+
+		CurrentSpell->Destroy();
 	}
 
 }

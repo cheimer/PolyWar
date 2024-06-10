@@ -19,11 +19,11 @@ APolyWarBaseCharacter::APolyWarBaseCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
 	SetReplicates(true);
-	SetReplicateMovement(true);
+	AActor::SetReplicateMovement(true);
 	NetUpdateFrequency = 66.0f;
 	MinNetUpdateFrequency = 33.0f;
 
-	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+	GetCharacterMovement()->MaxWalkSpeed = DefaultWalkSpeed;
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 720.0f, 0.0f);
 
 	CombatComponent = CreateDefaultSubobject<UCombatComponent>("CombatComponent");
@@ -99,7 +99,7 @@ void APolyWarBaseCharacter::ReceiveDamage(AActor* DamagedActor, float Damage,
 {
 	if(!StateComponent) return;
 
-	StateComponent->ReceiveDamage(Damage, InstigatedBy, DamageCauser);
+	StateComponent->ReceiveDamage(Damage, DamageCauser);
 }
 
 bool APolyWarBaseCharacter::IsDead()
@@ -136,6 +136,18 @@ void APolyWarBaseCharacter::DeathTimerFinished()
 		GetEquippedWeapon()->Destroy();
 	}
 	Destroy();
+}
+
+void APolyWarBaseCharacter::UpdateWalkSpeed()
+{
+	if(!bIsRunning)
+	{
+		GetCharacterMovement()->MaxWalkSpeed = CurrentWalkSpeed;
+	}
+	else
+	{
+		GetCharacterMovement()->MaxWalkSpeed = CurrentRunSpeed;
+	}
 }
 
 AWeapon* APolyWarBaseCharacter::SpawnWeapon(bool IsAttach)
@@ -233,6 +245,20 @@ void APolyWarBaseCharacter::SpellAttack(TSubclassOf<ASpell> Spell)
 	if(bIsOpenMap) return;
 
 	CombatComponent->BeginSpell(Spell);
+}
+
+float APolyWarBaseCharacter::GetPowerRate()
+{
+	if(!StateComponent) return 1.0f;
+
+	return StateComponent->GetPowerRate();
+}
+
+float APolyWarBaseCharacter::GetSpellPowerRate()
+{
+	if(!StateComponent) return 1.0f;
+
+	return StateComponent->GetSpellPowerRate();
 }
 
 void APolyWarBaseCharacter::PlayAttackAnimMontage(bool RandPlay, int32 Index)
