@@ -111,7 +111,7 @@ private:
 	void GetMapUnitStateArray(EMapUnitState MapUnitState, TArray<EUnitNum>& OutUnitNumArray);
 	FVector MapImageClickToWorldPosition(const FVector2D StartPos, const FVector2D Size, const FVector2D ClickPos);
 
-	TArray<class APolyWarAICharacter*> GetMyTeam();
+	void GetMyTeam(TArray<class APolyWarAICharacter*>& OutTeamArray);
 
 	void StartOrder(EOrderType Order, FVector OrderPos = FVector::ZeroVector);
 

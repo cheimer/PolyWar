@@ -111,7 +111,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Set Should")
 	EUnitType UnitType;
 
-	UPROPERTY(EditAnywhere, Category = "Set Should")
+	UPROPERTY(EditAnywhere, Category = "Set Should", Replicated)
 	ETeamType TeamType;
 
 private:

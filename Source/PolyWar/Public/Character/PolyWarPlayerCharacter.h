@@ -129,6 +129,8 @@ protected:
 private:
 	TObjectPtr<class APolyWarPlayerController> PolyWarPlayerController;
 
+	void SetPlayerTeam();
+
 	UPROPERTY(EditAnywhere, Category = "Settable")
 	float MapDefaultHeight = 4000.0f;
 	UPROPERTY(EditAnywhere, Category = "Settable")

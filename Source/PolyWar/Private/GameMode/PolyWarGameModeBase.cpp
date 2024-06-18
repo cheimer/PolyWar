@@ -20,6 +20,11 @@ APolyWarGameModeBase::APolyWarGameModeBase()
 	bUseSeamlessTravel = true;
 }
 
+void APolyWarGameModeBase::PostLogin(APlayerController* NewPlayer)
+{
+	Super::PostLogin(NewPlayer);
+}
+
 void APolyWarGameModeBase::BeginPlay()
 {
 	Super::BeginPlay();
@@ -76,13 +81,6 @@ ETeamType APolyWarGameModeBase::TimeOverWinnerTeam()
 	}
 
 	return ETeamType::ET_NoTeam;
-}
-
-void APolyWarGameModeBase::RegisterPlayer(APolyWarPlayerCharacter* PlayerCharacter)
-{
-	if(!PlayerCharacter) return;
-	PlayerCharacter->OnCharacterDeathDelegate.AddDynamic(this, &ThisClass::PlayerDeath);
-
 }
 
 void APolyWarGameModeBase::PlayerDeath(APolyWarBaseCharacter* DeathCharacter)

@@ -208,11 +208,11 @@ void APolyWarPlayerController::SetHUDVersusBar()
 		if(!PolyWarGameState) return;
 
 		TArray<APolyWarBaseCharacter*> BlueTeamArray;
-		PolyWarGameState->GetTeam(ETeamType::ET_BlueTeam, BlueTeamArray, true);
+		PolyWarGameState->GetTeam(ETeamType::ET_BlueTeam, BlueTeamArray);
 		float BlueTeamNum = BlueTeamArray.Num();
 
 		TArray<APolyWarBaseCharacter*> RedTeamArray;
-		PolyWarGameState->GetTeam(ETeamType::ET_RedTeam, RedTeamArray, true);
+		PolyWarGameState->GetTeam(ETeamType::ET_RedTeam, RedTeamArray);
 		float RedTeamNum = RedTeamArray.Num();
 
 		PolyWarHUD->EndMenuWidget->VersusBar->SetPercent(BlueTeamNum / (BlueTeamNum + RedTeamNum));
@@ -485,7 +485,8 @@ FVector APolyWarPlayerController::MapImageClickToWorldPosition(const FVector2D S
 
 void APolyWarPlayerController::StartOrder(EOrderType Order, FVector OrderPos)
 {
-	TArray<APolyWarAICharacter*> TeamArray = GetMyTeam();
+	TArray<APolyWarAICharacter*> TeamArray;
+	GetMyTeam(TeamArray);
 
 	if(HasAuthority())
 	{
@@ -515,8 +516,7 @@ void APolyWarPlayerController::StartOrder(EOrderType Order, FVector OrderPos)
 	ResetMapButtons();
 }
 
-void APolyWarPlayerController::ServerStartOrder_Implementation(EOrderType Order, FVector_NetQuantize OrderPos,
-                                                               const TArray<APolyWarAICharacter*>& TeamArray)
+void APolyWarPlayerController::ServerStartOrder_Implementation(EOrderType Order, FVector_NetQuantize OrderPos, const TArray<APolyWarAICharacter*>& TeamArray)
 {
 	for(auto TeamAI : TeamArray)
 	{
@@ -535,21 +535,17 @@ void APolyWarPlayerController::ServerStartOrder_Implementation(EOrderType Order,
 			break;
 		}
 	}
-
 }
 
-TArray<APolyWarAICharacter*> APolyWarPlayerController::GetMyTeam()
+void APolyWarPlayerController::GetMyTeam(TArray<APolyWarAICharacter*>& OutTeamArray)
 {
-	TArray<APolyWarAICharacter*> TeamArray;
 	PolyWarPlayerCharacter = PolyWarPlayerCharacter == nullptr ? Cast<APolyWarPlayerCharacter>(GetPawn()) : PolyWarPlayerCharacter;
 	PolyWarGameState = PolyWarGameState == nullptr ? Cast<APolyWarGameStateBase>(UGameplayStatics::GetGameState(GetWorld())) : PolyWarGameState;
-	if(!PolyWarPlayerCharacter || !PolyWarGameState) return TeamArray;
+	if(!PolyWarPlayerCharacter || !PolyWarGameState) return;
 
 	TArray<EUnitNum> UnitNums;
 	GetMapUnitStateArray(EMapUnitState::EMUS_Clicked, UnitNums);
-	PolyWarGameState->GetTeamArray(PolyWarPlayerCharacter->GetTeamType(), UnitNums, TeamArray);
-
-	return TeamArray;
+	PolyWarGameState->GetTeamByUnitNums(PolyWarPlayerCharacter->GetTeamType(), UnitNums, OutTeamArray);
 }
 
 void APolyWarPlayerController::ToggleUnitNum(EUnitNum UnitNum)
