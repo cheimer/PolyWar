@@ -21,20 +21,21 @@ public:
 
 	virtual void BeginPlay() override;
 
-	void SetPlayerTeam(class APolyWarPlayerCharacter* PlayerCharacter);
+	void RegisterPlayer(class APolyWarPlayerCharacter* PlayerCharacter);
 
-	void GetTeamArray(ETeamType TeamType, TArray<EUnitNum> UnitNumArray, TArray<class APolyWarAICharacter*>& OutArray);
+	void GetTeam(ETeamType TeamType, TArray<class APolyWarBaseCharacter*>& OutTeamArray);
+	void GetTeamByUnitNums(ETeamType TeamType, TArray<EUnitNum> UnitNumArray, TArray<class APolyWarAICharacter*>& OutArray);
 
-	void GetTeam(ETeamType TeamType, TArray<class APolyWarBaseCharacter*>& OutTeamArray, bool bIncludePlayer = false);
+	bool IsTeamExistPlayer(ETeamType TeamType);
+
+	UFUNCTION()
+	void DeathCharacter(class APolyWarBaseCharacter* Character);
 
 private:
 	TMap<EUnitNum, TArray<APolyWarAICharacter*>> BlueTeamUnitMap;
 	TMap<EUnitNum, TArray<APolyWarAICharacter*>> RedTeamUnitMap;
 
-	TObjectPtr<class APolyWarPlayerCharacter> BluePlayer = nullptr;
-	TObjectPtr<APolyWarPlayerCharacter> RedPlayer = nullptr;
-
-	UFUNCTION()
-	void DeathCharacter(class APolyWarBaseCharacter* Character);
+	TObjectPtr<APolyWarPlayerCharacter> BluePlayer;
+	TObjectPtr<APolyWarPlayerCharacter> RedPlayer;
 
 };

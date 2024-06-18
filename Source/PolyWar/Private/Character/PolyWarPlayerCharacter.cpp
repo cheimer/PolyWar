@@ -61,6 +61,7 @@ APolyWarPlayerCharacter::APolyWarPlayerCharacter()
 	GetCharacterMovement()->BrakingFriction = 20.0f;
 	GetCharacterMovement()->AirControl = 0.5f;
 
+	TeamType = ETeamType::ET_NoTeam;
 }
 
 void APolyWarPlayerCharacter::BeginPlay()
@@ -80,16 +81,12 @@ void APolyWarPlayerCharacter::BeginPlay()
 		}
 	}
 
-	APolyWarGameModeBase* GameMode = Cast<APolyWarGameModeBase>(GetWorld()->GetAuthGameMode());
-	if(GameMode)
-	{
-		GameMode->RegisterPlayer(this);
-	}
+	SetPlayerTeam();
 
 	APolyWarGameStateBase* PolyWarGameState = Cast<APolyWarGameStateBase>(UGameplayStatics::GetGameState(GetWorld()));
 	if(PolyWarGameState)
 	{
-		PolyWarGameState->SetPlayerTeam(this);
+		PolyWarGameState->RegisterPlayer(this);
 	}
 }
 
@@ -125,6 +122,7 @@ void APolyWarPlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimePropert
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(APolyWarPlayerCharacter, bFocusOnScreen);
+	DOREPLIFETIME(APolyWarPlayerCharacter, TeamType);
 }
 
 void APolyWarPlayerCharacter::Tick(float DeltaSeconds)
@@ -220,6 +218,24 @@ void APolyWarPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerI
 		if(InputSpellUlt)
 		{
 			EnhancedInputComponent->BindAction(InputSpellUlt, ETriggerEvent::Triggered, this, &ThisClass::SpellUlt);
+		}
+	}
+}
+
+void APolyWarPlayerCharacter::SetPlayerTeam()
+{
+	APolyWarGameStateBase* GameState = Cast<APolyWarGameStateBase>(UGameplayStatics::GetGameState(GetWorld()));
+	if(!GameState) return;
+
+	if(HasAuthority())
+	{
+		if(!GameState->IsTeamExistPlayer(ETeamType::ET_BlueTeam))
+		{
+			SetTeamType(ETeamType::ET_BlueTeam);
+		}
+		else if(!GameState->IsTeamExistPlayer(ETeamType::ET_RedTeam))
+		{
+			SetTeamType(ETeamType::ET_RedTeam);
 		}
 	}
 }
