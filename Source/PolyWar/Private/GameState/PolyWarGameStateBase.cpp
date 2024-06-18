@@ -4,6 +4,7 @@
 #include "GameState/PolyWarGameStateBase.h"
 
 #include "Character/PolyWarAICharacter.h"
+#include "Character/PolyWarPlayerCharacter.h"
 #include "Kismet/GameplayStatics.h"
 
 void APolyWarGameStateBase::PostInitializeComponents()
@@ -48,13 +49,37 @@ void APolyWarGameStateBase::PostInitializeComponents()
 					RedTeamUnitMap.Emplace(AICharacter->GetUnitNum(), CreateArray);
 				}
 			}
+			// if use other team. not Blue or Red
 			else
 			{
 				//AICharacter->OnCharacterDeathDelegate.RemoveDynamic(this, &ThisClass::DeathCharacter);
 			}
 		}
 	}
+}
 
+void APolyWarGameStateBase::BeginPlay()
+{
+	Super::BeginPlay();
+}
+
+//TEMP: Set team in order. Need to move right place
+void APolyWarGameStateBase::SetPlayerTeam(APolyWarPlayerCharacter* PlayerCharacter)
+{
+	if(!BluePlayer)
+	{
+		PlayerCharacter->SetTeamType(ETeamType::ET_BlueTeam);
+		BluePlayer = PlayerCharacter;
+	}
+	else if(!RedPlayer)
+	{
+		PlayerCharacter->SetTeamType(ETeamType::ET_RedTeam);
+		RedPlayer = PlayerCharacter;
+	}
+	else
+	{
+		// Player death and Add such as Spectator
+	}
 }
 
 void APolyWarGameStateBase::GetTeamArray(ETeamType TeamType, TArray<EUnitNum> UnitNumArray, TArray<APolyWarAICharacter*>& OutArray)
@@ -81,6 +106,45 @@ void APolyWarGameStateBase::GetTeamArray(ETeamType TeamType, TArray<EUnitNum> Un
 	}
 }
 
+void APolyWarGameStateBase::GetTeam(ETeamType TeamType, TArray<APolyWarBaseCharacter*>& OutTeamArray, bool bIncludePlayer)
+{
+	if(TeamType == ETeamType::ET_BlueTeam)
+	{
+		for(EUnitNum Index : TEnumRange<EUnitNum>())
+		{
+			if(BlueTeamUnitMap.Contains(Index))
+			{
+				for(auto IndexCharacter : BlueTeamUnitMap[Index])
+				{
+					OutTeamArray.Add(IndexCharacter);
+				}
+			}
+		}
+		if(bIncludePlayer && BluePlayer && !BluePlayer->IsDead())
+		{
+			OutTeamArray.Add(BluePlayer);
+		}
+
+	}
+	else if(TeamType == ETeamType::ET_RedTeam)
+	{
+		for(EUnitNum Index : TEnumRange<EUnitNum>())
+		{
+			if(RedTeamUnitMap.Contains(Index))
+			{
+				for(auto IndexCharacter : RedTeamUnitMap[Index])
+				{
+					OutTeamArray.Add(IndexCharacter);
+				}
+			}
+		}
+		if(bIncludePlayer && RedPlayer && !RedPlayer->IsDead())
+		{
+			OutTeamArray.Add(RedPlayer);
+		}
+	}
+}
+
 void APolyWarGameStateBase::DeathCharacter(APolyWarBaseCharacter* Character)
 {
 	APolyWarAICharacter* AICharacter = Cast<APolyWarAICharacter>(Character);
@@ -101,4 +165,5 @@ void APolyWarGameStateBase::DeathCharacter(APolyWarBaseCharacter* Character)
 			}
 		}
 	}
+
 }

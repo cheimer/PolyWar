@@ -17,4 +17,8 @@ class POLYWAR_API ALobbyGameModeBase : public AGameModeBase
 public:
 	virtual void PostLogin(APlayerController* NewPlayer) override;
 
+private:
+	UPROPERTY(EditDefaultsOnly, Category = "Set Should")
+	TArray<FString> Maps;
+
 };

@@ -26,9 +26,11 @@ void ALobbyGameModeBase::PostLogin(APlayerController* NewPlayer)
 				bUseSeamlessTravel = true;
 
 				FString MatchType = Subsystem->DesiredMatchType;
-				if (MatchType == "Test")
+
+				if(Maps.Contains(MatchType))
 				{
-					World->ServerTravel(FString("/Game/Maps/Test?listen"));
+					const FString MapPath = FString::Printf(TEXT("/Game/Maps/%s?listen"), *MatchType);
+					World->ServerTravel(MapPath);
 				}
 			}
 		}

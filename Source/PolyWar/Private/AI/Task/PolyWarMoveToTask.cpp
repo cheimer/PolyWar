@@ -6,7 +6,6 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Character/PolyWarAICharacter.h"
 #include "Controller/PolyWarAIController.h"
-#include "GameState/PolyWarGameStateBase.h"
 
 UPolyWarMoveToTask::UPolyWarMoveToTask()
 {

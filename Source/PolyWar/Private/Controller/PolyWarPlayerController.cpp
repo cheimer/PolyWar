@@ -16,6 +16,7 @@
 #include "GameState/PolyWarGameStateBase.h"
 #include "Kismet/GameplayStatics.h"
 #include "UI/CharacterWidget.h"
+#include "UI/EndMenuWidget.h"
 #include "UI/MapButton.h"
 #include "UI/MapWidget.h"
 
@@ -51,6 +52,13 @@ void APolyWarPlayerController::OnPossess(APawn* InPawn)
 
 	CreateWidgets();
 
+	if (UEnhancedInputLocalPlayerSubsystem* Subsystem =
+		ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
+	{
+		Subsystem->AddMappingContext(ControllerInputMapping, 0);
+	}
+
+
 }
 
 void APolyWarPlayerController::CreateWidgets()
@@ -58,8 +66,7 @@ void APolyWarPlayerController::CreateWidgets()
 	PolyWarHUD = PolyWarHUD == nullptr ? Cast<APolyWarHUD>(GetHUD()) : PolyWarHUD;
 	if(PolyWarHUD)
 	{
-		PolyWarHUD->AddCharacterWidget();
-		PolyWarHUD->AddMapWidget();
+		PolyWarHUD->CreateWidgets();
 	}
 }
 
@@ -150,8 +157,164 @@ void APolyWarPlayerController::SetHUDHealth(float CurrentHealth, float MaxHealth
 	{
 		const float HealthPercent = CurrentHealth / MaxHealth;
 		PolyWarHUD->CharacterWidget->HealthBar->SetPercent(HealthPercent);
+
 		const FString HealthText = FString::Printf(TEXT("%d / %d"), FMath::CeilToInt(CurrentHealth), FMath::CeilToInt(MaxHealth));
 		PolyWarHUD->CharacterWidget->HealthText->SetText(FText::FromString(HealthText));
+	}
+}
+
+void APolyWarPlayerController::SetHUDWinText(ETeamType WinTeam)
+{
+	PolyWarHUD = PolyWarHUD == nullptr ? Cast<APolyWarHUD>(GetHUD()) : PolyWarHUD;
+
+	bool bHUDValid = PolyWarHUD &&
+		PolyWarHUD->EndMenuWidget &&
+		PolyWarHUD->EndMenuWidget->WinText;
+
+	if(bHUDValid)
+	{
+		FString WinText;
+		FSlateColor WinColor;
+		if(WinTeam == ETeamType::ET_BlueTeam)
+		{
+			WinText = FString::Printf(TEXT("Blue Team Win"));
+			WinColor = PolyWarHUD->EndMenuWidget->BlueTeamColor;
+		}
+		else if(WinTeam == ETeamType::ET_RedTeam)
+		{
+			WinText = FString::Printf(TEXT("Red Team Win"));
+			WinColor = PolyWarHUD->EndMenuWidget->RedTeamColor;
+		}
+		else
+		{
+			WinText = FString::Printf(TEXT("??? Team Win"));
+		}
+		PolyWarHUD->EndMenuWidget->WinText->SetText(FText::FromString(WinText));
+		PolyWarHUD->EndMenuWidget->WinText->SetColorAndOpacity(WinColor);
+	}
+}
+
+void APolyWarPlayerController::SetHUDVersusBar()
+{
+	PolyWarHUD = PolyWarHUD == nullptr ? Cast<APolyWarHUD>(GetHUD()) : PolyWarHUD;
+
+	bool bHUDValid = PolyWarHUD &&
+		PolyWarHUD->EndMenuWidget &&
+		PolyWarHUD->EndMenuWidget->VersusBar;
+
+	if(bHUDValid)
+	{
+		PolyWarGameState = PolyWarGameState == nullptr ? Cast<APolyWarGameStateBase>(UGameplayStatics::GetGameState(GetWorld())) : PolyWarGameState;
+		if(!PolyWarGameState) return;
+
+		TArray<APolyWarBaseCharacter*> BlueTeamArray;
+		PolyWarGameState->GetTeam(ETeamType::ET_BlueTeam, BlueTeamArray, true);
+		float BlueTeamNum = BlueTeamArray.Num();
+
+		TArray<APolyWarBaseCharacter*> RedTeamArray;
+		PolyWarGameState->GetTeam(ETeamType::ET_RedTeam, RedTeamArray, true);
+		float RedTeamNum = RedTeamArray.Num();
+
+		PolyWarHUD->EndMenuWidget->VersusBar->SetPercent(BlueTeamNum / (BlueTeamNum + RedTeamNum));
+	}
+}
+
+void APolyWarPlayerController::SetHUDTeamScroll()
+{
+	PolyWarHUD = PolyWarHUD == nullptr ? Cast<APolyWarHUD>(GetHUD()) : PolyWarHUD;
+
+	bool bHUDValid = PolyWarHUD &&
+		PolyWarHUD->EndMenuWidget &&
+		PolyWarHUD->EndMenuWidget->BlueTeamScroll &&
+		PolyWarHUD->EndMenuWidget->RedTeamScroll;
+
+	if(bHUDValid)
+	{
+		PolyWarHUD->ClearEndMenuScroll();
+
+		TMap<EUnitType, int32> BlueTeamUnitTypes;
+		TeamUnitTypes(ETeamType::ET_BlueTeam, BlueTeamUnitTypes);
+
+		for(auto UnitInfo : BlueTeamUnitTypes)
+		{
+			PolyWarHUD->EndMenuScrollAdd(ETeamType::ET_BlueTeam,
+				GetTextFromUnitType(UnitInfo.Key), FText::FromString(FString::FromInt(UnitInfo.Value)));
+		}
+
+		TMap<EUnitType, int32> RedTeamUnitTypes;
+		TeamUnitTypes(ETeamType::ET_RedTeam, RedTeamUnitTypes);
+
+		for(auto UnitInfo : RedTeamUnitTypes)
+		{
+			PolyWarHUD->EndMenuScrollAdd(ETeamType::ET_RedTeam,
+				GetTextFromUnitType(UnitInfo.Key), FText::FromString(FString::FromInt(UnitInfo.Value)));
+		}
+
+	}
+}
+
+void APolyWarPlayerController::TeamUnitTypes(ETeamType TeamType, TMap<EUnitType, int32>& OutTeamUnitTypes)
+{
+	TArray<APolyWarBaseCharacter*> TeamArray;
+	PolyWarGameState->GetTeam(TeamType, TeamArray);
+	for(auto TeamCharacter : TeamArray)
+	{
+		if(OutTeamUnitTypes.Contains(TeamCharacter->GetUnitType()))
+		{
+			OutTeamUnitTypes[TeamCharacter->GetUnitType()]++;
+		}
+		else
+		{
+			OutTeamUnitTypes.Add(TeamCharacter->GetUnitType(), 1);
+		}
+	}
+}
+
+void APolyWarPlayerController::GameEnd(ETeamType WinnerTeam)
+{
+	if(HasAuthority())
+	{
+		if(IsLocalController())
+		{
+			PolyWarHUD = PolyWarHUD == nullptr ? Cast<APolyWarHUD>(GetHUD()) : PolyWarHUD;
+			if(!PolyWarHUD) return;
+
+			FInputModeUIOnly InputMode;
+			SetInputMode(InputMode);
+
+			SetShowMouseCursor(true);
+
+			SetHUDWinText(WinnerTeam);
+			SetHUDVersusBar();
+			SetHUDTeamScroll();
+
+			PolyWarHUD->ChangeWidget(PolyWarHUD->EndMenuWidget);
+		}
+		else
+		{
+			ClientGameEnd(WinnerTeam);
+		}
+	}
+
+}
+
+void APolyWarPlayerController::ClientGameEnd_Implementation(ETeamType WinnerTeam)
+{
+	if(IsLocalController())
+	{
+		PolyWarHUD = PolyWarHUD == nullptr ? Cast<APolyWarHUD>(GetHUD()) : PolyWarHUD;
+		if(!PolyWarHUD) return;
+
+		FInputModeUIOnly InputMode;
+		SetInputMode(InputMode);
+
+		SetShowMouseCursor(true);
+
+		SetHUDWinText(WinnerTeam);
+		SetHUDVersusBar();
+		SetHUDTeamScroll();
+
+		PolyWarHUD->ChangeWidget(PolyWarHUD->EndMenuWidget);
 	}
 }
 
@@ -169,7 +332,7 @@ void APolyWarPlayerController::MapToggle()
 		SetShowMouseCursor(true);
 		PolyWarPlayerCharacter->SetIsOpenMap(true);
 
-		PolyWarPlayerCharacter->ResetMapCameraLocation();
+		PolyWarPlayerCharacter->ResetMapCamera();
 		ResetMapButtons();
 	}
 	// Map Close
@@ -180,7 +343,7 @@ void APolyWarPlayerController::MapToggle()
 		SetShowMouseCursor(false);
 		PolyWarPlayerCharacter->SetIsOpenMap(false);
 
-		PolyWarPlayerCharacter->ResetMapCameraLocation();
+		PolyWarPlayerCharacter->ResetMapCamera();
 		ResetMapButtons();
 	}
 }
@@ -301,18 +464,19 @@ FVector APolyWarPlayerController::MapImageClickToWorldPosition(const FVector2D S
 	PolyWarPlayerCharacter = PolyWarPlayerCharacter == nullptr ? Cast<APolyWarPlayerCharacter>(GetPawn()) : PolyWarPlayerCharacter;
 	if(!PolyWarPlayerCharacter) return FVector();
 
+	// -0.5 < Rate < 0.5
+	// Cursor pos rate based on screen size. if left top, rate(-0.x, -0.x). if right bottom, rate(0.x, 0.x)
 	FVector2D Rate((StartPos + Size - ClickPos) / Size);
 	Rate.X = 0.5 - Rate.X; Rate.Y = 0.5 - Rate.Y;
 
 	FVector MapCameraPos = PolyWarPlayerCharacter->GetMapCameraPos();
 
-	FVector TraceStartPos;
-	TraceStartPos.X = MapCameraPos.X - Rate.Y * MapCameraPos.Z * 1.1f;
-	TraceStartPos.Y = MapCameraPos.Y + Rate.X * MapCameraPos.Z * 2.0f;
-	TraceStartPos.Z = MapCameraPos.Z;
+	FVector TraceStartPos = MapCameraPos;
+	TraceStartPos += -PolyWarPlayerCharacter->GetMapCameraUp() * Rate.Y * MapCameraPos.Z * 1.1f;
+	TraceStartPos += PolyWarPlayerCharacter->GetMapCameraRight() * Rate.X * MapCameraPos.Z * 2.0f;
 
-	FVector TraceEndPos = TraceStartPos;
-	TraceEndPos.Z = TraceStartPos.Z - PolyWarPlayerCharacter->GetMapHeightMaxLimit() * 2.0f;
+	FVector TraceEndPos = TraceStartPos + PolyWarPlayerCharacter->GetMapCameraForward() * PolyWarPlayerCharacter->GetMapHeightMaxLimit() * 2.0f;
+
 	FHitResult HitResult;
 	GetWorld()->LineTraceSingleByChannel(HitResult, TraceStartPos, TraceEndPos, ECC_WorldStatic);
 
@@ -352,7 +516,7 @@ void APolyWarPlayerController::StartOrder(EOrderType Order, FVector OrderPos)
 }
 
 void APolyWarPlayerController::ServerStartOrder_Implementation(EOrderType Order, FVector_NetQuantize OrderPos,
-	const TArray<APolyWarAICharacter*>& TeamArray)
+                                                               const TArray<APolyWarAICharacter*>& TeamArray)
 {
 	for(auto TeamAI : TeamArray)
 	{
@@ -378,8 +542,7 @@ TArray<APolyWarAICharacter*> APolyWarPlayerController::GetMyTeam()
 {
 	TArray<APolyWarAICharacter*> TeamArray;
 	PolyWarPlayerCharacter = PolyWarPlayerCharacter == nullptr ? Cast<APolyWarPlayerCharacter>(GetPawn()) : PolyWarPlayerCharacter;
-	PolyWarGameState = PolyWarGameState == nullptr ?
-		PolyWarGameState = Cast<APolyWarGameStateBase>(UGameplayStatics::GetGameState(GetWorld())) : PolyWarGameState;
+	PolyWarGameState = PolyWarGameState == nullptr ? Cast<APolyWarGameStateBase>(UGameplayStatics::GetGameState(GetWorld())) : PolyWarGameState;
 	if(!PolyWarPlayerCharacter || !PolyWarGameState) return TeamArray;
 
 	TArray<EUnitNum> UnitNums;

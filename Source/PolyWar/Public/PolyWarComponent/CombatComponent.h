@@ -75,6 +75,9 @@ private:
 	void WeaponAttackEnd();
 	void WeaponSkillEnd();
 
+	bool bIsAttackDelay = false;
+	void AttackDelayEnd();
+
 	UPROPERTY(Replicated)
 	EWeaponSkill CurrentWeaponSkill;
 	UPROPERTY(Replicated)

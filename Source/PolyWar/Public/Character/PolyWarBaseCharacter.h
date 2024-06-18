@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "PolyWarTypes/TeamType.h"
+#include "PolyWarTypes/UnitType.h"
 #include "PolyWarTypes/WeaponSkill.h"
 #include "PolyWarBaseCharacter.generated.h"
 
@@ -35,6 +36,8 @@ public:
 	virtual void WeaponAttack();
 	virtual void WeaponSkillAttack(EWeaponSkill WeaponSkill);
 	virtual void SpellAttack(TSubclassOf<class ASpell> Spell);
+
+	bool IsDead();
 
 	float GetPowerRate();
 	float GetSpellPowerRate();
@@ -96,8 +99,6 @@ protected:
 	void ReceiveDamage(AActor* DamagedActor, float Damage,
 		const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser);
 
-	bool IsDead();
-
 	UPROPERTY(EditAnywhere, Category = "Settable")
 	TArray<UAnimMontage*> DamagedAnimMontages;
 
@@ -106,6 +107,9 @@ protected:
 
 	void DeathTimerFinished();
 	//~ End Health
+
+	UPROPERTY(EditAnywhere, Category = "Set Should")
+	EUnitType UnitType;
 
 	UPROPERTY(EditAnywhere, Category = "Set Should")
 	ETeamType TeamType;
@@ -157,5 +161,7 @@ public:
 	void SetIsOpenMap(bool SetIsOpenMap) {bIsOpenMap = SetIsOpenMap;}
 	ETeamType GetTeamType() const {return TeamType;}
 	void SetTeamType(ETeamType InTeamType) {TeamType = InTeamType;}
+	EUnitType GetUnitType() const {return UnitType;}
+	void SetUnitType(EUnitType InUnitType) {UnitType = InUnitType;}
 
 };

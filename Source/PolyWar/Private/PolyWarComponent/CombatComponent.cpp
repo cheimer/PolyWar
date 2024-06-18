@@ -36,7 +36,7 @@ void UCombatComponent::BeginPlay()
 
 void UCombatComponent::BeginWeaponAttack()
 {
-	if(!OwnerCharacter || !OwnerCharacter->GetEquippedWeapon() || CombatState != ECombatState::ECS_Wait) return;
+	if(!OwnerCharacter || !OwnerCharacter->GetEquippedWeapon() || CombatState != ECombatState::ECS_Wait || bIsAttackDelay) return;
 
 	SetCurrentAnimIndexRand();
 
@@ -108,6 +108,8 @@ void UCombatComponent::WeaponAttack(int32 AnimIndex)
 {
 	if(!OwnerCharacter || !EquippedWeapon) return;
 	OwnerCharacter->PlayAttackAnimMontage(false, AnimIndex);
+
+	bIsAttackDelay = true;
 
 	FTimerHandle AttackTimer;
 	float Delay = EquippedWeapon->GetAttackDelay() > OwnerCharacter->GetAttackAnimMontageLen(AnimIndex) ?
@@ -193,6 +195,19 @@ void UCombatComponent::MulticastSpellCast_Implementation(TSubclassOf<ASpell> Spe
 void UCombatComponent::WeaponAttackEnd()
 {
 	CombatState = ECombatState::ECS_Wait;
+
+	// Wait for Network delay. if don't use this and server WeaponAttack continuously, client can't receive On_RepCombatState.
+	if(bIsAttackDelay)
+	{
+		FTimerHandle LittleTimer;
+		OwnerCharacter->GetWorldTimerManager().SetTimer(LittleTimer, this, &ThisClass::AttackDelayEnd, 0.1f);
+	}
+
+}
+
+void UCombatComponent::AttackDelayEnd()
+{
+	bIsAttackDelay = false;
 }
 
 void UCombatComponent::WeaponSkillEnd()

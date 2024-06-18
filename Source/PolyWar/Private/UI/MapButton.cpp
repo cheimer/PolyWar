@@ -3,11 +3,14 @@
 
 #include "UI/MapButton.h"
 
-void UMapButton::SynchronizeProperties()
+void UMapButton::PostInitProperties()
 {
-	Super::SynchronizeProperties();
+	Super::PostInitProperties();
 
-	OnPressed.AddDynamic(this, &ThisClass::MapButtonClicked);
+	if(!OnPressed.IsBound())
+	{
+		OnPressed.AddDynamic(this, &ThisClass::MapButtonClicked);
+	}
 }
 
 void UMapButton::MapButtonClicked()

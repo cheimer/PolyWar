@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/HUD.h"
+#include "PolyWarTypes/TeamType.h"
 #include "PolyWarHUD.generated.h"
 
 /**
@@ -17,15 +18,28 @@ class POLYWAR_API APolyWarHUD : public AHUD
 public:
 	virtual void BeginPlay() override;
 
-	UPROPERTY(EditAnywhere, Category = "Set Should")
-	TSubclassOf<class UCharacterWidget> CharacterWidgetClass;
+	void CreateWidgets();
+	void ChangeWidget(UUserWidget* NewWidget);
+
 	TObjectPtr<class UCharacterWidget> CharacterWidget;
+	TObjectPtr<class UMapWidget> MapWidget;
+	TObjectPtr<class UEndMenuWidget> EndMenuWidget;
+
+	void EndMenuScrollAdd(const ETeamType TeamType, const FText& UnitName, const FText& UnitNum);
+	void ClearEndMenuScroll();
+
+protected:
+	UPROPERTY(EditAnywhere, Category = "Set Should")
+	TSubclassOf<UCharacterWidget> CharacterWidgetClass;
 	void AddCharacterWidget();
 
 	UPROPERTY(EditAnywhere, Category = "Set Should")
-	TSubclassOf<class UMapWidget> MapWidgetClass;
-	TObjectPtr<class UMapWidget> MapWidget;
+	TSubclassOf<UMapWidget> MapWidgetClass;
 	void AddMapWidget();
+
+	UPROPERTY(EditAnywhere, Category = "Set Should")
+	TSubclassOf<UEndMenuWidget> EndMenuWidgetClass;
+	void AddEndMenuWidget();
 
 	//~ TODO: MapMoveError Temp Solve
 	UPROPERTY(EditAnywhere, Category = "Set Should")
@@ -36,5 +50,8 @@ public:
 
 private:
 	TObjectPtr<class APlayerController> OwnerPlayerController;
+	TObjectPtr<UUserWidget> CurrentWidget;
+
+	void ChangeCurrentWidget(UUserWidget* ShowingWidget);
 
 };

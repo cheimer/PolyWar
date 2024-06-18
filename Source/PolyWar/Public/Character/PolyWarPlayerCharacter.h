@@ -23,8 +23,19 @@ public:
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	void ResetMapCameraLocation();
+	virtual void SetPlayerDeath() override;
+
+	void ResetMapCamera();
+	FTransform GetMainCameraTransform();
 	FVector GetMapCameraPos();
+	FVector GetMapCameraForward();
+	FVector GetMapCameraRight();
+	FVector GetMapCameraUp();
+
+	UPROPERTY(EditDefaultsOnly, Category = "Set Should")
+	TSubclassOf<APolyWarPlayerCharacter> SpectatorClass;
+
+	void SpectatorSettings(APolyWarPlayerCharacter* BeforeCharacter);
 
 protected:
 	virtual void BeginPlay() override;
@@ -64,7 +75,10 @@ protected:
 	UInputAction* InputMap;
 
 	UPROPERTY(EditDefaultsOnly, Category = "EnhancedInput")
-	UInputAction* InputMapClick;
+	UInputAction* InputMapLeftClick;
+
+	UPROPERTY(EditDefaultsOnly, Category = "EnhancedInput")
+	UInputAction* InputMapRightClick;
 
 	UPROPERTY(EditDefaultsOnly, Category = "EnhancedInput")
 	UInputAction* InputMapMove;
@@ -99,7 +113,8 @@ protected:
 
 	void Map(const FInputActionValue& Value);
 
-	void MapClick(const FInputActionValue& Value);
+	void MapLeftClick(const FInputActionValue& Value);
+	void MapRightClick(const FInputActionValue& Value);
 	void MapMove(const FInputActionValue& Value);
 	void MapScroll(const FInputActionValue& Value);
 
@@ -115,14 +130,18 @@ private:
 	TObjectPtr<class APolyWarPlayerController> PolyWarPlayerController;
 
 	UPROPERTY(EditAnywhere, Category = "Settable")
-	float MapDefaultHeight = 2200.0f;
+	float MapDefaultHeight = 4000.0f;
 	UPROPERTY(EditAnywhere, Category = "Settable")
-	float MapHeightMaxLimit = 5000.0f;
+	float MapHeightMaxLimit = 10000.0f;
 	UPROPERTY(EditAnywhere, Category = "Settable")
 	float MapHeightMinLimit = 1000.0f;
 
 	UPROPERTY(EditAnywhere, Category = "Settable")
 	float MapMoveSensitive = 100.0f;
+	UPROPERTY(EditAnywhere, Category = "Settable")
+	float MapRotateSensitive = 1.0f;
+	UPROPERTY(EditAnywhere, Category = "Settable")
+	float MapScrollSensitive = 500.0f;
 
 	//~ TODO: MapMoveError Temp Solve
 	UPROPERTY(EditAnywhere, Category = "Set Should")
@@ -136,7 +155,10 @@ private:
 	//~ TODO END
 
 	//~ Begin EnhancedInput
-	bool bHoldMouseClick = false;
+	bool bHoldLeftMouseClick = false;
+	bool bHoldRightMouseClick = false;
+
+	FRotator MapCameraDefaultRotator;
 	//~ End EnhancedInput
 
 	UPROPERTY(Replicated)

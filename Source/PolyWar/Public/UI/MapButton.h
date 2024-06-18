@@ -21,7 +21,7 @@ class POLYWAR_API UMapButton : public UButton
 	GENERATED_BODY()
 
 public:
-	virtual void SynchronizeProperties() override;
+	virtual void PostInitProperties() override;
 
 	bool bIsUnitButton = false;
 	FOnUnitButtonClickedEvent OnUnitButtonClicked;

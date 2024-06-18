@@ -13,8 +13,12 @@
 #include "Controller/PolyWarPlayerController.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "GameMode/PolyWarGameModeBase.h"
+#include "GameState/PolyWarGameStateBase.h"
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
+#include "Perception/AIPerceptionStimuliSourceComponent.h"
+#include "Perception/AISense_Sight.h"
 #include "PolyWarComponent/CombatComponent.h"
 #include "PolyWarComponent/SpellComponent.h"
 #include "Spell/Spell.h"
@@ -39,11 +43,11 @@ APolyWarPlayerCharacter::APolyWarPlayerCharacter()
 
 	MapSpringArm = CreateDefaultSubobject<USpringArmComponent>("MapSpringArm");
 	MapSpringArm->SetupAttachment(GetMesh());
-	MapSpringArm->TargetArmLength = 0.0f;
+	MapSpringArm->TargetArmLength = MapDefaultHeight;
 	MapSpringArm->bUsePawnControlRotation = false;
-	MapSpringArm->SetWorldRotation(FRotator(-90.0f, 0.0f, 0.0f));
+	MapSpringArm->SetRelativeLocation(FVector(0.0f, 0.0f, 0.0f));
+	MapSpringArm->SetWorldRotation(FRotator(-75.0f, 0.0f, 0.0f));
 	MapSpringArm->bDoCollisionTest = false;
-	MapSpringArm->SetIsReplicated(true);
 
 	MapCamera = CreateDefaultSubobject<USceneCaptureComponent2D>("MapCamera");
 	MapCamera->SetupAttachment(MapSpringArm);
@@ -76,6 +80,17 @@ void APolyWarPlayerCharacter::BeginPlay()
 		}
 	}
 
+	APolyWarGameModeBase* GameMode = Cast<APolyWarGameModeBase>(GetWorld()->GetAuthGameMode());
+	if(GameMode)
+	{
+		GameMode->RegisterPlayer(this);
+	}
+
+	APolyWarGameStateBase* PolyWarGameState = Cast<APolyWarGameStateBase>(UGameplayStatics::GetGameState(GetWorld()));
+	if(PolyWarGameState)
+	{
+		PolyWarGameState->SetPlayerTeam(this);
+	}
 }
 
 void APolyWarPlayerCharacter::PossessedBy(AController* NewController)
@@ -101,7 +116,7 @@ void APolyWarPlayerCharacter::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
-	ResetMapCameraLocation();
+	ResetMapCamera();
 
 }
 
@@ -170,9 +185,13 @@ void APolyWarPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerI
 		{
 			EnhancedInputComponent->BindAction(InputMap, ETriggerEvent::Triggered, this, &ThisClass::Map);
 		}
-		if(InputMapClick)
+		if(InputMapLeftClick)
 		{
-			EnhancedInputComponent->BindAction(InputMapClick, ETriggerEvent::Triggered, this, &ThisClass::MapClick);
+			EnhancedInputComponent->BindAction(InputMapLeftClick, ETriggerEvent::Triggered, this, &ThisClass::MapLeftClick);
+		}
+		if(InputMapRightClick)
+		{
+			EnhancedInputComponent->BindAction(InputMapRightClick, ETriggerEvent::Triggered, this, &ThisClass::MapRightClick);
 		}
 		if(InputMapMove)
 		{
@@ -201,6 +220,21 @@ void APolyWarPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerI
 		if(InputSpellUlt)
 		{
 			EnhancedInputComponent->BindAction(InputSpellUlt, ETriggerEvent::Triggered, this, &ThisClass::SpellUlt);
+		}
+	}
+}
+
+void APolyWarPlayerCharacter::SetPlayerDeath()
+{
+	Super::SetPlayerDeath();
+
+	if(HasAuthority())
+	{
+		APolyWarPlayerCharacter* SpectatorPawn = GetWorld()->SpawnActor<APolyWarPlayerCharacter>(SpectatorClass, GetActorTransform());
+		if(SpectatorPawn)
+		{
+			SpectatorPawn->SpectatorSettings(this);
+			GetController()->Possess(SpectatorPawn);
 		}
 	}
 }
@@ -280,6 +314,33 @@ void APolyWarPlayerCharacter::ServerRun_Implementation(bool InIsRun)
 	}
 }
 
+void APolyWarPlayerCharacter::SpectatorSettings(APolyWarPlayerCharacter* BeforeCharacter)
+{
+	if(AIPerceptionSourceComponent)
+	{
+		AIPerceptionSourceComponent->UnregisterFromSense(UAISense_Sight::StaticClass());
+		AIPerceptionSourceComponent->UnregisterFromPerceptionSystem();
+	}
+
+	SetTeamType(BeforeCharacter->GetTeamType());
+	DefaultWalkSpeed = BeforeCharacter->GetDefaultWalkSpeed();
+	DefaultRunSpeed = BeforeCharacter->GetDefaultRunSpeed();
+
+	if(GetMesh())
+	{
+		GetMesh()->SetOnlyOwnerSee(true);
+		GetMesh()->SetCollisionResponseToAllChannels(ECR_Ignore);
+	}
+	if(GetCapsuleComponent())
+	{
+		GetCapsuleComponent()->SetGenerateOverlapEvents(false);
+		GetCapsuleComponent()->SetCollisionResponseToAllChannels(ECR_Ignore);
+		GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
+		GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Block);
+	}
+
+}
+
 void APolyWarPlayerCharacter::Map(const FInputActionValue& Value)
 {
 	PolyWarPlayerController = PolyWarPlayerController == nullptr ? Cast<APolyWarPlayerController>(GetController()) : PolyWarPlayerController;
@@ -306,22 +367,47 @@ void APolyWarPlayerCharacter::ServerSetMapCamera_Implementation()
 	MapCamera->TextureTarget = CanvasRenderTarget2;
 }
 
-void APolyWarPlayerCharacter::MapClick(const FInputActionValue& Value)
+void APolyWarPlayerCharacter::MapLeftClick(const FInputActionValue& Value)
 {
 	if(!bIsOpenMap || !MapSpringArm || !IsLocallyControlled()) return;
-	bHoldMouseClick = FMath::IsNearlyEqual(Value.Get<float>(), 1.0f);
+	bHoldLeftMouseClick = FMath::IsNearlyEqual(Value.Get<float>(), 1.0f);
+}
+
+void APolyWarPlayerCharacter::MapRightClick(const FInputActionValue& Value)
+{
+	if(!bIsOpenMap || !MapSpringArm || !IsLocallyControlled()) return;
+	bHoldRightMouseClick = FMath::IsNearlyEqual(Value.Get<float>(), 1.0f);
 }
 
 void APolyWarPlayerCharacter::MapMove(const FInputActionValue& Value)
 {
-	if(!bIsOpenMap || !MapSpringArm || !bHoldMouseClick) return;
-	const FVector2D MoveValue = Value.Get<FVector2D>();
-	const FVector NewLocation(
-		MapSpringArm->GetComponentLocation().X + MoveValue.Y * MapMoveSensitive,
-		MapSpringArm->GetComponentLocation().Y + (-MoveValue.X * MapMoveSensitive),
-		MapSpringArm->GetComponentLocation().Z);
+	if(!bIsOpenMap || !MapSpringArm) return;
 
-	MapSpringArm->SetWorldLocation(NewLocation);
+	// Map move
+	if(bHoldRightMouseClick)
+	{
+		const FVector2D MoveValue = Value.Get<FVector2D>();
+		const FVector ForwardDirection = MapSpringArm->GetForwardVector().GetSafeNormal2D();
+		const FVector RightDirection = MapSpringArm->GetRightVector().GetSafeNormal2D();
+
+		FVector MapLocation = MapSpringArm->GetComponentLocation();
+		FVector Destination = MapLocation + MoveValue.Y * ForwardDirection * MapMoveSensitive;
+		Destination += -MoveValue.X * RightDirection * MapMoveSensitive;
+
+		MapSpringArm->SetWorldLocation(Destination);
+	}
+
+	// Map rotate
+	if(bHoldLeftMouseClick)
+	{
+		const FVector2D MoveValue = Value.Get<FVector2D>();
+		const FRotator NewRotator(
+			MapSpringArm->GetComponentRotation().Pitch, // + (MoveValue.Y * MapRotateSensitive),
+			MapSpringArm->GetComponentRotation().Yaw + (MoveValue.X * MapRotateSensitive),
+			MapSpringArm->GetComponentRotation().Roll);
+
+		MapSpringArm->SetWorldRotation(NewRotator);
+	}
 
 }
 
@@ -332,32 +418,58 @@ void APolyWarPlayerCharacter::MapScroll(const FInputActionValue& Value)
 
 	if(bScrollUp)
 	{
-		if(MapSpringArm->GetRelativeLocation().Z <= MapHeightMinLimit)
+		if(MapSpringArm->TargetArmLength <= MapHeightMinLimit)
 		{
 			return;
 		}
-		MapSpringArm->AddRelativeLocation(FVector(0.0f, 0.0f, -MapMoveSensitive));
+		MapSpringArm->TargetArmLength -= MapScrollSensitive;
 	}
 	else
 	{
-		if(MapSpringArm->GetRelativeLocation().Z >= MapHeightMaxLimit)
+		if(MapSpringArm->TargetArmLength >= MapHeightMaxLimit)
 		{
 			return;
 		}
-		MapSpringArm->AddRelativeLocation(FVector(0.0f, 0.0f, MapMoveSensitive));
+		MapSpringArm->TargetArmLength += MapScrollSensitive;
 	}
 }
 
-void APolyWarPlayerCharacter::ResetMapCameraLocation()
+void APolyWarPlayerCharacter::ResetMapCamera()
 {
 	if(!MapSpringArm) return;
-	MapSpringArm->SetRelativeLocation(FVector(0.0f, 0.0f, MapDefaultHeight));
+	MapSpringArm->SetRelativeLocation(FVector(0.0f, 0.0f, 0.0f));
+	MapSpringArm->TargetArmLength = MapDefaultHeight;
+	MapSpringArm->SetWorldRotation(FRotator(-75.0f, 0.0f, 0.0f));
+}
+
+FTransform APolyWarPlayerCharacter::GetMainCameraTransform()
+{
+	if(!MainCamera) return FTransform();
+	return MainCamera->GetComponentTransform();
 }
 
 FVector APolyWarPlayerCharacter::GetMapCameraPos()
 {
-	if(!MapSpringArm) return FVector();
-	return MapSpringArm->GetComponentLocation();
+	if(!MapCamera) return FVector();
+	return MapCamera->GetComponentLocation();
+}
+
+FVector APolyWarPlayerCharacter::GetMapCameraForward()
+{
+	if(!MapCamera) return FVector();
+	return MapCamera->GetForwardVector().GetSafeNormal();
+}
+
+FVector APolyWarPlayerCharacter::GetMapCameraRight()
+{
+	if(!MapCamera) return FVector();
+	return MapCamera->GetRightVector().GetSafeNormal();
+}
+
+FVector APolyWarPlayerCharacter::GetMapCameraUp()
+{
+	if(!MapCamera) return FVector();
+	return MapCamera->GetUpVector().GetSafeNormal();
 }
 
 void APolyWarPlayerCharacter::WeaponSkillFirst(const FInputActionValue& Value)

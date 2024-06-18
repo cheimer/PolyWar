@@ -7,7 +7,9 @@
 #include "GameFramework/PlayerController.h"
 #include "PolyWarTypes/OrderType.h"
 #include "PolyWarTypes/UnitNum.h"
-#include "..\PolyWarTypes\MapUnitState.h"
+#include "PolyWarTypes/MapUnitState.h"
+#include "PolyWarTypes/TeamType.h"
+#include "PolyWarTypes/UnitType.h"
 #include "PolyWarPlayerController.generated.h"
 
 /**
@@ -28,6 +30,8 @@ public:
 	void MapUnitToggle(EUnitNum UnitNum, class UTextBlock* UnitText);
 	void MapOrderToggle(EOrderType OrderType, class UTextBlock* OrderText);
 	void MapImageClick(const FVector2D StartPos, const FVector2D Size, const FVector2D ClickPos);
+
+	void GameEnd(ETeamType WinnerTeam);
 
 protected:
 	virtual void BeginPlay() override;
@@ -89,10 +93,13 @@ protected:
 private:
 	TObjectPtr<class APolyWarPlayerCharacter> PolyWarPlayerCharacter;
 	TObjectPtr<class APolyWarHUD> PolyWarHUD;
-	TObjectPtr<class UCharacterWidget> CharacterWidget;
 	TObjectPtr<class APolyWarGameStateBase> PolyWarGameState;
 
 	void CreateWidgets();
+
+	UFUNCTION(Client, Reliable)
+	void ClientGameEnd(ETeamType WinnerTeam);
+
 	void InitializeUnitMap();
 	void ResetMapButtons();
 
@@ -110,6 +117,12 @@ private:
 
 	UFUNCTION(Server, Reliable)
 	void ServerStartOrder(EOrderType Order, FVector_NetQuantize OrderPos, const TArray<APolyWarAICharacter*>& TeamArray);
+
+	void SetHUDWinText(ETeamType WinTeam);
+	void SetHUDVersusBar();
+	void SetHUDTeamScroll();
+
+	void TeamUnitTypes(ETeamType TeamType, TMap<EUnitType, int32>& OutTeamUnitTypes);
 
 public:
 	EOrderType GetCurrentOrder() const {return CurrentOrder;}
