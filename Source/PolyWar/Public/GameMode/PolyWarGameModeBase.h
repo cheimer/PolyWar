@@ -21,7 +21,7 @@ public:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
 
-	virtual void PlayerDeath(class APolyWarBaseCharacter* DeathCharacter);
+	virtual void CharacterDeath(class APolyWarBaseCharacter* DeathCharacter);
 
 	UPROPERTY(EditDefaultsOnly, Category = "Set Should")
 	bool bUseTimeLimit = true;
@@ -30,11 +30,11 @@ public:
 	float TimeLimit = 600.0f;
 
 protected:
+	TObjectPtr<class APolyWarGameStateBase> PolyWarGameState;
+
 	void GameEnd(ETeamType WinnerTeam);
 
 private:
-	TObjectPtr<class APolyWarGameStateBase> PolyWarGameState;
-
 	float TimePassed = 0.0f;
 
 	virtual ETeamType TimeOverWinnerTeam();

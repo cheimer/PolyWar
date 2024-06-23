@@ -21,4 +21,10 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* HealthText;
 
+	UPROPERTY(meta = (BindWidget))
+	class UProgressBar* VersusBar;
+
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* TimeText;
+
 };

@@ -19,6 +19,9 @@ public:
 	class UTextBlock* UnitNameText;
 
 	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))
-	class UTextBlock* UnitNumText;
-	
+	class UTextBlock* UnitRemainText;
+
+	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))
+	class UTextBlock* UnitMaxText;
+
 };

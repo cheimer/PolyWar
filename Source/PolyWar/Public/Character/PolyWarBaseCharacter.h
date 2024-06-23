@@ -54,6 +54,7 @@ protected:
 	virtual void BeginPlay() override;
 
 	bool bIsOpenMap = false;
+	bool bIsGameEnd = false;
 
 	//~ Begin Components
 	UPROPERTY(VisibleAnywhere, Category = "Component")
@@ -159,6 +160,8 @@ public:
 
 	bool GetIsOpenMap() const {return bIsOpenMap;}
 	void SetIsOpenMap(bool SetIsOpenMap) {bIsOpenMap = SetIsOpenMap;}
+	bool GetIsGameEnd() const {return bIsGameEnd;}
+	void SetIsGameEnd(bool SetIsGameEnd) {bIsGameEnd = SetIsGameEnd;}
 	ETeamType GetTeamType() const {return TeamType;}
 	void SetTeamType(ETeamType InTeamType) {TeamType = InTeamType;}
 	EUnitType GetUnitType() const {return UnitType;}

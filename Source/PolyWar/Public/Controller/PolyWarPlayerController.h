@@ -13,7 +13,7 @@
 #include "PolyWarPlayerController.generated.h"
 
 /**
- * 
+ *
  */
 UCLASS()
 class POLYWAR_API APolyWarPlayerController : public APlayerController
@@ -26,6 +26,8 @@ public:
 	virtual void Tick(float DeltaSeconds) override;
 
 	void SetHUDHealth(float CurrentHealth, float MaxHealth);
+	void SetHUDDeathCharacter(class APolyWarBaseCharacter* DeathCharacter);
+
 	void MapToggle();
 	void MapUnitToggle(EUnitNum UnitNum, class UTextBlock* UnitText);
 	void MapOrderToggle(EOrderType OrderType, class UTextBlock* OrderText);
@@ -95,6 +97,10 @@ private:
 	TObjectPtr<class APolyWarHUD> PolyWarHUD;
 	TObjectPtr<class APolyWarGameStateBase> PolyWarGameState;
 
+	void UpdateHUD();
+	void UpdateHUDVersusBar();
+	void UpdateHUDTeamScroll(APolyWarBaseCharacter* DeathCharacter);
+
 	void CreateWidgets();
 
 	UFUNCTION(Client, Reliable)
@@ -123,6 +129,9 @@ private:
 	void SetHUDTeamScroll();
 
 	void TeamUnitTypes(ETeamType TeamType, TMap<EUnitType, int32>& OutTeamUnitTypes);
+
+	float BlueTeamNum = 1;
+	float RedTeamNum = 1;
 
 public:
 	EOrderType GetCurrentOrder() const {return CurrentOrder;}

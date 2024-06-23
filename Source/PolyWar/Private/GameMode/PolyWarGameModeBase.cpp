@@ -28,7 +28,6 @@ void APolyWarGameModeBase::PostLogin(APlayerController* NewPlayer)
 void APolyWarGameModeBase::BeginPlay()
 {
 	Super::BeginPlay();
-
 }
 
 void APolyWarGameModeBase::Tick(float DeltaSeconds)
@@ -83,7 +82,7 @@ ETeamType APolyWarGameModeBase::TimeOverWinnerTeam()
 	return ETeamType::ET_NoTeam;
 }
 
-void APolyWarGameModeBase::PlayerDeath(APolyWarBaseCharacter* DeathCharacter)
+void APolyWarGameModeBase::CharacterDeath(APolyWarBaseCharacter* DeathCharacter)
 {
 
 }

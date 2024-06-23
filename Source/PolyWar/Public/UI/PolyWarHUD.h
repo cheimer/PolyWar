@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/HUD.h"
 #include "PolyWarTypes/TeamType.h"
+#include "PolyWarTypes/UnitType.h"
 #include "PolyWarHUD.generated.h"
 
 /**
@@ -25,7 +26,8 @@ public:
 	TObjectPtr<class UMapWidget> MapWidget;
 	TObjectPtr<class UEndMenuWidget> EndMenuWidget;
 
-	void EndMenuScrollAdd(const ETeamType TeamType, const FText& UnitName, const FText& UnitNum);
+	void EndMenuScrollAdd(const ETeamType TeamType, const EUnitType UnitName, const int32 UnitNum);
+	void EndMenuScrollMinus(const ETeamType TeamType, const EUnitType UnitName);
 	void ClearEndMenuScroll();
 
 protected:
@@ -49,8 +51,11 @@ protected:
 	//~ TODO END
 
 private:
-	TObjectPtr<class APlayerController> OwnerPlayerController;
+	TObjectPtr<APlayerController> OwnerPlayerController;
 	TObjectPtr<UUserWidget> CurrentWidget;
+
+	TArray<class UUnitInfoWidget*> BlueTeamUnitInfoWidgets;
+	TArray<class UUnitInfoWidget*> RedTeamUnitInfoWidgets;
 
 	void ChangeCurrentWidget(UUserWidget* ShowingWidget);
 

@@ -6,6 +6,7 @@
 #include "Components/Image.h"
 #include "Components/ScrollBox.h"
 #include "Components/TextBlock.h"
+#include "PolyWarTypes/UnitType.h"
 #include "UI/CharacterWidget.h"
 #include "UI/EndMenuWidget.h"
 #include "UI/MapWidget.h"
@@ -46,23 +47,56 @@ void APolyWarHUD::ChangeCurrentWidget(UUserWidget* ShowingWidget)
 	CurrentWidget->SetVisibility(ESlateVisibility::Visible);
 }
 
-void APolyWarHUD::EndMenuScrollAdd(const ETeamType TeamType, const FText& UnitName, const FText& UnitNum)
+void APolyWarHUD::EndMenuScrollAdd(const ETeamType TeamType, const EUnitType UnitName, const int32 UnitNum)
 {
 	OwnerPlayerController = OwnerPlayerController == nullptr ? GetOwningPlayerController() : OwnerPlayerController;
 
 	if(OwnerPlayerController && EndMenuWidget && EndMenuWidget->UnitInfoWidgetClass && EndMenuWidget->BlueTeamScroll && EndMenuWidget->RedTeamScroll)
 	{
 		UUnitInfoWidget* UnitInfoWidget = CreateWidget<UUnitInfoWidget>(OwnerPlayerController, EndMenuWidget->UnitInfoWidgetClass);
-		UnitInfoWidget->UnitNameText->SetText(UnitName);
-		UnitInfoWidget->UnitNumText->SetText(UnitNum);
+		UnitInfoWidget->UnitNameText->SetText(GetTextFromUnitType(UnitName));
+		UnitInfoWidget->UnitRemainText->SetText(FText::FromString(FString::FromInt(UnitNum)));
+		UnitInfoWidget->UnitMaxText->SetText(FText::FromString(FString::FromInt(UnitNum)));
 
 		if(TeamType == ETeamType::ET_BlueTeam)
 		{
 			EndMenuWidget->BlueTeamScroll->AddChild(UnitInfoWidget);
+			BlueTeamUnitInfoWidgets.Add(UnitInfoWidget);
 		}
 		else if(TeamType == ETeamType::ET_RedTeam)
 		{
 			EndMenuWidget->RedTeamScroll->AddChild(UnitInfoWidget);
+			RedTeamUnitInfoWidgets.Add(UnitInfoWidget);
+		}
+	}
+}
+
+void APolyWarHUD::EndMenuScrollMinus(const ETeamType TeamType, const EUnitType UnitName)
+{
+	if(!EndMenuWidget || !EndMenuWidget->BlueTeamScroll || !EndMenuWidget->RedTeamScroll) return;
+
+	FText UnitNameText = GetTextFromUnitType(UnitName);
+
+	if(TeamType == ETeamType::ET_BlueTeam)
+	{
+		for(auto Index : BlueTeamUnitInfoWidgets)
+		{
+			if(Index->UnitNameText->GetText().CompareTo(UnitNameText) == 0)
+			{
+				int32 UnitNum = FCString::Atoi(*Index->UnitRemainText->GetText().ToString());
+				Index->UnitRemainText->SetText(FText::FromString(FString::FromInt(UnitNum - 1)));
+			}
+		}
+	}
+	else if(TeamType == ETeamType::ET_RedTeam)
+	{
+		for(auto Index : RedTeamUnitInfoWidgets)
+		{
+			if(Index->UnitNameText->GetText().CompareTo(UnitNameText) == 0)
+			{
+				int32 UnitNum = FCString::Atoi(*Index->UnitRemainText->GetText().ToString());
+				Index->UnitRemainText->SetText(FText::FromString(FString::FromInt(UnitNum - 1)));
+			}
 		}
 	}
 }
@@ -73,6 +107,9 @@ void APolyWarHUD::ClearEndMenuScroll()
 	{
 		EndMenuWidget->BlueTeamScroll->ClearChildren();
 		EndMenuWidget->RedTeamScroll->ClearChildren();
+
+		BlueTeamUnitInfoWidgets.Empty();
+		RedTeamUnitInfoWidgets.Empty();
 	}
 }
 

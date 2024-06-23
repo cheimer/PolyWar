@@ -5,6 +5,8 @@
 
 #include "Character/PolyWarAICharacter.h"
 #include "Character/PolyWarPlayerCharacter.h"
+#include "Controller/PolyWarPlayerController.h"
+#include "GameFramework/PlayerState.h"
 #include "GameMode/PolyWarGameModeBase.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -70,12 +72,18 @@ void APolyWarGameStateBase::RegisterPlayer(APolyWarPlayerCharacter* PlayerCharac
 	if(!BluePlayer && PlayerCharacter->GetTeamType() == ETeamType::ET_BlueTeam)
 	{
 		BluePlayer = PlayerCharacter;
-		PlayerCharacter->OnCharacterDeathDelegate.AddDynamic(this, &ThisClass::DeathCharacter);
+		if(HasAuthority())
+		{
+			PlayerCharacter->OnCharacterDeathDelegate.AddDynamic(this, &ThisClass::DeathCharacter);
+		}
 	}
 	else if(!RedPlayer && PlayerCharacter->GetTeamType() == ETeamType::ET_RedTeam)
 	{
 		RedPlayer = PlayerCharacter;
-		PlayerCharacter->OnCharacterDeathDelegate.AddDynamic(this, &ThisClass::DeathCharacter);
+		if(HasAuthority())
+		{
+			PlayerCharacter->OnCharacterDeathDelegate.AddDynamic(this, &ThisClass::DeathCharacter);
+		}
 	}
 	else
 	{
@@ -158,19 +166,13 @@ void APolyWarGameStateBase::DeathCharacter(APolyWarBaseCharacter* Character)
 	APolyWarPlayerCharacter* PlayerCharacter = Cast<APolyWarPlayerCharacter>(Character);
 	if(PlayerCharacter)
 	{
-		if(Character == BluePlayer)
+		if(PlayerCharacter == BluePlayer)
 		{
 			BluePlayer = nullptr;
 		}
-		else if(Character == RedPlayer)
+		else if(PlayerCharacter == RedPlayer)
 		{
 			RedPlayer = nullptr;
-		}
-
-		APolyWarGameModeBase* GameMode = Cast<APolyWarGameModeBase>(GetWorld()->GetAuthGameMode());
-		if(GameMode)
-		{
-			GameMode->PlayerDeath(Character);
 		}
 	}
 
@@ -192,6 +194,18 @@ void APolyWarGameStateBase::DeathCharacter(APolyWarBaseCharacter* Character)
 				RedTeamUnitMap[AICharacter->GetUnitNum()].Remove(AICharacter);
 			}
 		}
+	}
+
+	APolyWarPlayerController* PolyWarPlayerController = Cast<APolyWarPlayerController>(PlayerArray[0]->GetOwner());
+	if(PolyWarPlayerController)
+	{
+		PolyWarPlayerController->SetHUDDeathCharacter(Character);
+	}
+
+	APolyWarGameModeBase* GameMode = Cast<APolyWarGameModeBase>(GetWorld()->GetAuthGameMode());
+	if(GameMode)
+	{
+		GameMode->CharacterDeath(Character);
 	}
 
 }

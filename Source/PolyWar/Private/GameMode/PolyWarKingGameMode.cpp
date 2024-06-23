@@ -4,9 +4,9 @@
 #include "GameMode/PolyWarKingGameMode.h"
 #include "Character/PolyWarPlayerCharacter.h"
 
-void APolyWarKingGameMode::PlayerDeath(APolyWarBaseCharacter* DeathCharacter)
+void APolyWarKingGameMode::CharacterDeath(APolyWarBaseCharacter* DeathCharacter)
 {
-	Super::PlayerDeath(DeathCharacter);
+	Super::CharacterDeath(DeathCharacter);
 
 	APolyWarPlayerCharacter* PlayerCharacter = Cast<APolyWarPlayerCharacter>(DeathCharacter);
 	if(PlayerCharacter)

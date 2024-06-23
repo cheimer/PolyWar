@@ -50,23 +50,10 @@ void APolyWarPlayerController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
 
-	CreateWidgets();
-
 	if (UEnhancedInputLocalPlayerSubsystem* Subsystem =
 		ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
 	{
 		Subsystem->AddMappingContext(ControllerInputMapping, 0);
-	}
-
-
-}
-
-void APolyWarPlayerController::CreateWidgets()
-{
-	PolyWarHUD = PolyWarHUD == nullptr ? Cast<APolyWarHUD>(GetHUD()) : PolyWarHUD;
-	if(PolyWarHUD)
-	{
-		PolyWarHUD->CreateWidgets();
 	}
 }
 
@@ -144,6 +131,61 @@ void APolyWarPlayerController::InitializeUnitMap()
 	}
 }
 
+void APolyWarPlayerController::CreateWidgets()
+{
+	PolyWarHUD = PolyWarHUD == nullptr ? Cast<APolyWarHUD>(GetHUD()) : PolyWarHUD;
+	if(PolyWarHUD)
+	{
+		PolyWarHUD->CreateWidgets();
+		SetHUDVersusBar();
+		SetHUDTeamScroll();
+
+		UpdateHUD();
+	}
+}
+
+void APolyWarPlayerController::UpdateHUD()
+{
+	PolyWarHUD = PolyWarHUD == nullptr ? Cast<APolyWarHUD>(GetHUD()) : PolyWarHUD;
+	if(PolyWarHUD)
+	{
+		if(PolyWarHUD->CharacterWidget && PolyWarHUD->CharacterWidget->VersusBar && PolyWarHUD->EndMenuWidget && PolyWarHUD->EndMenuWidget->VersusBar)
+		{
+			UpdateHUDVersusBar();
+		}
+		if(PolyWarHUD->EndMenuWidget && PolyWarHUD->EndMenuWidget->BlueTeamScroll && PolyWarHUD->EndMenuWidget->RedTeamScroll)
+		{
+			UpdateHUDTeamScroll(nullptr);
+		}
+	}
+}
+
+void APolyWarPlayerController::UpdateHUDVersusBar()
+{
+	PolyWarHUD = PolyWarHUD == nullptr ? Cast<APolyWarHUD>(GetHUD()) : PolyWarHUD;
+	if(!PolyWarHUD) return;
+
+	if(PolyWarHUD->CharacterWidget && PolyWarHUD->CharacterWidget->VersusBar)
+	{
+		PolyWarHUD->CharacterWidget->VersusBar->SetPercent(BlueTeamNum / (BlueTeamNum + RedTeamNum));
+	}
+
+	if(PolyWarHUD->EndMenuWidget && PolyWarHUD->EndMenuWidget->VersusBar)
+	{
+		PolyWarHUD->EndMenuWidget->VersusBar->SetPercent(BlueTeamNum / (BlueTeamNum + RedTeamNum));
+	}
+}
+
+void APolyWarPlayerController::UpdateHUDTeamScroll(APolyWarBaseCharacter* DeathCharacter)
+{
+	if(!DeathCharacter || Cast<APolyWarPlayerCharacter>(DeathCharacter)) return;
+
+	PolyWarHUD = PolyWarHUD == nullptr ? Cast<APolyWarHUD>(GetHUD()) : PolyWarHUD;
+	if(!PolyWarHUD) return;
+
+	PolyWarHUD->EndMenuScrollMinus(DeathCharacter->GetTeamType(), DeathCharacter->GetUnitType());
+}
+
 void APolyWarPlayerController::SetHUDHealth(float CurrentHealth, float MaxHealth)
 {
 	PolyWarHUD = PolyWarHUD == nullptr ? Cast<APolyWarHUD>(GetHUD()) : PolyWarHUD;
@@ -161,6 +203,23 @@ void APolyWarPlayerController::SetHUDHealth(float CurrentHealth, float MaxHealth
 		const FString HealthText = FString::Printf(TEXT("%d / %d"), FMath::CeilToInt(CurrentHealth), FMath::CeilToInt(MaxHealth));
 		PolyWarHUD->CharacterWidget->HealthText->SetText(FText::FromString(HealthText));
 	}
+}
+
+void APolyWarPlayerController::SetHUDDeathCharacter(APolyWarBaseCharacter* DeathCharacter)
+{
+	if(!DeathCharacter || Cast<APolyWarPlayerCharacter>(DeathCharacter)) return;
+
+	if(DeathCharacter->GetTeamType() == ETeamType::ET_BlueTeam)
+	{
+		BlueTeamNum--;
+	}
+	else if(DeathCharacter->GetTeamType() == ETeamType::ET_RedTeam)
+	{
+		RedTeamNum--;
+	}
+
+	UpdateHUDVersusBar();
+	UpdateHUDTeamScroll(DeathCharacter);
 }
 
 void APolyWarPlayerController::SetHUDWinText(ETeamType WinTeam)
@@ -209,11 +268,11 @@ void APolyWarPlayerController::SetHUDVersusBar()
 
 		TArray<APolyWarBaseCharacter*> BlueTeamArray;
 		PolyWarGameState->GetTeam(ETeamType::ET_BlueTeam, BlueTeamArray);
-		float BlueTeamNum = BlueTeamArray.Num();
+		BlueTeamNum = BlueTeamArray.Num();
 
 		TArray<APolyWarBaseCharacter*> RedTeamArray;
 		PolyWarGameState->GetTeam(ETeamType::ET_RedTeam, RedTeamArray);
-		float RedTeamNum = RedTeamArray.Num();
+		RedTeamNum = RedTeamArray.Num();
 
 		PolyWarHUD->EndMenuWidget->VersusBar->SetPercent(BlueTeamNum / (BlueTeamNum + RedTeamNum));
 	}
@@ -237,8 +296,7 @@ void APolyWarPlayerController::SetHUDTeamScroll()
 
 		for(auto UnitInfo : BlueTeamUnitTypes)
 		{
-			PolyWarHUD->EndMenuScrollAdd(ETeamType::ET_BlueTeam,
-				GetTextFromUnitType(UnitInfo.Key), FText::FromString(FString::FromInt(UnitInfo.Value)));
+			PolyWarHUD->EndMenuScrollAdd(ETeamType::ET_BlueTeam, UnitInfo.Key, UnitInfo.Value);
 		}
 
 		TMap<EUnitType, int32> RedTeamUnitTypes;
@@ -246,8 +304,7 @@ void APolyWarPlayerController::SetHUDTeamScroll()
 
 		for(auto UnitInfo : RedTeamUnitTypes)
 		{
-			PolyWarHUD->EndMenuScrollAdd(ETeamType::ET_RedTeam,
-				GetTextFromUnitType(UnitInfo.Key), FText::FromString(FString::FromInt(UnitInfo.Value)));
+			PolyWarHUD->EndMenuScrollAdd(ETeamType::ET_RedTeam, UnitInfo.Key, UnitInfo.Value);
 		}
 
 	}
@@ -279,14 +336,16 @@ void APolyWarPlayerController::GameEnd(ETeamType WinnerTeam)
 			PolyWarHUD = PolyWarHUD == nullptr ? Cast<APolyWarHUD>(GetHUD()) : PolyWarHUD;
 			if(!PolyWarHUD) return;
 
+			PolyWarPlayerCharacter = PolyWarPlayerCharacter == nullptr ? Cast<APolyWarPlayerCharacter>(GetPawn()) : PolyWarPlayerCharacter;
+			if(!PolyWarPlayerCharacter) return;
+
+			PolyWarPlayerCharacter->SetIsGameEnd(true);
+
 			FInputModeUIOnly InputMode;
 			SetInputMode(InputMode);
-
 			SetShowMouseCursor(true);
 
 			SetHUDWinText(WinnerTeam);
-			SetHUDVersusBar();
-			SetHUDTeamScroll();
 
 			PolyWarHUD->ChangeWidget(PolyWarHUD->EndMenuWidget);
 		}
@@ -305,14 +364,16 @@ void APolyWarPlayerController::ClientGameEnd_Implementation(ETeamType WinnerTeam
 		PolyWarHUD = PolyWarHUD == nullptr ? Cast<APolyWarHUD>(GetHUD()) : PolyWarHUD;
 		if(!PolyWarHUD) return;
 
+		PolyWarPlayerCharacter = PolyWarPlayerCharacter == nullptr ? Cast<APolyWarPlayerCharacter>(GetPawn()) : PolyWarPlayerCharacter;
+		if(!PolyWarPlayerCharacter) return;
+
+		PolyWarPlayerCharacter->SetIsGameEnd(true);
+
 		FInputModeUIOnly InputMode;
 		SetInputMode(InputMode);
-
 		SetShowMouseCursor(true);
 
 		SetHUDWinText(WinnerTeam);
-		SetHUDVersusBar();
-		SetHUDTeamScroll();
 
 		PolyWarHUD->ChangeWidget(PolyWarHUD->EndMenuWidget);
 	}

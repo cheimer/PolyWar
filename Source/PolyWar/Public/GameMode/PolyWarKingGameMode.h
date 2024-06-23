@@ -15,6 +15,6 @@ class POLYWAR_API APolyWarKingGameMode : public APolyWarGameModeBase
 	GENERATED_BODY()
 
 protected:
-	virtual void PlayerDeath(APolyWarBaseCharacter* DeathCharacter) override;
+	virtual void CharacterDeath(APolyWarBaseCharacter* DeathCharacter) override;
 
 };
