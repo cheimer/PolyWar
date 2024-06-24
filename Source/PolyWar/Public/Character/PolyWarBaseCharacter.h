@@ -53,7 +53,7 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-	bool bIsOpenMap = false;
+	bool bIsOpenUI = false;
 	bool bIsGameEnd = false;
 
 	//~ Begin Components
@@ -158,8 +158,8 @@ public:
 	void SetWalkSpeed(float InWalkSpeed) {CurrentWalkSpeed = InWalkSpeed;}
 	void SetRunSpeed(float InRunSpeed) {CurrentRunSpeed = InRunSpeed;}
 
-	bool GetIsOpenMap() const {return bIsOpenMap;}
-	void SetIsOpenMap(bool SetIsOpenMap) {bIsOpenMap = SetIsOpenMap;}
+	bool GetIsOpenUI() const {return bIsOpenUI;}
+	void SetIsOpenUI(bool SetIsOpenUI) {bIsOpenUI = SetIsOpenUI;}
 	bool GetIsGameEnd() const {return bIsGameEnd;}
 	void SetIsGameEnd(bool SetIsGameEnd) {bIsGameEnd = SetIsGameEnd;}
 	ETeamType GetTeamType() const {return TeamType;}

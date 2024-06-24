@@ -226,7 +226,7 @@ void APolyWarBaseCharacter::SpellEffect()
 void APolyWarBaseCharacter::WeaponAttack()
 {
 	if(!CombatComponent || !CombatComponent->GetEquippedWeapon()) return;
-	if(bIsOpenMap || bIsGameEnd) return;
+	if(bIsOpenUI || bIsGameEnd) return;
 
 	CombatComponent->BeginWeaponAttack();
 }
@@ -234,7 +234,7 @@ void APolyWarBaseCharacter::WeaponAttack()
 void APolyWarBaseCharacter::WeaponSkillAttack(EWeaponSkill WeaponSkill)
 {
 	if(!CombatComponent || !CombatComponent->GetEquippedWeapon()) return;
-	if(bIsOpenMap || bIsGameEnd) return;
+	if(bIsOpenUI || bIsGameEnd) return;
 
 	CombatComponent->BeginWeaponSkill(WeaponSkill);
 }
@@ -242,7 +242,7 @@ void APolyWarBaseCharacter::WeaponSkillAttack(EWeaponSkill WeaponSkill)
 void APolyWarBaseCharacter::SpellAttack(TSubclassOf<ASpell> Spell)
 {
 	if(!CombatComponent || !CombatComponent->GetSpellComponent()) return;
-	if(bIsOpenMap || bIsGameEnd) return;
+	if(bIsOpenUI || bIsGameEnd) return;
 
 	CombatComponent->BeginSpell(Spell);
 }

@@ -32,6 +32,6 @@ private:
 	bool bIsAttacking;
 
 	UPROPERTY(BlueprintReadOnly, Category = "PolyWar", meta = (AllowPrivateAccess = "true"))
-	bool bIsOpenMap = false;
+	bool bIsOpenUI = false;
 
 };

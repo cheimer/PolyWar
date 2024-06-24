@@ -3,13 +3,16 @@
 
 #include "UI/PolyWarHUD.h"
 
+#include "Components/Button.h"
 #include "Components/Image.h"
 #include "Components/ScrollBox.h"
 #include "Components/TextBlock.h"
+#include "Controller/PolyWarPlayerController.h"
 #include "PolyWarTypes/UnitType.h"
 #include "UI/CharacterWidget.h"
 #include "UI/EndMenuWidget.h"
 #include "UI/MapWidget.h"
+#include "UI/MenuWidget.h"
 #include "UI/UnitInfoWidget.h"
 
 void APolyWarHUD::BeginPlay()
@@ -23,6 +26,7 @@ void APolyWarHUD::CreateWidgets()
 {
 	AddCharacterWidget();
 	AddMapWidget();
+	AddMenuWidget();
 	AddEndMenuWidget();
 }
 
@@ -38,10 +42,46 @@ void APolyWarHUD::ChangeWidget(UUserWidget* NewWidget)
 	{
 		ChangeCurrentWidget(EndMenuWidget);
 	}
+	else if(NewWidget->IsA(UMenuWidget::StaticClass()))
+	{
+		ChangeCurrentWidget(MenuWidget);
+	}
+	else if(NewWidget->IsA(UMapWidget::StaticClass()))
+	{
+		ChangeCurrentWidget(MapWidget);
+	}
+}
+
+bool APolyWarHUD::IsCurrentWidget(UUserWidget* InCurrentWidget)
+{
+	if(CurrentWidget == InCurrentWidget)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+void APolyWarHUD::SetDefaultScreenWidget()
+{
+	if(!CharacterWidget) return;
+
+	OwnerPlayerController = OwnerPlayerController == nullptr ? GetOwningPlayerController() : OwnerPlayerController;
+	if(!OwnerPlayerController) return;
+
+	APolyWarPlayerController* PolyWarPlayerController = Cast<APolyWarPlayerController>(OwnerPlayerController);
+	if(!PolyWarPlayerController) return;
+
+	ChangeWidget(CharacterWidget);
+	PolyWarPlayerController->SetInputDefault(false);
 }
 
 void APolyWarHUD::ChangeCurrentWidget(UUserWidget* ShowingWidget)
 {
+	if(!ShowingWidget) return;
+
 	CurrentWidget->SetVisibility(ESlateVisibility::Hidden);
 	CurrentWidget = ShowingWidget;
 	CurrentWidget->SetVisibility(ESlateVisibility::Visible);
@@ -113,6 +153,17 @@ void APolyWarHUD::ClearEndMenuScroll()
 	}
 }
 
+void APolyWarHUD::SurrenderGame()
+{
+	OwnerPlayerController = OwnerPlayerController == nullptr ? GetOwningPlayerController() : OwnerPlayerController;
+	if(!OwnerPlayerController) return;
+
+	APolyWarPlayerController* PolyWarPlayerController = Cast<APolyWarPlayerController>(OwnerPlayerController);
+	if(!PolyWarPlayerController) return;
+
+	PolyWarPlayerController->SurrenderGame();
+}
+
 void APolyWarHUD::AddCharacterWidget()
 {
 	OwnerPlayerController = OwnerPlayerController == nullptr ? GetOwningPlayerController() : OwnerPlayerController;
@@ -145,6 +196,27 @@ void APolyWarHUD::AddMapWidget()
 			{
 				MapWidget->MapImage->SetBrushFromMaterial(MapMaterial2);
 			}
+		}
+	}
+}
+
+void APolyWarHUD::AddMenuWidget()
+{
+	OwnerPlayerController = OwnerPlayerController == nullptr ? GetOwningPlayerController() : OwnerPlayerController;
+
+	if(OwnerPlayerController && MenuWidgetClass && !MenuWidget)
+	{
+		MenuWidget = CreateWidget<UMenuWidget>(OwnerPlayerController, MenuWidgetClass);
+		MenuWidget->AddToViewport();
+		MenuWidget->SetVisibility(ESlateVisibility::Hidden);
+
+		if(MenuWidget->ContinueButton)
+		{
+			MenuWidget->ContinueButton->OnClicked.AddDynamic(this, &ThisClass::SetDefaultScreenWidget);
+		}
+		if(MenuWidget->SurrenderButton)
+		{
+			MenuWidget->SurrenderButton->OnClicked.AddDynamic(this, &ThisClass::SurrenderGame);
 		}
 	}
 }

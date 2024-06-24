@@ -23,6 +23,8 @@ public:
 
 	virtual void CharacterDeath(class APolyWarBaseCharacter* DeathCharacter);
 
+	void GameEnd(ETeamType WinnerTeam);
+
 	UPROPERTY(EditDefaultsOnly, Category = "Set Should")
 	bool bUseTimeLimit = true;
 
@@ -31,8 +33,6 @@ public:
 
 protected:
 	TObjectPtr<class APolyWarGameStateBase> PolyWarGameState;
-
-	void GameEnd(ETeamType WinnerTeam);
 
 private:
 	float TimePassed = 0.0f;

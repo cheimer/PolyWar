@@ -257,7 +257,7 @@ void APolyWarPlayerCharacter::SetPlayerDeath()
 
 void APolyWarPlayerCharacter::LookUpRight(const FInputActionValue& Value)
 {
-	if(bIsOpenMap) return;
+	if(bIsOpenUI) return;
 
 	const FVector2D MoveValue = Value.Get<FVector2D>();
 
@@ -268,7 +268,7 @@ void APolyWarPlayerCharacter::LookUpRight(const FInputActionValue& Value)
 void APolyWarPlayerCharacter::MoveForwardRight(const FInputActionValue& Value)
 {
 	if(!GetController()) return;
-	if(bIsOpenMap || GetIsAttacking()) return;
+	if(bIsOpenUI || GetIsAttacking()) return;
 
 	const FVector2D MoveValue = Value.Get<FVector2D>();
 	const FRotator YawRotation(0.0f, GetController()->GetControlRotation().Yaw, 0.0f);
@@ -287,7 +287,7 @@ void APolyWarPlayerCharacter::MoveForwardRight(const FInputActionValue& Value)
 
 void APolyWarPlayerCharacter::Jump()
 {
-	if(bIsOpenMap || GetIsAttacking()) return;
+	if(bIsOpenUI || GetIsAttacking()) return;
 	Super::Jump();
 }
 
@@ -385,19 +385,19 @@ void APolyWarPlayerCharacter::ServerSetMapCamera_Implementation()
 
 void APolyWarPlayerCharacter::MapLeftClick(const FInputActionValue& Value)
 {
-	if(!bIsOpenMap || !MapSpringArm || !IsLocallyControlled()) return;
+	if(!bIsOpenUI || !MapSpringArm || !IsLocallyControlled()) return;
 	bHoldLeftMouseClick = FMath::IsNearlyEqual(Value.Get<float>(), 1.0f);
 }
 
 void APolyWarPlayerCharacter::MapRightClick(const FInputActionValue& Value)
 {
-	if(!bIsOpenMap || !MapSpringArm || !IsLocallyControlled()) return;
+	if(!bIsOpenUI || !MapSpringArm || !IsLocallyControlled()) return;
 	bHoldRightMouseClick = FMath::IsNearlyEqual(Value.Get<float>(), 1.0f);
 }
 
 void APolyWarPlayerCharacter::MapMove(const FInputActionValue& Value)
 {
-	if(!bIsOpenMap || !MapSpringArm) return;
+	if(!bIsOpenUI || !MapSpringArm) return;
 
 	// Map move
 	if(bHoldRightMouseClick)
@@ -429,7 +429,7 @@ void APolyWarPlayerCharacter::MapMove(const FInputActionValue& Value)
 
 void APolyWarPlayerCharacter::MapScroll(const FInputActionValue& Value)
 {
-	if(!bIsOpenMap || !MapSpringArm) return;
+	if(!bIsOpenUI || !MapSpringArm) return;
 	const bool bScrollUp = FMath::IsNearlyEqual(Value.Get<float>(), 1.0f);
 
 	if(bScrollUp)

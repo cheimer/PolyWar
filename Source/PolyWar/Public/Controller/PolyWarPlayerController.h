@@ -25,6 +25,8 @@ public:
 	virtual void OnPossess(APawn* InPawn) override;
 	virtual void Tick(float DeltaSeconds) override;
 
+	void SetInputDefault(bool IsUI);
+
 	void SetHUDHealth(float CurrentHealth, float MaxHealth);
 	void SetHUDDeathCharacter(class APolyWarBaseCharacter* DeathCharacter);
 
@@ -32,6 +34,10 @@ public:
 	void MapUnitToggle(EUnitNum UnitNum, class UTextBlock* UnitText);
 	void MapOrderToggle(EOrderType OrderType, class UTextBlock* OrderText);
 	void MapImageClick(const FVector2D StartPos, const FVector2D Size, const FVector2D ClickPos);
+
+	void SurrenderGame();
+	UFUNCTION(Server, Reliable)
+	void ServerSurrenderGame();
 
 	void GameEnd(ETeamType WinnerTeam);
 
@@ -73,6 +79,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "EnhancedInput")
 	class UInputAction* InputOrderCancel;
 
+	UPROPERTY(EditDefaultsOnly, Category = "EnhancedInput")
+	class UInputAction* InputMenu;
+
 	void ToggleUnitNum1(const FInputActionValue& Value);
 	void ToggleUnitNum2(const FInputActionValue& Value);
 	void ToggleUnitNum3(const FInputActionValue& Value);
@@ -90,6 +99,8 @@ protected:
 	void ToggleOrderMove(const FInputActionValue& Value);
 	void ToggleOrderCancel(const FInputActionValue& Value);
 	void ToggleOrder(EOrderType Order);
+
+	void ToggleMenu(const FInputActionValue& Value);
 	//~ End Enhanced Input
 
 private:

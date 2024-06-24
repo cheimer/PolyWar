@@ -21,9 +21,14 @@ public:
 
 	void CreateWidgets();
 	void ChangeWidget(UUserWidget* NewWidget);
+	bool IsCurrentWidget(UUserWidget* InCurrentWidget);
+
+	UFUNCTION()
+	void SetDefaultScreenWidget();
 
 	TObjectPtr<class UCharacterWidget> CharacterWidget;
 	TObjectPtr<class UMapWidget> MapWidget;
+	TObjectPtr<class UMenuWidget> MenuWidget;
 	TObjectPtr<class UEndMenuWidget> EndMenuWidget;
 
 	void EndMenuScrollAdd(const ETeamType TeamType, const EUnitType UnitName, const int32 UnitNum);
@@ -38,6 +43,10 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Set Should")
 	TSubclassOf<UMapWidget> MapWidgetClass;
 	void AddMapWidget();
+
+	UPROPERTY(EditAnywhere, Category = "Set Should")
+	TSubclassOf<UMenuWidget> MenuWidgetClass;
+	void AddMenuWidget();
 
 	UPROPERTY(EditAnywhere, Category = "Set Should")
 	TSubclassOf<UEndMenuWidget> EndMenuWidgetClass;
@@ -58,5 +67,8 @@ private:
 	TArray<class UUnitInfoWidget*> RedTeamUnitInfoWidgets;
 
 	void ChangeCurrentWidget(UUserWidget* ShowingWidget);
+
+	UFUNCTION()
+	void SurrenderGame();
 
 };

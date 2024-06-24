@@ -13,12 +13,14 @@
 #include "Character/PolyWarPlayerCharacter.h"
 #include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
+#include "GameMode/PolyWarGameModeBase.h"
 #include "GameState/PolyWarGameStateBase.h"
 #include "Kismet/GameplayStatics.h"
 #include "UI/CharacterWidget.h"
 #include "UI/EndMenuWidget.h"
 #include "UI/MapButton.h"
 #include "UI/MapWidget.h"
+#include "UI/MenuWidget.h"
 
 
 APolyWarPlayerController::APolyWarPlayerController()
@@ -120,6 +122,10 @@ void APolyWarPlayerController::SetupInputComponent()
 		{
 			EnhancedInputComponent->BindAction(InputOrderCancel, ETriggerEvent::Triggered, this, &ThisClass::ToggleOrderCancel);
 		}
+		if(InputMenu)
+		{
+			EnhancedInputComponent->BindAction(InputMenu, ETriggerEvent::Triggered, this, &ThisClass::ToggleMenu);
+		}
 	}
 }
 
@@ -144,19 +150,30 @@ void APolyWarPlayerController::CreateWidgets()
 	}
 }
 
+void APolyWarPlayerController::SetInputDefault(bool IsUI)
+{
+	if(IsUI)
+	{
+		SetInputMode(FInputModeGameAndUI());
+		SetShowMouseCursor(true);
+		PolyWarPlayerCharacter->SetIsOpenUI(true);
+	}
+	else
+	{
+		SetInputMode(FInputModeGameOnly());
+		SetShowMouseCursor(false);
+		PolyWarPlayerCharacter->SetIsOpenUI(false);
+	}
+}
+
 void APolyWarPlayerController::UpdateHUD()
 {
 	PolyWarHUD = PolyWarHUD == nullptr ? Cast<APolyWarHUD>(GetHUD()) : PolyWarHUD;
 	if(PolyWarHUD)
 	{
-		if(PolyWarHUD->CharacterWidget && PolyWarHUD->CharacterWidget->VersusBar && PolyWarHUD->EndMenuWidget && PolyWarHUD->EndMenuWidget->VersusBar)
-		{
-			UpdateHUDVersusBar();
-		}
-		if(PolyWarHUD->EndMenuWidget && PolyWarHUD->EndMenuWidget->BlueTeamScroll && PolyWarHUD->EndMenuWidget->RedTeamScroll)
-		{
-			UpdateHUDTeamScroll(nullptr);
-		}
+		UpdateHUDVersusBar();
+		UpdateHUDTeamScroll(nullptr);
+
 	}
 }
 
@@ -327,6 +344,32 @@ void APolyWarPlayerController::TeamUnitTypes(ETeamType TeamType, TMap<EUnitType,
 	}
 }
 
+void APolyWarPlayerController::SurrenderGame()
+{
+	PolyWarPlayerCharacter = PolyWarPlayerCharacter == nullptr ? Cast<APolyWarPlayerCharacter>(GetPawn()) : PolyWarPlayerCharacter;
+	if(!PolyWarPlayerCharacter) return;
+
+	const ETeamType WinnerTeam = PolyWarPlayerCharacter->GetTeamType() == ETeamType::ET_BlueTeam ? ETeamType::ET_RedTeam : ETeamType::ET_BlueTeam;
+
+	if(HasAuthority())
+	{
+		APolyWarGameModeBase* GameMode = Cast<APolyWarGameModeBase>(GetWorld()->GetAuthGameMode());
+		if(GameMode)
+		{
+			GameMode->GameEnd(WinnerTeam);
+		}
+	}
+	else
+	{
+		ServerSurrenderGame();
+	}
+}
+
+void APolyWarPlayerController::ServerSurrenderGame_Implementation()
+{
+	SurrenderGame();
+}
+
 void APolyWarPlayerController::GameEnd(ETeamType WinnerTeam)
 {
 	if(HasAuthority())
@@ -341,10 +384,7 @@ void APolyWarPlayerController::GameEnd(ETeamType WinnerTeam)
 
 			PolyWarPlayerCharacter->SetIsGameEnd(true);
 
-			FInputModeUIOnly InputMode;
-			SetInputMode(InputMode);
-			SetShowMouseCursor(true);
-
+			SetInputDefault(true);
 			SetHUDWinText(WinnerTeam);
 
 			PolyWarHUD->ChangeWidget(PolyWarHUD->EndMenuWidget);
@@ -369,10 +409,7 @@ void APolyWarPlayerController::ClientGameEnd_Implementation(ETeamType WinnerTeam
 
 		PolyWarPlayerCharacter->SetIsGameEnd(true);
 
-		FInputModeUIOnly InputMode;
-		SetInputMode(InputMode);
-		SetShowMouseCursor(true);
-
+		SetInputDefault(true);
 		SetHUDWinText(WinnerTeam);
 
 		PolyWarHUD->ChangeWidget(PolyWarHUD->EndMenuWidget);
@@ -385,25 +422,21 @@ void APolyWarPlayerController::MapToggle()
 	PolyWarPlayerCharacter = PolyWarPlayerCharacter == nullptr ? Cast<APolyWarPlayerCharacter>(GetPawn()) : PolyWarPlayerCharacter;
 	if(!PolyWarHUD || !PolyWarHUD->MapWidget || !PolyWarPlayerCharacter) return;
 
-	// Map Open
-	if(PolyWarHUD->MapWidget->GetVisibility() == ESlateVisibility::Hidden)
+	// Map Close
+	if(PolyWarHUD->IsCurrentWidget(PolyWarHUD->MapWidget))
 	{
-		PolyWarHUD->MapWidget->SetVisibility(ESlateVisibility::Visible);
-		SetInputMode(FInputModeGameAndUI());
-		SetShowMouseCursor(true);
-		PolyWarPlayerCharacter->SetIsOpenMap(true);
+		PolyWarHUD->SetDefaultScreenWidget();
 
+		SetInputDefault(false);
 		PolyWarPlayerCharacter->ResetMapCamera();
 		ResetMapButtons();
 	}
-	// Map Close
-	else if(PolyWarHUD->MapWidget->GetVisibility() == ESlateVisibility::Visible)
+	// Map Open
+	else
 	{
-		PolyWarHUD->MapWidget->SetVisibility(ESlateVisibility::Hidden);
-		SetInputMode(FInputModeGameOnly());
-		SetShowMouseCursor(false);
-		PolyWarPlayerCharacter->SetIsOpenMap(false);
+		PolyWarHUD->ChangeWidget(PolyWarHUD->MapWidget);
 
+		SetInputDefault(true);
 		PolyWarPlayerCharacter->ResetMapCamera();
 		ResetMapButtons();
 	}
@@ -625,6 +658,28 @@ void APolyWarPlayerController::ToggleOrder(EOrderType Order)
 
 	if(!PolyWarHUD->MapWidget || !PolyWarHUD->MapWidget->OrderMapButtons[Order]) return;
 	PolyWarHUD->MapWidget->OrderMapButtons[Order]->OnOrderButtonClicked.Broadcast(Order);
+}
+
+void APolyWarPlayerController::ToggleMenu(const FInputActionValue& Value)
+{
+	PolyWarHUD = PolyWarHUD == nullptr ? Cast<APolyWarHUD>(GetHUD()) : PolyWarHUD;
+	PolyWarPlayerCharacter = PolyWarPlayerCharacter == nullptr ? Cast<APolyWarPlayerCharacter>(GetPawn()) : PolyWarPlayerCharacter;
+	if(!PolyWarHUD || !PolyWarHUD->MenuWidget || !PolyWarPlayerCharacter) return;
+
+	// Menu Close
+	if(PolyWarHUD->IsCurrentWidget(PolyWarHUD->MenuWidget))
+	{
+		PolyWarHUD->SetDefaultScreenWidget();
+
+		SetInputDefault(false);
+	}
+	// Menu Open
+	else
+	{
+		PolyWarHUD->ChangeWidget(PolyWarHUD->MenuWidget);
+
+		SetInputDefault(true);
+	}
 }
 
 void APolyWarPlayerController::ToggleUnitNum1(const FInputActionValue& Value)

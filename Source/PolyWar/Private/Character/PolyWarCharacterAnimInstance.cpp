@@ -25,6 +25,6 @@ void UPolyWarCharacterAnimInstance::NativeUpdateAnimation(float DeltaTime)
 
 	bIsRunning = PolyWarCharacter->GetIsRunning();
 	bIsAttacking = PolyWarCharacter->GetIsAttacking();
-	bIsOpenMap = PolyWarCharacter->GetIsOpenMap();
+	bIsOpenUI = PolyWarCharacter->GetIsOpenUI();
 
 }
