@@ -27,4 +27,19 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* TimeText;
 
+	UPROPERTY(meta = (BindWidget))
+	class UProgressBar* WeaponSkillFirstBar;
+
+	UPROPERTY(meta = (BindWidget))
+	class UProgressBar* WeaponSkillSecondBar;
+
+	UPROPERTY(meta = (BindWidget))
+	class UProgressBar* SpellFirstBar;
+
+	UPROPERTY(meta = (BindWidget))
+	class UProgressBar* SpellSecondBar;
+
+	UPROPERTY(meta = (BindWidget))
+	class UProgressBar* SpellUltBar;
+
 };

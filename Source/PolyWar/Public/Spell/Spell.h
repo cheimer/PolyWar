@@ -43,6 +43,8 @@ protected:
 	float SpellRange = 500.0f;
 	UPROPERTY(EditAnywhere, Category = "Set Should")
 	float SpellDuration = 1.0f;
+	UPROPERTY(EditAnywhere, Category = "Set Should")
+	float SpellCoolDown = 10.0f;
 
 	UPROPERTY(EditAnywhere, Category = "Set Should")
 	bool bEffectEnemy = false;
@@ -71,5 +73,6 @@ public:
 	float GetSpellCastingTime() const {return SpellCastingTime;}
 	float GetSpellDamage() const {return SpellDamage;}
 	ESpellType GetSpellType() const {return SpellType;}
+	float GetSpellCoolDown() const {return SpellCoolDown;}
 
 };

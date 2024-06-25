@@ -28,6 +28,9 @@ public:
 
 	void WeaponSkillStart(EWeaponSkill WeaponSkill);
 
+	float GetWeaponSkillCoolDown(EWeaponSkill WeaponSkill);
+	float GetWeaponSkillRemainCoolDown(EWeaponSkill WeaponSkill);
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -70,6 +73,9 @@ protected:
 
 private:
 	TArray<TObjectPtr<AActor>> HitActors;
+
+	FTimerHandle SkillFirstCoolTimer;
+	FTimerHandle SkillSecondCoolTimer;
 
 	bool bWeaponSkillFirstAble = true;
 	bool bWeaponSkillSecondAble = true;

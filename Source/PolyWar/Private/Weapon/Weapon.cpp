@@ -35,7 +35,6 @@ void AWeapon::BeginPlay()
 	
 }
 
-// Set Overlap Pawn
 void AWeapon::SetCollisionEnabled(bool IsEnabled)
 {
 	if(IsEnabled)
@@ -62,9 +61,15 @@ void AWeapon::OnAttackBeginOverlap(UPrimitiveComponent* OverlappedComponent, AAc
 		{
 			return;
 		}
-		HitActors.Emplace(Victim);
 		if(CurrentWeaponSkill == EWeaponSkill::EWS_MAX)
 		{
+			// Only hit 1 target
+			if(HitActors.Num() > 0)
+			{
+				return;
+			}
+
+			HitActors.Emplace(Victim);
 			if(GetOwner()->GetInstigatorController())
 			{
 				UGameplayStatics::ApplyDamage(Victim, WeaponDamage * OwnerCharacter->GetPowerRate(),
@@ -73,6 +78,7 @@ void AWeapon::OnAttackBeginOverlap(UPrimitiveComponent* OverlappedComponent, AAc
 		}
 		else
 		{
+			HitActors.Emplace(Victim);
 			WeaponSkillAttack(Victim);
 		}
 	}
@@ -82,17 +88,16 @@ void AWeapon::OnAttackBeginOverlap(UPrimitiveComponent* OverlappedComponent, AAc
 void AWeapon::WeaponSkillStart(EWeaponSkill WeaponSkill)
 {
 	if(!GetOwner()) return;
-	FTimerHandle SkillCoolTimer;
 
 	if(WeaponSkill == WeaponSkillFirst)
 	{
 		bWeaponSkillFirstAble = false;
-		GetWorldTimerManager().SetTimer(SkillCoolTimer, this, &ThisClass::WeaponSkillFirstReady, WeaponSkillFirstCoolDown);
+		GetWorldTimerManager().SetTimer(SkillFirstCoolTimer, this, &ThisClass::WeaponSkillFirstReady, WeaponSkillFirstCoolDown);
 	}
 	else if(WeaponSkill == WeaponSkillSecond)
 	{
 		bWeaponSkillSecondAble = false;
-		GetWorldTimerManager().SetTimer(SkillCoolTimer, this, &ThisClass::WeaponSkillSecondReady, WeaponSkillSecondCoolDown);
+		GetWorldTimerManager().SetTimer(SkillSecondCoolTimer, this, &ThisClass::WeaponSkillSecondReady, WeaponSkillSecondCoolDown);
 	}
 }
 
@@ -104,6 +109,34 @@ void AWeapon::WeaponSkillFirstReady()
 void AWeapon::WeaponSkillSecondReady()
 {
 	bWeaponSkillSecondAble = true;
+}
+
+float AWeapon::GetWeaponSkillCoolDown(EWeaponSkill WeaponSkill)
+{
+	if(WeaponSkill == WeaponSkillFirst)
+	{
+		return WeaponSkillFirstCoolDown;
+	}
+	if(WeaponSkill == WeaponSkillSecond)
+	{
+		return WeaponSkillSecondCoolDown;
+	}
+
+	return 0.0f;
+}
+
+float AWeapon::GetWeaponSkillRemainCoolDown(EWeaponSkill WeaponSkill)
+{
+	if(WeaponSkill == WeaponSkillFirst)
+	{
+		return GetWorldTimerManager().GetTimerRemaining(SkillFirstCoolTimer);
+	}
+	if(WeaponSkill == WeaponSkillSecond)
+	{
+		return GetWorldTimerManager().GetTimerRemaining(SkillSecondCoolTimer);
+	}
+
+	return 0.0f;
 }
 
 /*

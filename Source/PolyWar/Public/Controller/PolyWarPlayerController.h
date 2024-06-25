@@ -10,6 +10,7 @@
 #include "PolyWarTypes/MapUnitState.h"
 #include "PolyWarTypes/TeamType.h"
 #include "PolyWarTypes/UnitType.h"
+#include "PolyWarTypes/WeaponSkill.h"
 #include "PolyWarPlayerController.generated.h"
 
 /**
@@ -109,6 +110,7 @@ private:
 	TObjectPtr<class APolyWarGameStateBase> PolyWarGameState;
 
 	void UpdateHUD();
+	void UpdateHUDCoolDown();
 	void UpdateHUDVersusBar();
 	void UpdateHUDTeamScroll(APolyWarBaseCharacter* DeathCharacter);
 
@@ -135,6 +137,8 @@ private:
 	UFUNCTION(Server, Reliable)
 	void ServerStartOrder(EOrderType Order, FVector_NetQuantize OrderPos, const TArray<APolyWarAICharacter*>& TeamArray);
 
+	void SetHUDSkillBar(class UProgressBar* WeaponSkillBar, EWeaponSkill WeaponSkill);
+	void SetHUDSkillBar(UProgressBar* SpellBar, TSubclassOf<class ASpell> Spell);
 	void SetHUDWinText(ETeamType WinTeam);
 	void SetHUDVersusBar();
 	void SetHUDTeamScroll();

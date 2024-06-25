@@ -52,12 +52,10 @@ protected:
 	TSubclassOf<UEndMenuWidget> EndMenuWidgetClass;
 	void AddEndMenuWidget();
 
-	//~ TODO: MapMoveError Temp Solve
 	UPROPERTY(EditAnywhere, Category = "Set Should")
 	UMaterial* MapMaterial1;
 	UPROPERTY(EditAnywhere, Category = "Set Should")
 	UMaterial* MapMaterial2;
-	//~ TODO END
 
 private:
 	TObjectPtr<APlayerController> OwnerPlayerController;

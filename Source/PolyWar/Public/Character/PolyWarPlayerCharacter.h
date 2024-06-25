@@ -32,6 +32,19 @@ public:
 	FVector GetMapCameraRight();
 	FVector GetMapCameraUp();
 
+	EWeaponSkill GetWeaponSkillFirst();
+	EWeaponSkill GetWeaponSkillSecond();
+
+	float GetWeaponSkillCoolDown(EWeaponSkill WeaponSkill);
+	float GetWeaponSkillRemainCoolDown(EWeaponSkill WeaponSkill);
+
+	TSubclassOf<ASpell> GetSpellFirst();
+	TSubclassOf<ASpell> GetSpellSecond();
+	TSubclassOf<ASpell> GetSpellUlt();
+
+	float GetSpellCoolDown(TSubclassOf<ASpell> Spell);
+	float GetSpellRemainCoolDown(TSubclassOf<ASpell> Spell);
+
 	UPROPERTY(EditDefaultsOnly, Category = "Set Should")
 	TSubclassOf<APolyWarPlayerCharacter> SpectatorClass;
 
@@ -145,7 +158,6 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Settable")
 	float MapScrollSensitive = 500.0f;
 
-	//~ TODO: MapMoveError Temp Solve
 	UPROPERTY(EditAnywhere, Category = "Set Should")
 	TObjectPtr<class UTextureRenderTarget2D> CanvasRenderTarget1;
 
@@ -154,7 +166,6 @@ private:
 
 	UFUNCTION(Server, Reliable)
 	void ServerSetMapCamera();
-	//~ TODO END
 
 	//~ Begin EnhancedInput
 	bool bHoldLeftMouseClick = false;
@@ -174,6 +185,5 @@ public:
 	float GetMapHeightMaxLimit() const {return MapHeightMaxLimit;}
 	float GetMapHeightMinLimit() const {return MapHeightMinLimit;}
 	void SetIsFocusOnScreen(const bool InIsFocus) {bFocusOnScreen = InIsFocus;}
-
 
 };

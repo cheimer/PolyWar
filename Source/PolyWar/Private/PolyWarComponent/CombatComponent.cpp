@@ -74,6 +74,7 @@ void UCombatComponent::BeginWeaponSkill(EWeaponSkill WeaponSkill)
 void UCombatComponent::BeginSpell(TSubclassOf<ASpell> Spell)
 {
 	if(!OwnerCharacter || !SpellComponent || CombatState != ECombatState::ECS_Wait || !Spell) return;
+	if(!SpellComponent->IsSpellAble(Spell)) return;
 
 	CurrentSpell = Spell;
 	CombatState = ECombatState::ECS_SpellCast;

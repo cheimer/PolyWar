@@ -4,8 +4,6 @@
 #include "PolyWarComponent/SpellComponent.h"
 
 #include "Character/PolyWarBaseCharacter.h"
-#include "Kismet/GameplayStatics.h"
-#include "Net/UnrealNetwork.h"
 #include "PolyWarComponent/CombatComponent.h"
 #include "Spell/Spell.h"
 #include "Spell/ThrowSpell.h"
@@ -33,11 +31,12 @@ void USpellComponent::SpellStart(TSubclassOf<ASpell> Spell)
 	if(!OwnerCharacter || !IsValidSpell(Spell)) return;
 
 	CurrentAnimMontage = GetSpellAnimMontage(Spell);
-
 	CurrentSpell = GetWorld()->SpawnActorDeferred<ASpell>(Spell, OwnerCharacter->GetTransform(),
 		OwnerCharacter, OwnerCharacter, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
 
 	if(!CurrentAnimMontage || CurrentAnimMontage->GetNumSections() < 3 || !CurrentSpell) return;
+
+	SetSpellCoolDown(Spell, CurrentSpell->GetSpellCoolDown());
 
 	if(CurrentSpell->GetSpellCastingTime() > 0.0f)
 	{
@@ -55,6 +54,7 @@ void USpellComponent::SpellStart(TSubclassOf<ASpell> Spell)
 		OwnerCharacter->GetWorldTimerManager().SetTimer(SpellTimer, this, &USpellComponent::SpellCastingEnd, CastingTime);
 	}
 
+	SpellCoolDownStart(Spell);
 }
 
 void USpellComponent::SpellCastingEnd()
@@ -148,6 +148,84 @@ void USpellComponent::ServerThrowSpellFinishSpawning_Implementation(const FTrans
 	}
 }
 
+bool USpellComponent::IsSpellAble(TSubclassOf<ASpell> Spell)
+{
+	if(!IsValidSpell(Spell)) return false;
+
+	if(Spell == SpellFirstClass && bSpellFirstAble)
+	{
+		return true;
+	}
+	if(Spell == SpellSecondClass && bSpellSecondAble)
+	{
+		return true;
+	}
+	if(Spell == SpellUltClass && bSpellUltAble)
+	{
+		return true;
+	}
+
+	return false;
+}
+
+void USpellComponent::SetSpellCoolDown(TSubclassOf<ASpell> Spell, float CoolDown)
+{
+	if(!IsValidSpell(Spell)) return;
+
+	if(Spell == SpellFirstClass)
+	{
+		SpellFirstCoolDown = CoolDown;
+	}
+	if(Spell == SpellSecondClass)
+	{
+		SpellSecondCoolDown = CoolDown;
+	}
+	if(Spell == SpellUltClass)
+	{
+		SpellUltCoolDown = CoolDown;
+	}
+}
+
+float USpellComponent::GetSpellCoolDown(TSubclassOf<ASpell> Spell)
+{
+	if(!OwnerCharacter || !IsValidSpell(Spell)) return 0.0f;
+
+	if(Spell == SpellFirstClass)
+	{
+		return SpellFirstCoolDown;
+	}
+	if(Spell == SpellSecondClass)
+	{
+		return SpellSecondCoolDown;
+	}
+	if(Spell == SpellUltClass)
+	{
+		return SpellUltCoolDown;
+	}
+
+	return 0.0f;
+}
+
+float USpellComponent::GetSpellRemainCoolDown(TSubclassOf<ASpell> Spell)
+{
+	if(!OwnerCharacter || !IsValidSpell(Spell)) return 0.0f;
+
+	if(Spell == SpellFirstClass)
+	{
+		return OwnerCharacter->GetWorldTimerManager().GetTimerRemaining(SpellFirstCoolTimer);
+	}
+	if(Spell == SpellSecondClass)
+	{
+		return OwnerCharacter->GetWorldTimerManager().GetTimerRemaining(SpellSecondCoolTimer);
+	}
+	if(Spell == SpellUltClass)
+	{
+		return OwnerCharacter->GetWorldTimerManager().GetTimerRemaining(SpellUltCoolTimer);
+	}
+
+	return 0.0f;
+}
+
 bool USpellComponent::IsValidSpell(TSubclassOf<ASpell> Spell)
 {
 	if(Spell == SpellFirstClass && SpellFirstAnimMontage)
@@ -177,6 +255,46 @@ FVector USpellComponent::GetThrowSpellDirection(const FVector& SpellLocation)
 
 	FVector Destination = CenterWorldPosition + CenterWorldDirection * OwnerCharacter->AdjustThrowPosVal;
 	return (Destination - SpellLocation).GetSafeNormal();
+}
+
+void USpellComponent::SpellCoolDownStart(TSubclassOf<ASpell> Spell)
+{
+	if(!OwnerCharacter) return;
+
+	if(Spell == SpellFirstClass)
+	{
+		bSpellFirstAble = false;
+		OwnerCharacter->GetWorldTimerManager().SetTimer(SpellFirstCoolTimer, this,
+			&USpellComponent::SpellFirstReady, CurrentSpell->GetSpellCoolDown());
+	}
+	if(Spell == SpellSecondClass)
+	{
+		bSpellSecondAble = false;
+		OwnerCharacter->GetWorldTimerManager().SetTimer(SpellSecondCoolTimer, this,
+			&USpellComponent::SpellSecondReady, CurrentSpell->GetSpellCoolDown());
+	}
+	if(Spell == SpellUltClass)
+	{
+		bSpellUltAble = false;
+		OwnerCharacter->GetWorldTimerManager().SetTimer(SpellUltCoolTimer, this,
+			&USpellComponent::SpellUltReady, CurrentSpell->GetSpellCoolDown());
+	}
+
+}
+
+void USpellComponent::SpellFirstReady()
+{
+	bSpellFirstAble = true;
+}
+
+void USpellComponent::SpellSecondReady()
+{
+	bSpellSecondAble = true;
+}
+
+void USpellComponent::SpellUltReady()
+{
+	bSpellUltAble = true;
 }
 
 /*

@@ -488,6 +488,69 @@ FVector APolyWarPlayerCharacter::GetMapCameraUp()
 	return MapCamera->GetUpVector().GetSafeNormal();
 }
 
+EWeaponSkill APolyWarPlayerCharacter::GetWeaponSkillFirst()
+{
+	if(!GetEquippedWeapon()) return EWeaponSkill::EWS_MAX;
+
+	return GetEquippedWeapon()->GetWeaponSkillFirst();
+}
+
+EWeaponSkill APolyWarPlayerCharacter::GetWeaponSkillSecond()
+{
+	if(!GetEquippedWeapon()) return EWeaponSkill::EWS_MAX;
+
+	return GetEquippedWeapon()->GetWeaponSkillSecond();
+}
+
+float APolyWarPlayerCharacter::GetWeaponSkillCoolDown(EWeaponSkill WeaponSkill)
+{
+	if(!GetEquippedWeapon()) return 0.0f;
+
+	return GetEquippedWeapon()->GetWeaponSkillCoolDown(WeaponSkill);
+}
+
+float APolyWarPlayerCharacter::GetWeaponSkillRemainCoolDown(EWeaponSkill WeaponSkill)
+{
+	if(!GetEquippedWeapon()) return 0.0f;
+
+	return GetEquippedWeapon()->GetWeaponSkillRemainCoolDown(WeaponSkill);
+}
+
+TSubclassOf<ASpell> APolyWarPlayerCharacter::GetSpellFirst()
+{
+	if(!SpellComponent) return nullptr;
+
+	return SpellComponent->GetSpellFirstClass();
+}
+
+TSubclassOf<ASpell> APolyWarPlayerCharacter::GetSpellSecond()
+{
+	if(!SpellComponent) return nullptr;
+
+	return SpellComponent->GetSpellSecondClass();
+}
+
+TSubclassOf<ASpell> APolyWarPlayerCharacter::GetSpellUlt()
+{
+	if(!SpellComponent) return nullptr;
+
+	return SpellComponent->GetSpellUltClass();
+}
+
+float APolyWarPlayerCharacter::GetSpellCoolDown(TSubclassOf<ASpell> Spell)
+{
+	if(!SpellComponent) return 0.0f;
+
+	return SpellComponent->GetSpellCoolDown(Spell);
+}
+
+float APolyWarPlayerCharacter::GetSpellRemainCoolDown(TSubclassOf<ASpell> Spell)
+{
+	if(!SpellComponent) return 0.0f;
+
+	return SpellComponent->GetSpellRemainCoolDown(Spell);
+}
+
 void APolyWarPlayerCharacter::WeaponSkillFirst(const FInputActionValue& Value)
 {
 	if(!GetEquippedWeapon()) return;

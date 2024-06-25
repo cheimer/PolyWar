@@ -46,6 +46,7 @@ void APolyWarPlayerController::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
+	UpdateHUDCoolDown();
 }
 
 void APolyWarPlayerController::OnPossess(APawn* InPawn)
@@ -152,6 +153,8 @@ void APolyWarPlayerController::CreateWidgets()
 
 void APolyWarPlayerController::SetInputDefault(bool IsUI)
 {
+	if(!PolyWarPlayerCharacter) return;
+
 	if(IsUI)
 	{
 		SetInputMode(FInputModeGameAndUI());
@@ -173,8 +176,40 @@ void APolyWarPlayerController::UpdateHUD()
 	{
 		UpdateHUDVersusBar();
 		UpdateHUDTeamScroll(nullptr);
-
 	}
+}
+
+void APolyWarPlayerController::UpdateHUDCoolDown()
+{
+	PolyWarHUD = PolyWarHUD == nullptr ? Cast<APolyWarHUD>(GetHUD()) : PolyWarHUD;
+	if(!PolyWarHUD) return;
+	PolyWarPlayerCharacter = PolyWarPlayerCharacter == nullptr ? Cast<APolyWarPlayerCharacter>(GetPawn()) : PolyWarPlayerCharacter;
+	if(!PolyWarPlayerCharacter) return;
+
+	// Update WeaponSkill cooldown
+	if(PolyWarHUD->CharacterWidget && PolyWarHUD->CharacterWidget->WeaponSkillFirstBar)
+	{
+		SetHUDSkillBar(PolyWarHUD->CharacterWidget->WeaponSkillFirstBar, PolyWarPlayerCharacter->GetWeaponSkillFirst());
+	}
+	if(PolyWarHUD->CharacterWidget && PolyWarHUD->CharacterWidget->WeaponSkillSecondBar)
+	{
+		SetHUDSkillBar(PolyWarHUD->CharacterWidget->WeaponSkillSecondBar, PolyWarPlayerCharacter->GetWeaponSkillSecond());
+	}
+
+	// Update Spell cooldown
+	if(PolyWarHUD->CharacterWidget && PolyWarHUD->CharacterWidget->SpellFirstBar)
+	{
+		SetHUDSkillBar(PolyWarHUD->CharacterWidget->SpellFirstBar, PolyWarPlayerCharacter->GetSpellFirst());
+	}
+	if(PolyWarHUD->CharacterWidget && PolyWarHUD->CharacterWidget->SpellSecondBar)
+	{
+		SetHUDSkillBar(PolyWarHUD->CharacterWidget->SpellSecondBar, PolyWarPlayerCharacter->GetSpellSecond());
+	}
+	if(PolyWarHUD->CharacterWidget && PolyWarHUD->CharacterWidget->SpellUltBar)
+	{
+		SetHUDSkillBar(PolyWarHUD->CharacterWidget->SpellUltBar, PolyWarPlayerCharacter->GetSpellUlt());
+	}
+
 }
 
 void APolyWarPlayerController::UpdateHUDVersusBar()
@@ -237,6 +272,26 @@ void APolyWarPlayerController::SetHUDDeathCharacter(APolyWarBaseCharacter* Death
 
 	UpdateHUDVersusBar();
 	UpdateHUDTeamScroll(DeathCharacter);
+}
+
+void APolyWarPlayerController::SetHUDSkillBar(UProgressBar* WeaponSkillBar, EWeaponSkill WeaponSkill)
+{
+	if(!WeaponSkillBar) return;
+
+	const float WeaponSkillFirstCoolTime = PolyWarPlayerCharacter->GetWeaponSkillCoolDown(WeaponSkill);
+	const float WeaponSkillFirstRemainCoolTime = PolyWarPlayerCharacter->GetWeaponSkillRemainCoolDown(WeaponSkill);
+
+	WeaponSkillBar->SetPercent(WeaponSkillFirstRemainCoolTime / WeaponSkillFirstCoolTime);
+}
+
+void APolyWarPlayerController::SetHUDSkillBar(UProgressBar* SpellBar, TSubclassOf<ASpell> Spell)
+{
+	if(!SpellBar) return;
+
+	const float SpellFirstCoolTime = PolyWarPlayerCharacter->GetSpellCoolDown(Spell);
+	const float SpellFirstRemainCoolTime = PolyWarPlayerCharacter->GetSpellRemainCoolDown(Spell);
+
+	SpellBar->SetPercent(SpellFirstRemainCoolTime / SpellFirstCoolTime);
 }
 
 void APolyWarPlayerController::SetHUDWinText(ETeamType WinTeam)
