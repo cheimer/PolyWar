@@ -46,7 +46,7 @@ void UCombatComponent::BeginWeaponAttack()
 	{
 		WeaponAttack(CurrentAnimIndex);
 	}
-	else if(!OwnerCharacter->HasAuthority())
+	else
 	{
 		ServerWeaponAttack(CurrentAnimIndex);
 	}
@@ -65,7 +65,7 @@ void UCombatComponent::BeginWeaponSkill(EWeaponSkill WeaponSkill)
 	{
 		WeaponSkillAttack(WeaponSkill);
 	}
-	if(!OwnerCharacter->HasAuthority())
+	else
 	{
 		ServerWeaponSkillAttack(WeaponSkill);
 	}
@@ -83,7 +83,7 @@ void UCombatComponent::BeginSpell(TSubclassOf<ASpell> Spell)
 	{
 		SpellCast(Spell);
 	}
-	if(!OwnerCharacter->HasAuthority())
+	else
 	{
 		ServerSpellCast(Spell);
 	}
@@ -108,6 +108,7 @@ void UCombatComponent::OnRep_CombatState()
 void UCombatComponent::WeaponAttack(int32 AnimIndex)
 {
 	if(!OwnerCharacter || !EquippedWeapon) return;
+
 	OwnerCharacter->PlayAttackAnimMontage(false, AnimIndex);
 
 	bIsAttackDelay = true;
@@ -116,7 +117,6 @@ void UCombatComponent::WeaponAttack(int32 AnimIndex)
 	float Delay = EquippedWeapon->GetAttackDelay() > OwnerCharacter->GetAttackAnimMontageLen(AnimIndex) ?
 		EquippedWeapon->GetAttackDelay() : OwnerCharacter->GetAttackAnimMontageLen(AnimIndex);
 	OwnerCharacter->GetWorldTimerManager().SetTimer(AttackTimer, this, &ThisClass::WeaponAttackEnd, Delay * 0.9f);
-
 }
 
 void UCombatComponent::ServerWeaponAttack_Implementation(int32 AnimIndex)

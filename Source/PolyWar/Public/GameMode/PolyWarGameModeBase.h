@@ -17,13 +17,12 @@ class POLYWAR_API APolyWarGameModeBase : public AGameModeBase
 
 public:
 	APolyWarGameModeBase();
-	virtual void PostLogin(APlayerController* NewPlayer) override;
-	virtual void BeginPlay() override;
-	virtual void Tick(float DeltaSeconds) override;
 
 	virtual void CharacterDeath(class APolyWarBaseCharacter* DeathCharacter);
 
 	void GameEnd(ETeamType WinnerTeam);
+
+	virtual void TimeEnd();
 
 	UPROPERTY(EditDefaultsOnly, Category = "Set Should")
 	bool bUseTimeLimit = true;
@@ -35,8 +34,6 @@ protected:
 	TObjectPtr<class APolyWarGameStateBase> PolyWarGameState;
 
 private:
-	float TimePassed = 0.0f;
-
-	virtual ETeamType TimeOverWinnerTeam();
+	bool bIsGameEnd = false;
 
 };

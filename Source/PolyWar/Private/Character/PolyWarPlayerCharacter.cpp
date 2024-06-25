@@ -26,6 +26,8 @@
 
 APolyWarPlayerCharacter::APolyWarPlayerCharacter()
 {
+	bAlwaysRelevant = true;
+
 	CharacterSpringArm = CreateDefaultSubobject<USpringArmComponent>("CharacterSpringArm");
 	CharacterSpringArm->SetupAttachment(GetMesh());
 	CharacterSpringArm->TargetArmLength = 400.0f;
@@ -38,8 +40,6 @@ APolyWarPlayerCharacter::APolyWarPlayerCharacter()
 	MainCamera = CreateDefaultSubobject<UCameraComponent>("MainCamera");
 	MainCamera->SetupAttachment(CharacterSpringArm);
 	MainCamera->bUsePawnControlRotation = false;
-	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
-	GetMesh()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 
 	MapSpringArm = CreateDefaultSubobject<USpringArmComponent>("MapSpringArm");
 	MapSpringArm->SetupAttachment(GetMesh());
@@ -122,7 +122,6 @@ void APolyWarPlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimePropert
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(APolyWarPlayerCharacter, bFocusOnScreen);
-	DOREPLIFETIME(APolyWarPlayerCharacter, TeamType);
 }
 
 void APolyWarPlayerCharacter::Tick(float DeltaSeconds)

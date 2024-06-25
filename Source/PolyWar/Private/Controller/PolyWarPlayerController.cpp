@@ -46,7 +46,12 @@ void APolyWarPlayerController::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
-	UpdateHUDCoolDown();
+	if(IsLocalController())
+	{
+		UpdateHUDTime(DeltaSeconds);
+		UpdateHUDCoolDown();
+
+	}
 }
 
 void APolyWarPlayerController::OnPossess(APawn* InPawn)
@@ -146,6 +151,7 @@ void APolyWarPlayerController::CreateWidgets()
 		PolyWarHUD->CreateWidgets();
 		SetHUDVersusBar();
 		SetHUDTeamScroll();
+		SetHUDTime();
 
 		UpdateHUD();
 	}
@@ -176,6 +182,34 @@ void APolyWarPlayerController::UpdateHUD()
 	{
 		UpdateHUDVersusBar();
 		UpdateHUDTeamScroll(nullptr);
+	}
+}
+
+void APolyWarPlayerController::UpdateHUDTime(float DeltaSeconds)
+{
+	PolyWarHUD = PolyWarHUD == nullptr ? Cast<APolyWarHUD>(GetHUD()) : PolyWarHUD;
+	if(!PolyWarHUD) return;
+
+	// bUseTimeLimit == true -> time 999:59 ~ 00:00
+	if(bUseTimeLimit)
+	{
+		CurrentTime -= DeltaSeconds;
+	}
+	// bUseTimeLimit == false -> time 00:00 ~ 999:59
+	else
+	{
+		CurrentTime += DeltaSeconds;
+	}
+
+	if(bUseTimeLimit && CurrentTime < 0.0f)
+	{
+		TimeEndGame();
+	}
+
+	if(PolyWarHUD->CharacterWidget && PolyWarHUD->CharacterWidget->TimeText)
+	{
+		FText TimeText = FloatToTimeText(CurrentTime);
+		PolyWarHUD->CharacterWidget->TimeText->SetText(TimeText);
 	}
 }
 
@@ -325,6 +359,57 @@ void APolyWarPlayerController::SetHUDWinText(ETeamType WinTeam)
 	}
 }
 
+void APolyWarPlayerController::SetHUDTime()
+{
+	PolyWarHUD = PolyWarHUD == nullptr ? Cast<APolyWarHUD>(GetHUD()) : PolyWarHUD;
+	if(!PolyWarHUD || !PolyWarHUD->CharacterWidget) return;
+
+	if(HasAuthority())
+	{
+		APolyWarGameModeBase* GameMode = Cast<APolyWarGameModeBase>(GetWorld()->GetAuthGameMode());
+		if(!GameMode) return;
+
+		bUseTimeLimit = GameMode->bUseTimeLimit;
+		if(bUseTimeLimit)
+		{
+			CurrentTime = GameMode->TimeLimit;
+		}
+	}
+	else
+	{
+		ServerSetHUDTime();
+	}
+
+}
+
+void APolyWarPlayerController::ServerSetHUDTime_Implementation()
+{
+	APolyWarGameModeBase* GameMode = Cast<APolyWarGameModeBase>(GetWorld()->GetAuthGameMode());
+	if(!GameMode) return;
+
+	float InCurrentTime = 0.0f;
+	if(GameMode->bUseTimeLimit)
+	{
+		InCurrentTime = GameMode->TimeLimit;
+	}
+	ClientSetHUDTime(GameMode->bUseTimeLimit, InCurrentTime, GetWorld()->GetTimeSeconds());
+}
+
+void APolyWarPlayerController::ClientSetHUDTime_Implementation(bool InbUseTimeLimit, float InCurrentTime, float ServerTimeSeconds)
+{
+	bUseTimeLimit = InbUseTimeLimit;
+	CurrentTime = InCurrentTime;
+	if(bUseTimeLimit)
+	{
+		CurrentTime -= ServerTimeSeconds;
+	}
+	else
+	{
+		CurrentTime += ServerTimeSeconds;
+	}
+
+}
+
 void APolyWarPlayerController::SetHUDVersusBar()
 {
 	PolyWarHUD = PolyWarHUD == nullptr ? Cast<APolyWarHUD>(GetHUD()) : PolyWarHUD;
@@ -395,6 +480,18 @@ void APolyWarPlayerController::TeamUnitTypes(ETeamType TeamType, TMap<EUnitType,
 		else
 		{
 			OutTeamUnitTypes.Add(TeamCharacter->GetUnitType(), 1);
+		}
+	}
+}
+
+void APolyWarPlayerController::TimeEndGame()
+{
+	if(HasAuthority())
+	{
+		APolyWarGameModeBase* GameMode = Cast<APolyWarGameModeBase>(GetWorld()->GetAuthGameMode());
+		if(GameMode)
+		{
+			GameMode->TimeEnd();
 		}
 	}
 }
@@ -695,6 +792,31 @@ void APolyWarPlayerController::GetMyTeam(TArray<APolyWarAICharacter*>& OutTeamAr
 	TArray<EUnitNum> UnitNums;
 	GetMapUnitStateArray(EMapUnitState::EMUS_Clicked, UnitNums);
 	PolyWarGameState->GetTeamByUnitNums(PolyWarPlayerCharacter->GetTeamType(), UnitNums, OutTeamArray);
+}
+
+FText APolyWarPlayerController::FloatToTimeText(float TimeSeconds)
+{
+	if(TimeSeconds < 0.0f)
+	{
+		return FText::FromString("00 : 00");
+	}
+
+	int32 CeilTimeSeconds = FMath::CeilToInt32(TimeSeconds);
+	int32 Minutes = CeilTimeSeconds / 60;
+	int32 Seconds = CeilTimeSeconds % 60;
+
+	FString TimeString;
+	TimeString.Append(FString::FromInt(Minutes)).Append(" : ");
+	if(Seconds >= 10)
+	{
+		TimeString.Append(FString::FromInt(Seconds));
+	}
+	else
+	{
+		TimeString.Append("0").Append(FString::FromInt(Seconds));
+	}
+
+	return FText::FromString(TimeString);
 }
 
 void APolyWarPlayerController::ToggleUnitNum(EUnitNum UnitNum)

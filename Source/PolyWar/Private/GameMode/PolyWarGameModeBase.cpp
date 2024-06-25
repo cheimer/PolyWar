@@ -20,30 +20,30 @@ APolyWarGameModeBase::APolyWarGameModeBase()
 	bUseSeamlessTravel = true;
 }
 
-void APolyWarGameModeBase::PostLogin(APlayerController* NewPlayer)
+void APolyWarGameModeBase::CharacterDeath(APolyWarBaseCharacter* DeathCharacter)
 {
-	Super::PostLogin(NewPlayer);
+
 }
 
-void APolyWarGameModeBase::BeginPlay()
+void APolyWarGameModeBase::GameEnd(ETeamType WinnerTeam)
 {
-	Super::BeginPlay();
-}
+	if(bIsGameEnd) return;
+	bIsGameEnd = true;
 
-void APolyWarGameModeBase::Tick(float DeltaSeconds)
-{
-	Super::Tick(DeltaSeconds);
+	TArray<AActor*> AllController;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APolyWarPlayerController::StaticClass(), AllController);
 
-	TimePassed += DeltaSeconds;
-
-	if(bUseTimeLimit && TimePassed > TimeLimit)
+	for(AActor* ControllerIndex : AllController)
 	{
-		GameEnd(TimeOverWinnerTeam());
+		APolyWarPlayerController* PolyWarController = Cast<APolyWarPlayerController>(ControllerIndex);
+		if(PolyWarController)
+		{
+			PolyWarController->GameEnd(WinnerTeam);
+		}
 	}
-
 }
 
-ETeamType APolyWarGameModeBase::TimeOverWinnerTeam()
+void APolyWarGameModeBase::TimeEnd()
 {
 	TArray<AActor*> AllCharacters;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APolyWarBaseCharacter::StaticClass(), AllCharacters);
@@ -53,7 +53,7 @@ ETeamType APolyWarGameModeBase::TimeOverWinnerTeam()
 	for(AActor* CharacterIndex : AllCharacters)
 	{
 		APolyWarBaseCharacter* PolyWarCharacter = Cast<APolyWarBaseCharacter>(CharacterIndex);
-		if(PolyWarCharacter)
+		if(PolyWarCharacter && !PolyWarCharacter->IsDead())
 		{
 			if(PolyWarCharacter->GetTeamType() == ETeamType::ET_BlueTeam)
 			{
@@ -68,36 +68,14 @@ ETeamType APolyWarGameModeBase::TimeOverWinnerTeam()
 
 	if(BlueTeamNum > RedTeamNum)
 	{
-		return ETeamType::ET_BlueTeam;
+		GameEnd(ETeamType::ET_BlueTeam);
 	}
 	else if(RedTeamNum > BlueTeamNum)
 	{
-		return ETeamType::ET_RedTeam;
+		GameEnd(ETeamType::ET_RedTeam);
 	}
 	else if(RedTeamNum == BlueTeamNum)
 	{
-		return ETeamType::ET_NoTeam;
-	}
-
-	return ETeamType::ET_NoTeam;
-}
-
-void APolyWarGameModeBase::CharacterDeath(APolyWarBaseCharacter* DeathCharacter)
-{
-
-}
-
-void APolyWarGameModeBase::GameEnd(ETeamType WinnerTeam)
-{
-	TArray<AActor*> AllController;
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APolyWarPlayerController::StaticClass(), AllController);
-
-	for(AActor* ControllerIndex : AllController)
-	{
-		APolyWarPlayerController* PolyWarController = Cast<APolyWarPlayerController>(ControllerIndex);
-		if(PolyWarController)
-		{
-			PolyWarController->GameEnd(WinnerTeam);
-		}
+		GameEnd(ETeamType::ET_NoTeam);
 	}
 }

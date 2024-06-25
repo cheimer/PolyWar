@@ -42,8 +42,8 @@ protected:
 	float SpearThrowDuration;
 
 private:
-	void HitSpearSlash(APolyWarBaseCharacter* Victim, float Damage);
-	void HitSpearThrow(APolyWarBaseCharacter* Victim, float Damage);
+	void HitSpearSlash(APolyWarBaseCharacter* Victim);
+	void HitSpearThrow(APolyWarBaseCharacter* Victim);
 
 	void DestroyWeapon();
 

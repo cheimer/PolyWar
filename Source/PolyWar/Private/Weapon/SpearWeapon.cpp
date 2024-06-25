@@ -84,34 +84,25 @@ void ASpearWeapon::WeaponSkillAttack(APolyWarBaseCharacter* Victim)
 
 	if(CurrentWeaponSkill == EWeaponSkill::EWS_SpearSlash)
 	{
-		if(CurrentWeaponSkill == WeaponSkillFirst)
+		if(CurrentWeaponSkill == WeaponSkillFirst || CurrentWeaponSkill == WeaponSkillSecond)
 		{
-			HitSpearSlash(Victim, WeaponSkillFirstDamage * OwnerCharacter->GetPowerRate());
-		}
-		else if(CurrentWeaponSkill == WeaponSkillSecond)
-		{
-			HitSpearSlash(Victim, WeaponSkillSecondDamage * OwnerCharacter->GetPowerRate());
+			HitSpearSlash(Victim);
 		}
 	}
 	else if (CurrentWeaponSkill == EWeaponSkill::EWS_SpearThrow)
 	{
-		if(CurrentWeaponSkill == WeaponSkillFirst)
+		if(CurrentWeaponSkill == WeaponSkillFirst || CurrentWeaponSkill == WeaponSkillSecond)
 		{
-			HitSpearThrow(Victim, WeaponSkillFirstDamage * OwnerCharacter->GetPowerRate());
-		}
-		else if(CurrentWeaponSkill == WeaponSkillSecond)
-		{
-			HitSpearThrow(Victim, WeaponSkillSecondDamage * OwnerCharacter->GetPowerRate());
+			HitSpearThrow(Victim);
 		}
 	}
 }
 
-void ASpearWeapon::HitSpearSlash(APolyWarBaseCharacter* Victim, float Damage)
+void ASpearWeapon::HitSpearSlash(APolyWarBaseCharacter* Victim)
 {
 	if(!GetOwner() || !GetOwner()->GetInstigatorController()) return;
 
-	UGameplayStatics::ApplyDamage(Victim, Damage,
-		GetOwner()->GetInstigatorController(), GetOwner(), UDamageType::StaticClass());
+	SimpleApplyDamage(Victim, EWeaponSkill::EWS_SpearSlash);
 
 	FVector OwnerLoc = GetOwner()->GetActorLocation();
 	FVector VictimLoc = Victim->GetActorLocation();
@@ -121,19 +112,18 @@ void ASpearWeapon::HitSpearSlash(APolyWarBaseCharacter* Victim, float Damage)
 	Victim->LaunchCharacter(OwnerToVictim.GetSafeNormal() * SpearSlashKnockBackAmount, true, true);
 }
 
-void ASpearWeapon::HitSpearThrow(APolyWarBaseCharacter* Victim, float Damage)
+void ASpearWeapon::HitSpearThrow(APolyWarBaseCharacter* Victim)
 {
 	if(!GetOwner() || !GetOwner()->GetInstigatorController()) return;
 
-	UGameplayStatics::ApplyDamage(Victim, Damage,
-		GetOwner()->GetInstigatorController(), GetOwner(), UDamageType::StaticClass());
+	SimpleApplyDamage(Victim, EWeaponSkill::EWS_SpearThrow);
 
 	FVector WeaponLoc = GetActorLocation();
 	FVector VictimLoc = Victim->GetActorLocation();
 	FVector WeaponToVictim = VictimLoc - WeaponLoc;
 	WeaponToVictim.Z = 0.0f;
 
-	Victim->LaunchCharacter(WeaponToVictim.GetSafeNormal() * SpearSlashKnockBackAmount, true, true);
+	Victim->LaunchCharacter(WeaponToVictim.GetSafeNormal() * SpearThrowKnockBackAmount, true, true);
 }
 
 bool ASpearWeapon::SkillFocusOnScreen(EWeaponSkill WeaponSkill)

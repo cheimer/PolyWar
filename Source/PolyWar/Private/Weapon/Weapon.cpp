@@ -17,13 +17,12 @@ AWeapon::AWeapon()
 	SetRootComponent(WeaponMesh);
 	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	WeaponMesh->SetCollisionResponseToAllChannels(ECR_Ignore);
-	WeaponMesh->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 
 	AttackCollision = CreateDefaultSubobject<UBoxComponent>("AttackCollision");
 	AttackCollision->SetupAttachment(WeaponMesh);
 	AttackCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	AttackCollision->SetCollisionResponseToAllChannels(ECR_Ignore);
-	AttackCollision->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+	AttackCollision->SetIsReplicated(true);
 
 }
 
@@ -32,7 +31,7 @@ void AWeapon::BeginPlay()
 	Super::BeginPlay();
 
 	AttackCollision->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnAttackBeginOverlap);
-	
+
 }
 
 void AWeapon::SetCollisionEnabled(bool IsEnabled)
@@ -72,8 +71,14 @@ void AWeapon::OnAttackBeginOverlap(UPrimitiveComponent* OverlappedComponent, AAc
 			HitActors.Emplace(Victim);
 			if(GetOwner()->GetInstigatorController())
 			{
-				UGameplayStatics::ApplyDamage(Victim, WeaponDamage * OwnerCharacter->GetPowerRate(),
-					GetOwner()->GetInstigatorController(), GetOwner(), UDamageType::StaticClass());
+				if(GetOwner()->HasAuthority())
+				{
+					SimpleApplyDamage(Victim);
+				}
+				else
+				{
+					ServerSimpleApplyDamage(Victim);
+				}
 			}
 		}
 		else
@@ -83,6 +88,38 @@ void AWeapon::OnAttackBeginOverlap(UPrimitiveComponent* OverlappedComponent, AAc
 		}
 	}
 
+}
+
+void AWeapon::SimpleApplyDamage(AActor* Victim, EWeaponSkill WeaponSkill)
+{
+	APolyWarBaseCharacter* OwnerCharacter = Cast<APolyWarBaseCharacter>(GetOwner());
+	if(!OwnerCharacter) return;
+
+	float DamageBasic = 0.0f;
+	if(WeaponSkill == EWeaponSkill::EWS_MAX)
+	{
+		DamageBasic = WeaponDamage;
+	}
+	else if(WeaponSkill == WeaponSkillFirst)
+	{
+		DamageBasic = WeaponSkillFirstDamage;
+	}
+	else if(WeaponSkill == WeaponSkillSecond)
+	{
+		DamageBasic = WeaponSkillSecondDamage;
+	}
+	else
+	{
+		return;
+	}
+
+	UGameplayStatics::ApplyDamage(Victim, DamageBasic * OwnerCharacter->GetPowerRate(),
+		GetOwner()->GetInstigatorController(), GetOwner(), UDamageType::StaticClass());
+}
+
+void AWeapon::ServerSimpleApplyDamage_Implementation(AActor* Victim, EWeaponSkill WeaponSkill)
+{
+	SimpleApplyDamage(Victim);
 }
 
 void AWeapon::WeaponSkillStart(EWeaponSkill WeaponSkill)

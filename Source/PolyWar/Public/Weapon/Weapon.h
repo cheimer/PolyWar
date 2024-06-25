@@ -38,6 +38,10 @@ protected:
 	virtual void OnAttackBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
+	void SimpleApplyDamage(AActor* Victim, EWeaponSkill WeaponSkill = EWeaponSkill::EWS_MAX);
+	UFUNCTION(Server, Reliable)
+	void ServerSimpleApplyDamage(AActor* Victim, EWeaponSkill WeaponSkill = EWeaponSkill::EWS_MAX);
+
 	UPROPERTY(VisibleAnywhere, Category = "Component")
 	UStaticMeshComponent* WeaponMesh;
 
@@ -67,9 +71,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Set Should")
 	float AttackDelay = 2.0f;
 	UPROPERTY(EditAnywhere, Category = "Set Should")
-	float AttackRange = 50.0f;
+	float AttackRange = 150.0f;
 	UPROPERTY(EditAnywhere, Category = "Set Should")
-	float AttackAngle = 60.0f;
+	float AttackAngle = 30.0f;
 
 private:
 	TArray<TObjectPtr<AActor>> HitActors;

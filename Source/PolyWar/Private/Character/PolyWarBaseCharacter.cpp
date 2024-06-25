@@ -18,10 +18,14 @@
 APolyWarBaseCharacter::APolyWarBaseCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
+
 	SetReplicates(true);
 	AActor::SetReplicateMovement(true);
 	NetUpdateFrequency = 66.0f;
 	MinNetUpdateFrequency = 33.0f;
+
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
+	GetMesh()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 
 	GetCharacterMovement()->MaxWalkSpeed = DefaultWalkSpeed;
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 720.0f, 0.0f);
@@ -38,7 +42,6 @@ APolyWarBaseCharacter::APolyWarBaseCharacter()
 	AIPerceptionSourceComponent = CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>("AIPerceptionSourceComponent");
 	AIPerceptionSourceComponent->RegisterForSense(UAISense_Sight::StaticClass());
 	AIPerceptionSourceComponent->RegisterWithPerceptionSystem();
-
 }
 
 void APolyWarBaseCharacter::PostInitializeComponents()
@@ -68,6 +71,7 @@ void APolyWarBaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(APolyWarBaseCharacter, bIsRunning);
+	DOREPLIFETIME(APolyWarBaseCharacter, TeamType);
 }
 
 void APolyWarBaseCharacter::BeginPlay()

@@ -36,6 +36,7 @@ public:
 	void MapOrderToggle(EOrderType OrderType, class UTextBlock* OrderText);
 	void MapImageClick(const FVector2D StartPos, const FVector2D Size, const FVector2D ClickPos);
 
+	void TimeEndGame();
 	void SurrenderGame();
 	UFUNCTION(Server, Reliable)
 	void ServerSurrenderGame();
@@ -109,7 +110,13 @@ private:
 	TObjectPtr<class APolyWarHUD> PolyWarHUD;
 	TObjectPtr<class APolyWarGameStateBase> PolyWarGameState;
 
+	UFUNCTION(Server, Reliable)
+	void ServerSetHUDTime();
+	UFUNCTION(Client, Reliable)
+	void ClientSetHUDTime(bool InbUseTimeLimit, float InCurrentTime, float ServerTimeSeconds);
+
 	void UpdateHUD();
+	void UpdateHUDTime(float DeltaSeconds);
 	void UpdateHUDCoolDown();
 	void UpdateHUDVersusBar();
 	void UpdateHUDTeamScroll(APolyWarBaseCharacter* DeathCharacter);
@@ -140,6 +147,7 @@ private:
 	void SetHUDSkillBar(class UProgressBar* WeaponSkillBar, EWeaponSkill WeaponSkill);
 	void SetHUDSkillBar(UProgressBar* SpellBar, TSubclassOf<class ASpell> Spell);
 	void SetHUDWinText(ETeamType WinTeam);
+	void SetHUDTime();
 	void SetHUDVersusBar();
 	void SetHUDTeamScroll();
 
@@ -147,6 +155,11 @@ private:
 
 	float BlueTeamNum = 1;
 	float RedTeamNum = 1;
+
+	FText FloatToTimeText(float TimeSeconds);
+
+	bool bUseTimeLimit = false;
+	float CurrentTime = 0.0f;
 
 public:
 	EOrderType GetCurrentOrder() const {return CurrentOrder;}
