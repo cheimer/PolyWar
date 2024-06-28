@@ -13,9 +13,13 @@
 #include "Character/PolyWarPlayerCharacter.h"
 #include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
+#include "Engine/StaticMeshActor.h"
+#include "Engine/TextureRenderTarget2D.h"
 #include "GameMode/PolyWarGameModeBase.h"
 #include "GameState/PolyWarGameStateBase.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMaterialLibrary.h"
+#include "Kismet/KismetRenderingLibrary.h"
 #include "UI/CharacterWidget.h"
 #include "UI/EndMenuWidget.h"
 #include "UI/MapButton.h"
@@ -38,8 +42,20 @@ void APolyWarPlayerController::BeginPlay()
 		Subsystem->AddMappingContext(ControllerInputMapping, 0);
 	}
 
-	CreateWidgets();
+	if(IsLocalPlayerController())
+	{
+		CreateMap();
+		CreateWidgets();
+		CreateFog();
+
+		// Delayed Begin
+		FTimerHandle DelayTimer;
+		GetWorldTimerManager().SetTimer(DelayTimer, this, &ThisClass::SetAllCharacters, 0.3f, false);
+	}
+
 	InitializeUnitMap();
+
+
 }
 
 void APolyWarPlayerController::Tick(float DeltaSeconds)
@@ -50,7 +66,7 @@ void APolyWarPlayerController::Tick(float DeltaSeconds)
 	{
 		UpdateHUDTime(DeltaSeconds);
 		UpdateHUDCoolDown();
-
+		UpdateFog();
 	}
 }
 
@@ -157,6 +173,53 @@ void APolyWarPlayerController::CreateWidgets()
 	}
 }
 
+void APolyWarPlayerController::CreateMap()
+{
+	PolyWarPlayerCharacter = PolyWarPlayerCharacter == nullptr ? Cast<APolyWarPlayerCharacter>(GetPawn()) : PolyWarPlayerCharacter;
+	if(!PolyWarPlayerCharacter) return;
+
+	if(MapInterface)
+	{
+		MapMaterial = UKismetMaterialLibrary::CreateDynamicMaterialInstance(this, MapInterface);
+	}
+	if(MapMaterial)
+	{
+		MapRender = NewObject<UTextureRenderTarget2D>();
+		MapRender->InitAutoFormat(1600, 900);
+
+		MapMaterial->SetTextureParameterValue(FName("Map"), MapRender);
+	}
+	if(MapRender)
+	{
+		PolyWarPlayerCharacter->SetMapCameraRender(MapRender);
+	}
+}
+
+void APolyWarPlayerController::CreateFog()
+{
+	FogOfWar = GetWorld()->SpawnActor<AStaticMeshActor>(FogOfWarClass);
+
+	FogOfWarRevealRender = NewObject<UTextureRenderTarget2D>();
+	FogOfWarRevealRender->InitAutoFormat(1024, 1024);
+	UKismetRenderingLibrary::ClearRenderTarget2D(this, FogOfWarRevealRender);
+
+	auto FogMeshMaterial = UKismetMaterialLibrary::CreateDynamicMaterialInstance(this,
+		FogOfWar->GetStaticMeshComponent()->GetMaterial(0));
+	FogMeshMaterial->SetTextureParameterValue(FName("FogRevealRender"), FogOfWarRevealRender);
+
+	if(bWorldHideStart)
+	{
+		FogOfWarRender = NewObject<UTextureRenderTarget2D>();
+		FogOfWarRender->InitAutoFormat(1024, 1024);
+		UKismetRenderingLibrary::ClearRenderTarget2D(this, FogOfWarRender);
+
+		FogMeshMaterial->SetTextureParameterValue(FName("FogRender"), FogOfWarRender);
+	}
+
+	FogOfWar->GetStaticMeshComponent()->SetMaterial(0, FogMeshMaterial);
+
+}
+
 void APolyWarPlayerController::SetInputDefault(bool IsUI)
 {
 	if(!PolyWarPlayerCharacter) return;
@@ -173,6 +236,28 @@ void APolyWarPlayerController::SetInputDefault(bool IsUI)
 		SetShowMouseCursor(false);
 		PolyWarPlayerCharacter->SetIsOpenUI(false);
 	}
+}
+
+void APolyWarPlayerController::SetAllCharacters()
+{
+	PolyWarPlayerCharacter = PolyWarPlayerCharacter == nullptr ? Cast<APolyWarPlayerCharacter>(GetPawn()) : PolyWarPlayerCharacter;
+	if(!PolyWarPlayerCharacter) return;
+
+	// Temp Solve: Delay restart
+	// if func execute too early, immediately delay a little seconds
+	ETeamType PlayerTeam = PolyWarPlayerCharacter->GetTeamType();
+	if(PlayerTeam == ETeamType::ET_NoTeam)
+	{
+		FTimerHandle DelayTimer;
+		GetWorldTimerManager().SetTimer(DelayTimer, this, &ThisClass::SetAllCharacters, 0.1f, false);
+		return;
+	}
+
+	TArray<AActor*> AllCharacters;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APolyWarBaseCharacter::StaticClass(), AllCharacters);
+
+	SetTeamCharacterFog(AllCharacters);
+	SetCharacterVisible(AllCharacters);
 }
 
 void APolyWarPlayerController::UpdateHUD()
@@ -270,6 +355,52 @@ void APolyWarPlayerController::UpdateHUDTeamScroll(APolyWarBaseCharacter* DeathC
 	if(!PolyWarHUD) return;
 
 	PolyWarHUD->EndMenuScrollMinus(DeathCharacter->GetTeamType(), DeathCharacter->GetUnitType());
+}
+
+void APolyWarPlayerController::UpdateFog()
+{
+	if(FogOfWarRevealRender)
+	{
+		UKismetRenderingLibrary::ClearRenderTarget2D(this, FogOfWarRevealRender);
+	}
+}
+
+void APolyWarPlayerController::SetTeamCharacterFog(const TArray<AActor*>& AllCharacters)
+{
+	PolyWarPlayerCharacter = PolyWarPlayerCharacter == nullptr ? Cast<APolyWarPlayerCharacter>(GetPawn()) : PolyWarPlayerCharacter;
+	if(!PolyWarPlayerCharacter) return;
+
+	for(auto CharacterIndex : AllCharacters)
+	{
+		auto PolyCharacterIndex = Cast<APolyWarBaseCharacter>(CharacterIndex);
+		if(PolyCharacterIndex && PolyCharacterIndex->GetTeamType() == PolyWarPlayerCharacter->GetTeamType())
+		{
+			if(bWorldHideStart)
+			{
+				PolyCharacterIndex->CreateFogOfWar(FogOfWarInterface,FogOfWarRender,
+					FogOfWarRevealInterface, FogOfWarRevealRender);
+			}
+			else
+			{
+				PolyCharacterIndex->CreateFogOfWar(FogOfWarRevealInterface, FogOfWarRevealRender);
+			}
+		}
+	}
+}
+
+void APolyWarPlayerController::SetCharacterVisible(const TArray<AActor*>& AllCharacters)
+{
+	PolyWarPlayerCharacter = PolyWarPlayerCharacter == nullptr ? Cast<APolyWarPlayerCharacter>(GetPawn()) : PolyWarPlayerCharacter;
+	if(!PolyWarPlayerCharacter) return;
+
+	for(auto CharacterIndex : AllCharacters)
+	{
+		auto PolyCharacterIndex = Cast<APolyWarBaseCharacter>(CharacterIndex);
+		if(PolyCharacterIndex && PolyCharacterIndex->GetTeamType() != PolyWarPlayerCharacter->GetTeamType())
+		{
+			PolyCharacterIndex->GetMesh()->SetVisibility(false, true);
+		}
+	}
 }
 
 void APolyWarPlayerController::SetHUDHealth(float CurrentHealth, float MaxHealth)

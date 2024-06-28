@@ -28,6 +28,8 @@ public:
 
 	bool IsTeamExistPlayer(ETeamType TeamType);
 
+	ETeamType GetLocalPlayerTeam();
+
 	UFUNCTION()
 	void DeathCharacter(class APolyWarBaseCharacter* Character);
 
@@ -35,7 +37,9 @@ private:
 	TMap<EUnitNum, TArray<APolyWarAICharacter*>> BlueTeamUnitMap;
 	TMap<EUnitNum, TArray<APolyWarAICharacter*>> RedTeamUnitMap;
 
-	TObjectPtr<APolyWarPlayerCharacter> BluePlayer;
-	TObjectPtr<APolyWarPlayerCharacter> RedPlayer;
+	UPROPERTY()
+	APolyWarPlayerCharacter* BluePlayer;
+	UPROPERTY()
+	APolyWarPlayerCharacter* RedPlayer;
 
 };

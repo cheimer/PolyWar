@@ -4,12 +4,17 @@
 #include "Character/PolyWarBaseCharacter.h"
 
 #include "Components/CapsuleComponent.h"
+#include "Components/SphereComponent.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "GameState/PolyWarGameStateBase.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMaterialLibrary.h"
+#include "Kismet/KismetRenderingLibrary.h"
 #include "Net/UnrealNetwork.h"
 #include "Perception/AIPerceptionStimuliSourceComponent.h"
 #include "Perception/AISense_Sight.h"
+#include "PolyWar/PolyWar.h"
 #include "PolyWarComponent/CombatComponent.h"
 #include "PolyWarComponent/StateComponent.h"
 #include "PolyWarComponent/SpellComponent.h"
@@ -42,6 +47,12 @@ APolyWarBaseCharacter::APolyWarBaseCharacter()
 	AIPerceptionSourceComponent = CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>("AIPerceptionSourceComponent");
 	AIPerceptionSourceComponent->RegisterForSense(UAISense_Sight::StaticClass());
 	AIPerceptionSourceComponent->RegisterWithPerceptionSystem();
+
+	VisibleSphere = CreateDefaultSubobject<USphereComponent>("VisibleSphere");
+	VisibleSphere->SetupAttachment(GetRootComponent());
+	VisibleSphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	VisibleSphere->SetCollisionResponseToAllChannels(ECR_Ignore);
+	VisibleSphere->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 }
 
 void APolyWarBaseCharacter::PostInitializeComponents()
@@ -78,6 +89,13 @@ void APolyWarBaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
+	if(VisibleSphere)
+	{
+		VisibleSphere->SetSphereRadius(FogRevealSize * 10000.0f);
+		VisibleSphere->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::VisibleSphereBeginOverlap);
+		VisibleSphere->OnComponentEndOverlap.AddDynamic(this, &ThisClass::VisibleSphereEndOverlap);
+	}
+
 	SpawnWeapon(true);
 
 	if(HasAuthority())
@@ -96,6 +114,95 @@ void APolyWarBaseCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	FVector StartVec = GetActorLocation() + FVector(0.0f, 0.0f, 500.0f);
+	FVector EndVec = GetActorLocation() + FVector(0.0f, 0.0f, -500.0f);
+
+	FHitResult HitResult;
+	FCollisionQueryParams CollisionQueryParams = FCollisionQueryParams::DefaultQueryParam;
+	CollisionQueryParams.bTraceComplex = true;
+	CollisionQueryParams.bReturnFaceIndex  = true;
+	GetWorld()->LineTraceSingleByChannel(HitResult, StartVec, EndVec, ECC_Fog, CollisionQueryParams);
+
+	FVector2D UVSpace;
+	if(!UGameplayStatics::FindCollisionUV(HitResult, 0, UVSpace))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Cannot Find UV"));
+		return;
+	}
+	FLinearColor UVColor;
+	UVColor.R = UVSpace.X; UVColor.G = UVSpace.Y, UVColor.B = 0.0f, UVColor.A = 1.0f;
+
+	if(FogOfWarMaterial && FogOfWarRender)
+	{
+		FogOfWarMaterial->SetVectorParameterValue(FName("Location"), UVColor);
+		UKismetRenderingLibrary::DrawMaterialToRenderTarget(this, FogOfWarRender, FogOfWarMaterial);
+	}
+	if(FogOfWarRevealMaterial && FogOfWarRevealRender)
+	{
+		FogOfWarRevealMaterial->SetVectorParameterValue(FName("Location"), UVColor);
+		UKismetRenderingLibrary::DrawMaterialToRenderTarget(this, FogOfWarRevealRender, FogOfWarRevealMaterial);
+	}
+
+	if(LocalPlayerTeam != ETeamType::ET_NoTeam && LocalPlayerTeam != GetTeamType())
+	{
+		if(DetectedNum > 0)
+		{
+			GetMesh()->SetVisibility(true, true);
+		}
+		else
+		{
+			GetMesh()->SetVisibility(false, true);
+		}
+	}
+
+
+}
+
+// Use WorldHideStart
+void APolyWarBaseCharacter::CreateFogOfWar( UMaterialInterface* InFogOfWarInterface, UTextureRenderTarget2D* InFogOfWarRender,
+	UMaterialInterface* InFogOfWarRevealInterface, UTextureRenderTarget2D* InFogOfWarRevealRender)
+{
+	if(InFogOfWarInterface)
+	{
+		FogOfWarMaterial = UKismetMaterialLibrary::CreateDynamicMaterialInstance(this, InFogOfWarInterface);
+		if(FogOfWarMaterial)
+		{
+			FogOfWarMaterial->SetScalarParameterValue(FName("Size"), FogRevealSize);
+		}
+	}
+	if(InFogOfWarRender)
+	{
+		FogOfWarRender = InFogOfWarRender;
+	}
+	if(InFogOfWarRevealInterface)
+	{
+		FogOfWarRevealMaterial = UKismetMaterialLibrary::CreateDynamicMaterialInstance(this, InFogOfWarRevealInterface);
+		if(FogOfWarRevealMaterial)
+		{
+			FogOfWarRevealMaterial->SetScalarParameterValue(FName("Size"), FogRevealSize);
+		}
+	}
+	if(InFogOfWarRevealRender)
+	{
+		FogOfWarRevealRender = InFogOfWarRevealRender;
+	}
+}
+
+// Use WorldRevealStart
+void APolyWarBaseCharacter::CreateFogOfWar(UMaterialInterface* InFogOfWarRevealInterface, UTextureRenderTarget2D* InFogOfWarRevealRender)
+{
+	if(InFogOfWarRevealInterface)
+	{
+		FogOfWarRevealMaterial = UKismetMaterialLibrary::CreateDynamicMaterialInstance(this, InFogOfWarRevealInterface);
+		if(FogOfWarRevealMaterial)
+		{
+			FogOfWarRevealMaterial->SetScalarParameterValue(FName("Size"), FogRevealSize);
+		}
+	}
+	if(InFogOfWarRevealRender)
+	{
+		FogOfWarRevealRender = InFogOfWarRevealRender;
+	}
 }
 
 void APolyWarBaseCharacter::ReceiveDamage(AActor* DamagedActor, float Damage,
@@ -151,6 +258,58 @@ void APolyWarBaseCharacter::UpdateWalkSpeed()
 	else
 	{
 		GetCharacterMovement()->MaxWalkSpeed = CurrentRunSpeed;
+	}
+}
+
+void APolyWarBaseCharacter::VisibleSphereBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	APolyWarBaseCharacter* OtherCharacter = Cast<APolyWarBaseCharacter>(OtherActor);
+	if(!OtherCharacter) return;
+
+	if(LocalPlayerTeam == ETeamType::ET_NoTeam)
+	{
+		APolyWarGameStateBase* PolyWarGameState = GetWorld()->GetGameState<APolyWarGameStateBase>();
+		if(!PolyWarGameState) return;
+
+		LocalPlayerTeam = PolyWarGameState->GetLocalPlayerTeam();
+
+		if(LocalPlayerTeam == ETeamType::ET_NoTeam)
+		{
+			return;
+		}
+	}
+
+	if(LocalPlayerTeam == GetTeamType() && OtherCharacter->GetTeamType() != GetTeamType())
+	{
+		OtherCharacter->DetectedNumAdd();
+	}
+}
+
+void APolyWarBaseCharacter::VisibleSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	APolyWarBaseCharacter* OtherCharacter = Cast<APolyWarBaseCharacter>(OtherActor);
+	if(!OtherCharacter) return;
+
+	if(OtherCharacter->IsDead())
+	{
+		return;
+	}
+
+	if(LocalPlayerTeam == ETeamType::ET_NoTeam)
+	{
+		APolyWarGameStateBase* PolyWarGameState = GetWorld()->GetGameState<APolyWarGameStateBase>();
+		if(!PolyWarGameState) return;
+
+		LocalPlayerTeam = PolyWarGameState->GetLocalPlayerTeam();
+
+		if(LocalPlayerTeam == ETeamType::ET_NoTeam) return;
+	}
+
+	if(LocalPlayerTeam == GetTeamType() && OtherCharacter->GetTeamType() != GetTeamType())
+	{
+		OtherCharacter->DetectedNumMinus();
 	}
 }
 

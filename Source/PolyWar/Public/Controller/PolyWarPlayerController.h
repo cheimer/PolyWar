@@ -48,6 +48,7 @@ protected:
 	virtual void SetupInputComponent() override;
 
 	//~ Begin Enhanced Input
+
 	UPROPERTY(EditDefaultsOnly, Category = "EnhancedInput")
 	class UInputMappingContext* ControllerInputMapping;
 
@@ -110,6 +111,8 @@ private:
 	TObjectPtr<class APolyWarHUD> PolyWarHUD;
 	TObjectPtr<class APolyWarGameStateBase> PolyWarGameState;
 
+	void SetAllCharacters();
+
 	UFUNCTION(Server, Reliable)
 	void ServerSetHUDTime();
 	UFUNCTION(Client, Reliable)
@@ -129,9 +132,19 @@ private:
 	void InitializeUnitMap();
 	void ResetMapButtons();
 
+	void CreateMap();
+
+	UPROPERTY(EditAnywhere, Category ="Set Should")
+	UMaterialInterface* MapInterface;
+	UPROPERTY()
+	UMaterialInstanceDynamic* MapMaterial;
+	UPROPERTY()
+	UTextureRenderTarget2D* MapRender;
+
 	TMap<EUnitNum, EMapUnitState> UnitMap;
 	TArray<UTextBlock*> StoreUnitTextBlocks;
 	EOrderType CurrentOrder = EOrderType::EOD_MAX;
+	UPROPERTY()
 	UTextBlock* CurrentOrderText = nullptr;
 
 	void GetMapUnitStateArray(EMapUnitState MapUnitState, TArray<EUnitNum>& OutUnitNumArray);
@@ -161,7 +174,38 @@ private:
 	bool bUseTimeLimit = false;
 	float CurrentTime = 0.0f;
 
+	//~ Begin Fog
+
+	/*
+	 *	if true - FogOfWarClass's material need set 'FogOfWarWorldHide'
+	 *	if false - FogOfWarClass's material need set 'FogOfWarWorldReveal'
+	 */
+	UPROPERTY(EditDefaultsOnly, Category = "Set Should")
+	bool bWorldHideStart = false;
+
+	UPROPERTY(EditAnywhere, Category = "Set Should")
+	TSubclassOf<class AStaticMeshActor> FogOfWarClass;
+	UPROPERTY()
+	AStaticMeshActor* FogOfWar;
+
+	UPROPERTY(EditAnywhere, Category ="Set Should")
+	UMaterialInterface* FogOfWarInterface;
+	UPROPERTY(EditAnywhere, Category ="Set Should")
+	UMaterialInterface* FogOfWarRevealInterface;
+	UPROPERTY()
+	UTextureRenderTarget2D* FogOfWarRender;
+	UPROPERTY()
+	UTextureRenderTarget2D* FogOfWarRevealRender;
+
+	void CreateFog();
+	void UpdateFog();
+	void SetTeamCharacterFog(const TArray<AActor*>& AllCharacters);
+	//~ End Fog
+
+	void SetCharacterVisible(const TArray<AActor*>& AllCharacters);
+
 public:
 	EOrderType GetCurrentOrder() const {return CurrentOrder;}
+	UMaterialInstanceDynamic* GetMapMaterial() const {return MapMaterial;}
 
 };

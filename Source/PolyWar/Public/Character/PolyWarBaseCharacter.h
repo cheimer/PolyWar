@@ -24,6 +24,11 @@ public:
 
 	FOnCharacterDeathDelegate OnCharacterDeathDelegate;
 
+	void CreateFogOfWar(UMaterialInterface* InFogOfWarInterface, UTextureRenderTarget2D* InFogOfWarRender,
+		UMaterialInterface* InFogOfWarRevealInterface, UTextureRenderTarget2D* InFogOfWarRevealRender);
+
+	void CreateFogOfWar(UMaterialInterface* InFogOfWarRevealInterface, UTextureRenderTarget2D* InFogOfWarRevealRender);
+
 	virtual void SetPlayerDeath();
 	void UpdateWalkSpeed();
 
@@ -46,6 +51,9 @@ public:
 
 	FVector GetRightHandLocation();
 
+	void DetectedNumAdd() {DetectedNum++;}
+	void DetectedNumMinus() {DetectedNum = FMath::Clamp(DetectedNum - 1, 0, DetectedNum);}
+
 	// Lower Value -> Throw weapon close viewport
 	// Higher Value -> Throw weapon close character
 	float AdjustThrowPosVal = 5000.f;
@@ -57,6 +65,7 @@ protected:
 	bool bIsGameEnd = false;
 
 	//~ Begin Components
+
 	UPROPERTY(VisibleAnywhere, Category = "Component")
 	class UCombatComponent* CombatComponent;
 
@@ -68,9 +77,13 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, Category = "Component")
 	class UAIPerceptionStimuliSourceComponent* AIPerceptionSourceComponent;
+
+	UPROPERTY(VisibleAnywhere, Category = "Component")
+	class USphereComponent* VisibleSphere;
 	//~ End Components
 
 	//~ Begin Move
+
 	UPROPERTY(EditAnywhere, Category = "Settable")
 	float DefaultWalkSpeed = 600.0f;
 	float CurrentWalkSpeed = DefaultWalkSpeed;
@@ -81,10 +94,10 @@ protected:
 
 	UPROPERTY(Replicated)
 	bool bIsRunning = false;
-
 	//~ End Move
 
 	//~ Begin Weapon
+
 	UFUNCTION(BlueprintCallable)
 	void WeaponAttackCheckStart();
 
@@ -96,6 +109,7 @@ protected:
 	//~ End Weapon
 
 	//~ Begin Health
+
 	UFUNCTION()
 	void ReceiveDamage(AActor* DamagedActor, float Damage,
 		const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser);
@@ -109,14 +123,29 @@ protected:
 	void DeathTimerFinished();
 	//~ End Health
 
+	//~ Begin Unit Default
+
+	UPROPERTY(EditAnywhere, Category = "Set Should")
+	float FogRevealSize = 0.3f;
+
 	UPROPERTY(EditAnywhere, Category = "Set Should")
 	EUnitType UnitType;
 
 	UPROPERTY(EditAnywhere, Category = "Set Should", Replicated)
 	ETeamType TeamType;
+	//~ End Unit Default
+
+	UFUNCTION()
+	void VisibleSphereBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+	void VisibleSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 private:
 	//~ Begin Weapon
+
 	class AWeapon* SpawnWeapon(bool IsAttach);
 
 	UFUNCTION(BlueprintCallable, meta = (AllowPrivateAccess = "true"))
@@ -137,6 +166,23 @@ private:
 
 	UFUNCTION(BlueprintCallable, meta = (AllowPrivateAccess = "true"))
 	void SpellEffect();
+
+	//~ Begin FogOfWar
+
+	UPROPERTY()
+	UMaterialInstanceDynamic* FogOfWarMaterial;
+	UPROPERTY()
+	UMaterialInstanceDynamic* FogOfWarRevealMaterial;
+
+	UPROPERTY()
+	UTextureRenderTarget2D* FogOfWarRender;
+	UPROPERTY()
+	UTextureRenderTarget2D* FogOfWarRevealRender;
+	//~ End FogOfWar
+
+	ETeamType LocalPlayerTeam = ETeamType::ET_NoTeam;
+
+	int32 DetectedNum = 0;
 
 public:
 	bool GetIsRunning() const {return bIsRunning;}

@@ -11,11 +11,12 @@
 #include "Components/CapsuleComponent.h"
 #include "Components/SceneCaptureComponent2D.h"
 #include "Controller/PolyWarPlayerController.h"
+#include "Engine/TextureRenderTarget2D.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
-#include "GameMode/PolyWarGameModeBase.h"
 #include "GameState/PolyWarGameStateBase.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMaterialLibrary.h"
 #include "Net/UnrealNetwork.h"
 #include "Perception/AIPerceptionStimuliSourceComponent.h"
 #include "Perception/AISense_Sight.h"
@@ -32,7 +33,7 @@ APolyWarPlayerCharacter::APolyWarPlayerCharacter()
 	CharacterSpringArm->SetupAttachment(GetMesh());
 	CharacterSpringArm->TargetArmLength = 400.0f;
 	CharacterSpringArm->bUsePawnControlRotation = true;
-	CharacterSpringArm->bDoCollisionTest = false;
+	CharacterSpringArm->bDoCollisionTest = true;
 	CharacterSpringArm->SocketOffset.Y = 75.0f;
 	CharacterSpringArm->SocketOffset.Z = 75.0f;
 	CharacterSpringArm->SetRelativeLocation(FVector(0.0f, 0.0f, 90.0f));
@@ -88,6 +89,7 @@ void APolyWarPlayerCharacter::BeginPlay()
 	{
 		PolyWarGameState->RegisterPlayer(this);
 	}
+
 }
 
 void APolyWarPlayerCharacter::PossessedBy(AController* NewController)
@@ -221,6 +223,7 @@ void APolyWarPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerI
 	}
 }
 
+// Temp Solve: Server set BlueTeam, Client set RedTeam
 void APolyWarPlayerCharacter::SetPlayerTeam()
 {
 	APolyWarGameStateBase* GameState = Cast<APolyWarGameStateBase>(UGameplayStatics::GetGameState(GetWorld()));
@@ -228,14 +231,17 @@ void APolyWarPlayerCharacter::SetPlayerTeam()
 
 	if(HasAuthority())
 	{
-		if(!GameState->IsTeamExistPlayer(ETeamType::ET_BlueTeam))
-		{
+		if(IsLocallyControlled())
 			SetTeamType(ETeamType::ET_BlueTeam);
-		}
-		else if(!GameState->IsTeamExistPlayer(ETeamType::ET_RedTeam))
-		{
+		else
 			SetTeamType(ETeamType::ET_RedTeam);
-		}
+	}
+	else
+	{
+		if(IsLocallyControlled())
+			SetTeamType(ETeamType::ET_RedTeam);
+		else
+			SetTeamType(ETeamType::ET_BlueTeam);
 	}
 }
 
@@ -361,25 +367,7 @@ void APolyWarPlayerCharacter::Map(const FInputActionValue& Value)
 	PolyWarPlayerController = PolyWarPlayerController == nullptr ? Cast<APolyWarPlayerController>(GetController()) : PolyWarPlayerController;
 	if(!PolyWarPlayerController) return;
 
-	if(MapCamera && !MapCamera->TextureTarget)
-	{
-		if(HasAuthority() && IsLocallyControlled())
-		{
-			MapCamera->TextureTarget = CanvasRenderTarget1;
-		}
-		else if (!HasAuthority() && IsLocallyControlled())
-		{
-			MapCamera->TextureTarget = CanvasRenderTarget2;
-			ServerSetMapCamera();
-		}
-	}
-
 	PolyWarPlayerController->MapToggle();
-}
-
-void APolyWarPlayerCharacter::ServerSetMapCamera_Implementation()
-{
-	MapCamera->TextureTarget = CanvasRenderTarget2;
 }
 
 void APolyWarPlayerCharacter::MapLeftClick(const FInputActionValue& Value)
@@ -455,6 +443,14 @@ void APolyWarPlayerCharacter::ResetMapCamera()
 	MapSpringArm->SetRelativeLocation(FVector(0.0f, 0.0f, 0.0f));
 	MapSpringArm->TargetArmLength = MapDefaultHeight;
 	MapSpringArm->SetWorldRotation(FRotator(-75.0f, 0.0f, 0.0f));
+}
+
+void APolyWarPlayerCharacter::SetMapCameraRender(UTextureRenderTarget2D* MapRender)
+{
+	if(MapCamera && !MapCamera->TextureTarget && MapRender)
+	{
+		MapCamera->TextureTarget = MapRender;
+	}
 }
 
 FTransform APolyWarPlayerCharacter::GetMainCameraTransform()

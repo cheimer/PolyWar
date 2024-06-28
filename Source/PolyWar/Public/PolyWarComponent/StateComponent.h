@@ -32,7 +32,8 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
-	TObjectPtr<class APolyWarBaseCharacter> OwnerCharacter;
+	UPROPERTY()
+	class APolyWarBaseCharacter* OwnerCharacter;
 	TObjectPtr<class APolyWarPlayerController> OwnerPlayerController;
 
 	UPROPERTY(EditAnywhere, Category = "Set Should")

@@ -106,6 +106,20 @@ bool APolyWarGameStateBase::IsTeamExistPlayer(ETeamType TeamType)
 	return false;
 }
 
+ETeamType APolyWarGameStateBase::GetLocalPlayerTeam()
+{
+	if(BluePlayer && BluePlayer->IsLocallyControlled())
+	{
+		return BluePlayer->GetTeamType();
+	}
+	else if(RedPlayer && RedPlayer->IsLocallyControlled())
+	{
+		return RedPlayer->GetTeamType();
+	}
+
+	return ETeamType::ET_NoTeam;
+}
+
 void APolyWarGameStateBase::GetTeam(ETeamType TeamType, TArray<APolyWarBaseCharacter*>& OutTeamArray)
 {
 	if(TeamType == ETeamType::ET_BlueTeam)

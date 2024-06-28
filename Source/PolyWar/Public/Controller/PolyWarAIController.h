@@ -30,8 +30,10 @@ protected:
 	UBehaviorTree* BehaviorTree;
 
 private:
-	TObjectPtr<class APolyWarAICharacter> PolyWarAICharacter;
+	UPROPERTY()
+	class APolyWarAICharacter* PolyWarAICharacter;
 
+	UPROPERTY()
 	TArray<class APolyWarBaseCharacter*> InSightEnemies;
 
 	UFUNCTION()

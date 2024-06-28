@@ -26,6 +26,7 @@ public:
 	virtual void SetPlayerDeath() override;
 
 	void ResetMapCamera();
+	void SetMapCameraRender(UTextureRenderTarget2D* MapRender);
 	FTransform GetMainCameraTransform();
 	FVector GetMapCameraPos();
 	FVector GetMapCameraForward();
@@ -54,6 +55,7 @@ protected:
 	virtual void BeginPlay() override;
 
 	//~ Begin Components
+
 	UPROPERTY(VisibleAnywhere, Category = "Camera")
 	class USpringArmComponent* CharacterSpringArm;
 	UPROPERTY(VisibleAnywhere, Category = "Camera")
@@ -66,6 +68,7 @@ protected:
 	//~ End Components
 
 	//~ Begin EnhancedInput
+
 	UPROPERTY(EditDefaultsOnly, Category = "EnhancedInput")
 	class UInputMappingContext* PlayerInputMapping;
 
@@ -158,16 +161,8 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Settable")
 	float MapScrollSensitive = 500.0f;
 
-	UPROPERTY(EditAnywhere, Category = "Set Should")
-	TObjectPtr<class UTextureRenderTarget2D> CanvasRenderTarget1;
-
-	UPROPERTY(EditAnywhere, Category = "Set Should")
-	TObjectPtr<class UTextureRenderTarget2D> CanvasRenderTarget2;
-
-	UFUNCTION(Server, Reliable)
-	void ServerSetMapCamera();
-
 	//~ Begin EnhancedInput
+
 	bool bHoldLeftMouseClick = false;
 	bool bHoldRightMouseClick = false;
 

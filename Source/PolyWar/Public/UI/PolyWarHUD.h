@@ -52,13 +52,9 @@ protected:
 	TSubclassOf<UEndMenuWidget> EndMenuWidgetClass;
 	void AddEndMenuWidget();
 
-	UPROPERTY(EditAnywhere, Category = "Set Should")
-	UMaterial* MapMaterial1;
-	UPROPERTY(EditAnywhere, Category = "Set Should")
-	UMaterial* MapMaterial2;
-
 private:
-	TObjectPtr<APlayerController> OwnerPlayerController;
+	UPROPERTY()
+	APlayerController* OwnerPlayerController;
 	TObjectPtr<UUserWidget> CurrentWidget;
 
 	TArray<class UUnitInfoWidget*> BlueTeamUnitInfoWidgets;

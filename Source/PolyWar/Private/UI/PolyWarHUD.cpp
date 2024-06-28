@@ -186,16 +186,10 @@ void APolyWarHUD::AddMapWidget()
 		MapWidget->AddToViewport();
 		MapWidget->SetVisibility(ESlateVisibility::Hidden);
 
-		if(GetOwner() && MapWidget && MapWidget->MapImage)
+		APolyWarPlayerController* PolyWarPlayerController = Cast<APolyWarPlayerController>(OwnerPlayerController);
+		if(GetOwner() && MapWidget && MapWidget->MapImage && PolyWarPlayerController && PolyWarPlayerController->GetMapMaterial())
 		{
-			if(GetOwner()->HasAuthority() && MapMaterial1)
-			{
-				MapWidget->MapImage->SetBrushFromMaterial(MapMaterial1);
-			}
-			else if(!GetOwner()->HasAuthority() && MapMaterial2)
-			{
-				MapWidget->MapImage->SetBrushFromMaterial(MapMaterial2);
-			}
+			MapWidget->MapImage->SetBrushFromMaterial(PolyWarPlayerController->GetMapMaterial());
 		}
 	}
 }
