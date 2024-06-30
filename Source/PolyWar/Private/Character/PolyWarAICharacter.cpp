@@ -12,6 +12,13 @@ APolyWarAICharacter::APolyWarAICharacter()
 	PrimaryActorTick.bCanEverTick = true;
 
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
+
+	HighlightMesh = CreateDefaultSubobject<UStaticMeshComponent>("HighlightMesh");
+	HighlightMesh->SetupAttachment(GetRootComponent());
+	HighlightMesh->SetGenerateOverlapEvents(false);
+	HighlightMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	HighlightMesh->SetCollisionResponseToAllChannels(ECR_Ignore);
+	HighlightMesh->SetVisibility(false);
 }
 
 void APolyWarAICharacter::BeginPlay()
@@ -69,4 +76,11 @@ void APolyWarAICharacter::SetPlayerDeath()
 	if(!PolyWarAIController || !PolyWarAIController->GetBrainComponent()) return;
 
 	PolyWarAIController->GetBrainComponent()->StopLogic("PlayerDeath");
+}
+
+void APolyWarAICharacter::SetHighlight(bool bEnable)
+{
+	if(!HighlightMesh) return;
+
+	HighlightMesh->SetVisibility(bEnable);
 }

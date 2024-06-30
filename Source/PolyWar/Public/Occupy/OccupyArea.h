@@ -36,7 +36,18 @@ protected:
 
 private:
 	UPROPERTY(EditAnywhere)
-	class USphereComponent* SphereArea;
+	class USphereComponent* CollisionArea;
+
+	UPROPERTY(EditAnywhere)
+	class UStaticMeshComponent* OccupyPoint;
+
+	UPROPERTY(EditAnywhere)
+	class UStaticMeshComponent* OccupyArea;
+
+	UPROPERTY(EditAnywhere, Category = "Set Should")
+	UMaterialInterface* BlueTeamMaterial;
+	UPROPERTY(EditAnywhere, Category = "Set Should")
+	UMaterialInterface* RedTeamMaterial;
 
 	TArray<class APolyWarBaseCharacter*> OverlapCharacters;
 	int32 BlueTeamNum = 0;

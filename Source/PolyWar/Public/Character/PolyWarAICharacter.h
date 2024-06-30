@@ -27,9 +27,14 @@ public:
 
 	virtual void SetPlayerDeath() override;
 
+	void SetHighlight(bool bEnable);
+
 protected:
 	UPROPERTY(EditAnywhere, Category = "Set Should")
 	EUnitNum UnitNum;
+
+	UPROPERTY(VisibleAnywhere, Category = "Component")
+	UStaticMeshComponent* HighlightMesh;
 
 private:
 	TObjectPtr<class APolyWarAIController> PolyWarAIController;

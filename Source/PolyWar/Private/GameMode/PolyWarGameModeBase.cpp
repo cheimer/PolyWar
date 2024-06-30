@@ -20,6 +20,29 @@ APolyWarGameModeBase::APolyWarGameModeBase()
 	bUseSeamlessTravel = true;
 }
 
+FString APolyWarGameModeBase::InitNewPlayer(APlayerController* NewPlayerController,
+	const FUniqueNetIdRepl& UniqueId, const FString& Options, const FString& Portal)
+{
+	UE_LOG(LogTemp, Warning, TEXT("Time GameModeInit"));
+	PolyWarGameState = PolyWarGameState == nullptr ? GetGameState<APolyWarGameStateBase>() : PolyWarGameState;
+	if(PolyWarGameState)
+	{
+		FString Team;
+		if(PolyWarGameState->IsTeamExistPlayer(ETeamType::ET_BlueTeam))
+		{
+			Team = "RedTeam";
+		}
+		else
+		{
+			Team = "BlueTeam";
+		}
+
+		return Super::InitNewPlayer(NewPlayerController, UniqueId, Options, Team);
+	}
+
+	return Super::InitNewPlayer(NewPlayerController, UniqueId, Options, Portal);
+}
+
 void APolyWarGameModeBase::CharacterDeath(APolyWarBaseCharacter* DeathCharacter)
 {
 

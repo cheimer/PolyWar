@@ -53,6 +53,7 @@ APolyWarBaseCharacter::APolyWarBaseCharacter()
 	VisibleSphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	VisibleSphere->SetCollisionResponseToAllChannels(ECR_Ignore);
 	VisibleSphere->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+
 }
 
 void APolyWarBaseCharacter::PostInitializeComponents()
@@ -114,6 +115,24 @@ void APolyWarBaseCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	UpdateFog();
+
+	if(LocalPlayerTeam != ETeamType::ET_NoTeam && LocalPlayerTeam != GetTeamType())
+	{
+		if(DetectedNum > 0)
+		{
+			GetMesh()->SetVisibility(true, true);
+		}
+		else
+		{
+			GetMesh()->SetVisibility(false, true);
+		}
+	}
+
+}
+
+void APolyWarBaseCharacter::UpdateFog()
+{
 	FVector StartVec = GetActorLocation() + FVector(0.0f, 0.0f, 500.0f);
 	FVector EndVec = GetActorLocation() + FVector(0.0f, 0.0f, -500.0f);
 
@@ -142,20 +161,6 @@ void APolyWarBaseCharacter::Tick(float DeltaTime)
 		FogOfWarRevealMaterial->SetVectorParameterValue(FName("Location"), UVColor);
 		UKismetRenderingLibrary::DrawMaterialToRenderTarget(this, FogOfWarRevealRender, FogOfWarRevealMaterial);
 	}
-
-	if(LocalPlayerTeam != ETeamType::ET_NoTeam && LocalPlayerTeam != GetTeamType())
-	{
-		if(DetectedNum > 0)
-		{
-			GetMesh()->SetVisibility(true, true);
-		}
-		else
-		{
-			GetMesh()->SetVisibility(false, true);
-		}
-	}
-
-
 }
 
 // Use WorldHideStart
@@ -242,6 +247,8 @@ void APolyWarBaseCharacter::SetPlayerDeath()
 
 void APolyWarBaseCharacter::DeathTimerFinished()
 {
+	GetWorldTimerManager().ClearAllTimersForObject(this);
+
 	if(GetEquippedWeapon())
 	{
 		GetEquippedWeapon()->Destroy();
@@ -506,6 +513,23 @@ void APolyWarBaseCharacter::WeaponAttackCheckEnd()
 	{
 		CombatComponent->WeaponAttackCheckEnd();
 	}
+}
+
+void APolyWarBaseCharacter::SetCustomDepth(bool bEnable, ETeamType InTeamType)
+{
+	if(!GetMesh()) return;
+
+	if(InTeamType == ETeamType::ET_BlueTeam)
+	{
+		GetMesh()->SetCustomDepthStencilValue(CUSTOM_DEPTH_BLUE);
+	}
+	else if(InTeamType == ETeamType::ET_RedTeam)
+	{
+		GetMesh()->SetCustomDepthStencilValue(CUSTOM_DEPTH_RED);
+	}
+
+	GetMesh()->MarkRenderStateDirty();
+	GetMesh()->SetRenderCustomDepth(bEnable);
 }
 
 bool APolyWarBaseCharacter::GetViewportCenter(FVector& CenterWorldPosition, FVector& CenterWorldDirection)

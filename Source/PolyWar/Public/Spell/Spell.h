@@ -36,6 +36,9 @@ protected:
 	ESpellType SpellType = ESpellType::EST_None;
 
 	UPROPERTY(EditAnywhere, Category = "Set Should")
+	FSpellTypeSpec SpellTypeSpec;
+
+	UPROPERTY(EditAnywhere, Category = "Set Should")
 	float SpellDamage = 50.0f;
 	UPROPERTY(EditAnywhere, Category = "Set Should")
 	float SpellCastingTime = -1.0f;

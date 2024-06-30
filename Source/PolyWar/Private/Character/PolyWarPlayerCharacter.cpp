@@ -247,8 +247,22 @@ void APolyWarPlayerCharacter::SetPlayerTeam()
 
 void APolyWarPlayerCharacter::SetPlayerDeath()
 {
-	Super::SetPlayerDeath();
+	GetCharacterMovement()->DisableMovement();
+	GetCharacterMovement()->StopMovementImmediately();
+	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
+	if(GetEquippedWeapon())
+	{
+		GetEquippedWeapon()->SetCollisionEnabled(false);
+	}
+
+	PlayDeathAnimMontage(true);
+
+	FTimerHandle DeathTimer;
+	GetWorldTimerManager().SetTimer(DeathTimer, this, &ThisClass::DeathTimerFinished, 3.0f);
+
+	OnCharacterDeathDelegate.Broadcast(this);
 	if(HasAuthority())
 	{
 		APolyWarPlayerCharacter* SpectatorPawn = GetWorld()->SpawnActor<APolyWarPlayerCharacter>(SpectatorClass, GetActorTransform());

@@ -40,7 +40,7 @@ private:
 	float MaxHealth = 100.0f;
 
 	UPROPERTY(ReplicatedUsing = "OnRep_CurrentHealth")
-	float CurrentHealth = MaxHealth;
+	float CurrentHealth = 0.0f;
 
 	UFUNCTION()
 	void OnRep_CurrentHealth();

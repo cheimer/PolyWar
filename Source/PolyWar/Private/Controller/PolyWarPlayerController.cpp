@@ -20,6 +20,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMaterialLibrary.h"
 #include "Kismet/KismetRenderingLibrary.h"
+#include "PolyWar/PolyWar.h"
 #include "UI/CharacterWidget.h"
 #include "UI/EndMenuWidget.h"
 #include "UI/MapButton.h"
@@ -243,21 +244,37 @@ void APolyWarPlayerController::SetAllCharacters()
 	PolyWarPlayerCharacter = PolyWarPlayerCharacter == nullptr ? Cast<APolyWarPlayerCharacter>(GetPawn()) : PolyWarPlayerCharacter;
 	if(!PolyWarPlayerCharacter) return;
 
+	TArray<AActor*> AllCharacters;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APolyWarBaseCharacter::StaticClass(), AllCharacters);
+
+	int32 CharacterNum = 0;
+	bool bContinue = true;
+	for(auto PolyWarCharacterIndex : AllCharacters)
+	{
+		APolyWarPlayerCharacter* PolyWarPlayerIndex = Cast<APolyWarPlayerCharacter>(PolyWarCharacterIndex);
+		if(PolyWarPlayerIndex)
+		{
+			CharacterNum++;
+			if(PolyWarPlayerIndex->GetTeamType() == ETeamType::ET_NoTeam)
+			{
+				bContinue = false;
+			}
+		}
+	}
+	if(CharacterNum < 2) bContinue = false;
+
 	// Temp Solve: Delay restart
 	// if func execute too early, immediately delay a little seconds
-	ETeamType PlayerTeam = PolyWarPlayerCharacter->GetTeamType();
-	if(PlayerTeam == ETeamType::ET_NoTeam)
+	if(!bContinue)
 	{
 		FTimerHandle DelayTimer;
 		GetWorldTimerManager().SetTimer(DelayTimer, this, &ThisClass::SetAllCharacters, 0.1f, false);
 		return;
 	}
 
-	TArray<AActor*> AllCharacters;
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APolyWarBaseCharacter::StaticClass(), AllCharacters);
-
-	SetTeamCharacterFog(AllCharacters);
-	SetCharacterVisible(AllCharacters);
+	SetAllTeamCharacterFog(AllCharacters);
+	SetAllCharacterVisible(AllCharacters);
+	SetAllCharacterCustomDepth(AllCharacters);
 }
 
 void APolyWarPlayerController::UpdateHUD()
@@ -365,7 +382,7 @@ void APolyWarPlayerController::UpdateFog()
 	}
 }
 
-void APolyWarPlayerController::SetTeamCharacterFog(const TArray<AActor*>& AllCharacters)
+void APolyWarPlayerController::SetAllTeamCharacterFog(const TArray<AActor*>& AllCharacters)
 {
 	PolyWarPlayerCharacter = PolyWarPlayerCharacter == nullptr ? Cast<APolyWarPlayerCharacter>(GetPawn()) : PolyWarPlayerCharacter;
 	if(!PolyWarPlayerCharacter) return;
@@ -388,7 +405,7 @@ void APolyWarPlayerController::SetTeamCharacterFog(const TArray<AActor*>& AllCha
 	}
 }
 
-void APolyWarPlayerController::SetCharacterVisible(const TArray<AActor*>& AllCharacters)
+void APolyWarPlayerController::SetAllCharacterVisible(const TArray<AActor*>& AllCharacters)
 {
 	PolyWarPlayerCharacter = PolyWarPlayerCharacter == nullptr ? Cast<APolyWarPlayerCharacter>(GetPawn()) : PolyWarPlayerCharacter;
 	if(!PolyWarPlayerCharacter) return;
@@ -399,6 +416,32 @@ void APolyWarPlayerController::SetCharacterVisible(const TArray<AActor*>& AllCha
 		if(PolyCharacterIndex && PolyCharacterIndex->GetTeamType() != PolyWarPlayerCharacter->GetTeamType())
 		{
 			PolyCharacterIndex->GetMesh()->SetVisibility(false, true);
+		}
+	}
+}
+
+void APolyWarPlayerController::SetAllCharacterCustomDepth(const TArray<AActor*>& AllCharacters)
+{
+	PolyWarPlayerCharacter = PolyWarPlayerCharacter == nullptr ? Cast<APolyWarPlayerCharacter>(GetPawn()) : PolyWarPlayerCharacter;
+	if(!PolyWarPlayerCharacter) return;
+
+	for(auto CharacterIndex : AllCharacters)
+	{
+		auto PolyAICharacterIndex = Cast<APolyWarAICharacter>(CharacterIndex);
+		if(PolyAICharacterIndex)
+		{
+			PolyAICharacterIndex->SetCustomDepth(true, PolyAICharacterIndex->GetTeamType());
+		}
+		else
+		{
+			auto PolyPlayerCharacterIndex = Cast<APolyWarPlayerCharacter>(CharacterIndex);
+			if(PolyPlayerCharacterIndex)
+			{
+				if(PolyPlayerCharacterIndex->GetTeamType() != PolyWarPlayerCharacter->GetTeamType())
+				{
+					PolyPlayerCharacterIndex->SetCustomDepth(true, PolyPlayerCharacterIndex->GetTeamType());
+				}
+			}
 		}
 	}
 }
@@ -732,7 +775,11 @@ void APolyWarPlayerController::ResetMapButtons()
 	{
 		if(UnitMap.Find(UnitNum))
 		{
-			UnitMap[UnitNum] = EMapUnitState::EMUS_UnClicked;
+			if(UnitMap[UnitNum] == EMapUnitState::EMUS_Clicked)
+			{
+				UnitMap[UnitNum] = EMapUnitState::EMUS_UnClicked;
+				SetHighlightUnit(false, UnitNum);
+			}
 		}
 	}
 	// UnitTextBlock Reset
@@ -748,6 +795,27 @@ void APolyWarPlayerController::ResetMapButtons()
 	{
 		CurrentOrderText->SetColorAndOpacity(FColor::White);
 		CurrentOrderText = nullptr;
+	}
+}
+
+void APolyWarPlayerController::SetHighlightUnit(bool bEnable, EUnitNum UnitNum)
+{
+	PolyWarPlayerCharacter = PolyWarPlayerCharacter == nullptr ? Cast<APolyWarPlayerCharacter>(GetPawn()) : PolyWarPlayerCharacter;
+	PolyWarGameState = PolyWarGameState == nullptr ? Cast<APolyWarGameStateBase>(UGameplayStatics::GetGameState(GetWorld())) : PolyWarGameState;
+	if(!PolyWarPlayerCharacter || !PolyWarGameState) return;
+
+	TArray<EUnitNum> UnitNums;
+	UnitNums.Add(UnitNum);
+
+	TArray<APolyWarAICharacter*> TeamAIs;
+	PolyWarGameState->GetTeamByUnitNums(PolyWarPlayerCharacter->GetTeamType(), UnitNums, TeamAIs);
+
+	for (auto TeamAI : TeamAIs)
+	{
+		if(TeamAI->GetUnitNum() == UnitNum)
+		{
+			TeamAI->SetHighlight(bEnable);
+		}
 	}
 }
 
@@ -774,11 +842,13 @@ void APolyWarPlayerController::MapUnitToggle(EUnitNum UnitNum, UTextBlock* UnitT
 	{
 		UnitMap[UnitNum] = EMapUnitState::EMUS_Clicked;
 		UnitText->SetColorAndOpacity(FColor::Green);
+		SetHighlightUnit(true, UnitNum);
 	}
 	else if(UnitMap[UnitNum] == EMapUnitState::EMUS_Clicked)
 	{
 		UnitMap[UnitNum] = EMapUnitState::EMUS_UnClicked;
 		UnitText->SetColorAndOpacity(FColor::White);
+		SetHighlightUnit(false, UnitNum);
 	}
 	else if(UnitMap[UnitNum] == EMapUnitState::EMUS_Removed)
 	{
@@ -863,7 +933,7 @@ FVector APolyWarPlayerController::MapImageClickToWorldPosition(const FVector2D S
 void APolyWarPlayerController::StartOrder(EOrderType Order, FVector OrderPos)
 {
 	TArray<APolyWarAICharacter*> TeamArray;
-	GetMyTeam(TeamArray);
+	GetClickedTeam(TeamArray);
 
 	if(HasAuthority())
 	{
@@ -914,7 +984,7 @@ void APolyWarPlayerController::ServerStartOrder_Implementation(EOrderType Order,
 	}
 }
 
-void APolyWarPlayerController::GetMyTeam(TArray<APolyWarAICharacter*>& OutTeamArray)
+void APolyWarPlayerController::GetClickedTeam(TArray<APolyWarAICharacter*>& OutTeamArray)
 {
 	PolyWarPlayerCharacter = PolyWarPlayerCharacter == nullptr ? Cast<APolyWarPlayerCharacter>(GetPawn()) : PolyWarPlayerCharacter;
 	PolyWarGameState = PolyWarGameState == nullptr ? Cast<APolyWarGameStateBase>(UGameplayStatics::GetGameState(GetWorld())) : PolyWarGameState;
@@ -956,6 +1026,8 @@ void APolyWarPlayerController::ToggleUnitNum(EUnitNum UnitNum)
 	if(!PolyWarHUD) return;
 
 	if(!PolyWarHUD->MapWidget || !PolyWarHUD->MapWidget->UnitNumMapButtons[UnitNum]) return;
+	if(!PolyWarHUD->IsCurrentWidget(PolyWarHUD->MapWidget)) return;
+
 	PolyWarHUD->MapWidget->UnitNumMapButtons[UnitNum]->OnUnitButtonClicked.Broadcast(UnitNum);
 }
 
@@ -965,6 +1037,8 @@ void APolyWarPlayerController::ToggleOrder(EOrderType Order)
 	if(!PolyWarHUD) return;
 
 	if(!PolyWarHUD->MapWidget || !PolyWarHUD->MapWidget->OrderMapButtons[Order]) return;
+	if(!PolyWarHUD->IsCurrentWidget(PolyWarHUD->MapWidget)) return;
+
 	PolyWarHUD->MapWidget->OrderMapButtons[Order]->OnOrderButtonClicked.Broadcast(Order);
 }
 

@@ -147,10 +147,12 @@ private:
 	UPROPERTY()
 	UTextBlock* CurrentOrderText = nullptr;
 
+	void SetHighlightUnit(bool bEnable, EUnitNum UnitNum);
+
 	void GetMapUnitStateArray(EMapUnitState MapUnitState, TArray<EUnitNum>& OutUnitNumArray);
 	FVector MapImageClickToWorldPosition(const FVector2D StartPos, const FVector2D Size, const FVector2D ClickPos);
 
-	void GetMyTeam(TArray<class APolyWarAICharacter*>& OutTeamArray);
+	void GetClickedTeam(TArray<class APolyWarAICharacter*>& OutTeamArray);
 
 	void StartOrder(EOrderType Order, FVector OrderPos = FVector::ZeroVector);
 
@@ -199,10 +201,11 @@ private:
 
 	void CreateFog();
 	void UpdateFog();
-	void SetTeamCharacterFog(const TArray<AActor*>& AllCharacters);
+	void SetAllTeamCharacterFog(const TArray<AActor*>& AllCharacters);
 	//~ End Fog
 
-	void SetCharacterVisible(const TArray<AActor*>& AllCharacters);
+	void SetAllCharacterVisible(const TArray<AActor*>& AllCharacters);
+	void SetAllCharacterCustomDepth(const TArray<AActor*>& AllCharacters);
 
 public:
 	EOrderType GetCurrentOrder() const {return CurrentOrder;}

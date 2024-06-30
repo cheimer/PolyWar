@@ -33,6 +33,9 @@ public:
 protected:
 	TObjectPtr<class APolyWarGameStateBase> PolyWarGameState;
 
+	virtual FString InitNewPlayer(APlayerController* NewPlayerController,
+		const FUniqueNetIdRepl& UniqueId, const FString& Options, const FString& Portal) override;
+
 private:
 	bool bIsGameEnd = false;
 

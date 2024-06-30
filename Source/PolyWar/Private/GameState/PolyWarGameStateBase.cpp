@@ -72,18 +72,12 @@ void APolyWarGameStateBase::RegisterPlayer(APolyWarPlayerCharacter* PlayerCharac
 	if(!BluePlayer && PlayerCharacter->GetTeamType() == ETeamType::ET_BlueTeam)
 	{
 		BluePlayer = PlayerCharacter;
-		if(HasAuthority())
-		{
-			PlayerCharacter->OnCharacterDeathDelegate.AddDynamic(this, &ThisClass::DeathCharacter);
-		}
+		BluePlayer->OnCharacterDeathDelegate.AddDynamic(this, &ThisClass::DeathCharacter);
 	}
 	else if(!RedPlayer && PlayerCharacter->GetTeamType() == ETeamType::ET_RedTeam)
 	{
 		RedPlayer = PlayerCharacter;
-		if(HasAuthority())
-		{
-			PlayerCharacter->OnCharacterDeathDelegate.AddDynamic(this, &ThisClass::DeathCharacter);
-		}
+		RedPlayer->OnCharacterDeathDelegate.AddDynamic(this, &ThisClass::DeathCharacter);
 	}
 	else
 	{
@@ -94,11 +88,11 @@ void APolyWarGameStateBase::RegisterPlayer(APolyWarPlayerCharacter* PlayerCharac
 
 bool APolyWarGameStateBase::IsTeamExistPlayer(ETeamType TeamType)
 {
-	if(BluePlayer && TeamType == ETeamType::ET_BlueTeam)
+	if(TeamType == ETeamType::ET_BlueTeam && BluePlayer)
 	{
 		return true;
 	}
-	else if(RedPlayer && TeamType == ETeamType::ET_RedTeam)
+	else if(TeamType == ETeamType::ET_RedTeam && RedPlayer)
 	{
 		return true;
 	}

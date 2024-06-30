@@ -54,6 +54,8 @@ public:
 	void DetectedNumAdd() {DetectedNum++;}
 	void DetectedNumMinus() {DetectedNum = FMath::Clamp(DetectedNum - 1, 0, DetectedNum);}
 
+	void SetCustomDepth(bool bEnable, ETeamType InTeamType = ETeamType::ET_NoTeam);
+
 	// Lower Value -> Throw weapon close viewport
 	// Higher Value -> Throw weapon close character
 	float AdjustThrowPosVal = 5000.f;
@@ -178,6 +180,8 @@ private:
 	UTextureRenderTarget2D* FogOfWarRender;
 	UPROPERTY()
 	UTextureRenderTarget2D* FogOfWarRevealRender;
+
+	void UpdateFog();
 	//~ End FogOfWar
 
 	ETeamType LocalPlayerTeam = ETeamType::ET_NoTeam;

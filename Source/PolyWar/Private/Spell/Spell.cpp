@@ -106,19 +106,19 @@ void ASpell::ApplySpellType(AActor* EffectedActor, AActor* DamageCauser)
 	case ESpellType::ET_MAX:
 		break;
 	case ESpellType::EST_Fire:
-		EffectedState->DOTDamaged(5.0f, 3.0f);
+		EffectedState->DOTDamaged(SpellTypeSpec.Damage, SpellTypeSpec.Duration);
 		break;
 	case ESpellType::EST_Ice:
-		EffectedState->Slowed(0.5f, 5.0f);
+		EffectedState->Slowed(SpellTypeSpec.Rate, SpellTypeSpec.Duration);
 		break;
 	case ESpellType::EST_SpeedBuf:
-		EffectedState->SpeedBuf(2.0f, 5.0f);
+		EffectedState->SpeedBuf(SpellTypeSpec.Rate, SpellTypeSpec.Duration);
 		break;
 	case ESpellType::EST_PowerBuf:
-		EffectedState->PowerBuf(1.5f, 10.0f);
+		EffectedState->PowerBuf(SpellTypeSpec.Rate, SpellTypeSpec.Duration);
 		break;
 	case ESpellType::EST_SpellBuf:
-		EffectedState->SpellBuf(1.5f, 10.0f);
+		EffectedState->SpellBuf(SpellTypeSpec.Rate, SpellTypeSpec.Duration);
 		break;
 	}
 

@@ -24,6 +24,8 @@ void UStateComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
+	CurrentHealth = MaxHealth;
+
 	FTimerHandle DotDamage;
 	OwnerCharacter->GetWorldTimerManager().SetTimer(DotDamage, this, &ThisClass::DotDamageManage, 1.0f, true);
 

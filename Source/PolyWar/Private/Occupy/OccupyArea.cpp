@@ -10,8 +10,21 @@ AOccupyArea::AOccupyArea()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	SphereArea = CreateDefaultSubobject<USphereComponent>("SphereArea");
-	SetRootComponent(SphereArea);
+	CollisionArea = CreateDefaultSubobject<USphereComponent>("SphereArea");
+	SetRootComponent(CollisionArea);
+
+	OccupyPoint = CreateDefaultSubobject<UStaticMeshComponent>("OccupyPoint");
+	OccupyPoint->SetupAttachment(GetRootComponent());
+	OccupyPoint->SetGenerateOverlapEvents(false);
+	OccupyPoint->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	OccupyPoint->SetCollisionResponseToAllChannels(ECR_Ignore);
+
+	OccupyArea = CreateDefaultSubobject<UStaticMeshComponent>("OccupyArea");
+	OccupyArea->SetupAttachment(GetRootComponent());
+	OccupyArea->SetGenerateOverlapEvents(false);
+	OccupyArea->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	OccupyArea->SetCollisionResponseToAllChannels(ECR_Ignore);
+	OccupyArea->SetVisibility(false);
 }
 
 void AOccupyArea::Tick(float DeltaSeconds)
@@ -43,12 +56,31 @@ void AOccupyArea::Tick(float DeltaSeconds)
 			GetWorldTimerManager().ClearTimer(OccupyTimer);
 			GetWorldTimerManager().SetTimer(OccupyTimer, this, &ThisClass::OccupyTimerStart, 1.0f, true);
 		}
+
+		if(!OccupyArea->IsVisible())
+		{
+			if(CurrentOccupyTeam == ETeamType::ET_BlueTeam)
+			{
+				OccupyArea->SetMaterial(0, BlueTeamMaterial);
+			}
+			else if(CurrentOccupyTeam == ETeamType::ET_RedTeam)
+			{
+				OccupyArea->SetMaterial(0, RedTeamMaterial);
+			}
+
+			OccupyArea->SetVisibility(true);
+		}
 	}
 	else
 	{
 		if(GetWorldTimerManager().IsTimerActive(OccupyTimer))
 		{
 			GetWorldTimerManager().PauseTimer(OccupyTimer);
+		}
+
+		if(OccupyArea->IsVisible())
+		{
+			OccupyArea->SetVisibility(false);
 		}
 	}
 
@@ -134,8 +166,8 @@ void AOccupyArea::BeginPlay()
 {
 	Super::BeginPlay();
 
-	SphereArea->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnAreaBeginOverlap);
-	SphereArea->OnComponentEndOverlap.AddDynamic(this, &ThisClass::OnAreaEndOverlap);
+	CollisionArea->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnAreaBeginOverlap);
+	CollisionArea->OnComponentEndOverlap.AddDynamic(this, &ThisClass::OnAreaEndOverlap);
 	
 }
 
