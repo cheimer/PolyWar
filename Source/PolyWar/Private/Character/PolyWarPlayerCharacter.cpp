@@ -10,6 +10,7 @@
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SceneCaptureComponent2D.h"
+#include "Components/SphereComponent.h"
 #include "Controller/PolyWarPlayerController.h"
 #include "Engine/TextureRenderTarget2D.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -245,32 +246,41 @@ void APolyWarPlayerCharacter::SetPlayerTeam()
 	}
 }
 
-void APolyWarPlayerCharacter::SetPlayerDeath()
+void APolyWarPlayerCharacter::DeathTimerFinished()
 {
-	GetCharacterMovement()->DisableMovement();
-	GetCharacterMovement()->StopMovementImmediately();
-	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
 	if(GetEquippedWeapon())
 	{
-		GetEquippedWeapon()->SetCollisionEnabled(false);
+		GetEquippedWeapon()->Destroy();
+	}
+	if(SpellComponent)
+	{
+		SpellComponent->Deactivate();
+	}
+	if(VisibleSphere)
+	{
+		VisibleSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
 
-	PlayDeathAnimMontage(true);
+	GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+	StopAnimMontage(GetCurrentMontage());
 
-	FTimerHandle DeathTimer;
-	GetWorldTimerManager().SetTimer(DeathTimer, this, &ThisClass::DeathTimerFinished, 3.0f);
-
-	OnCharacterDeathDelegate.Broadcast(this);
-	if(HasAuthority())
+	if(AIPerceptionSourceComponent)
 	{
-		APolyWarPlayerCharacter* SpectatorPawn = GetWorld()->SpawnActor<APolyWarPlayerCharacter>(SpectatorClass, GetActorTransform());
-		if(SpectatorPawn)
-		{
-			SpectatorPawn->SpectatorSettings(this);
-			GetController()->Possess(SpectatorPawn);
-		}
+		AIPerceptionSourceComponent->UnregisterFromSense(UAISense_Sight::StaticClass());
+		AIPerceptionSourceComponent->UnregisterFromPerceptionSystem();
+		AIPerceptionSourceComponent->Deactivate();
+	}
+
+	if(GetMesh())
+	{
+		GetMesh()->SetOnlyOwnerSee(true);
+	}
+	if(GetCapsuleComponent())
+	{
+		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+		GetCapsuleComponent()->SetCollisionResponseToAllChannels(ECR_Ignore);
+		GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
+		GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Block);
 	}
 }
 
@@ -347,33 +357,6 @@ void APolyWarPlayerCharacter::ServerRun_Implementation(bool InIsRun)
 		GetCharacterMovement()->MaxWalkSpeed = CurrentWalkSpeed;
 		bIsRunning = false;
 	}
-}
-
-void APolyWarPlayerCharacter::SpectatorSettings(APolyWarPlayerCharacter* BeforeCharacter)
-{
-	if(AIPerceptionSourceComponent)
-	{
-		AIPerceptionSourceComponent->UnregisterFromSense(UAISense_Sight::StaticClass());
-		AIPerceptionSourceComponent->UnregisterFromPerceptionSystem();
-	}
-
-	SetTeamType(BeforeCharacter->GetTeamType());
-	DefaultWalkSpeed = BeforeCharacter->GetDefaultWalkSpeed();
-	DefaultRunSpeed = BeforeCharacter->GetDefaultRunSpeed();
-
-	if(GetMesh())
-	{
-		GetMesh()->SetOnlyOwnerSee(true);
-		GetMesh()->SetCollisionResponseToAllChannels(ECR_Ignore);
-	}
-	if(GetCapsuleComponent())
-	{
-		GetCapsuleComponent()->SetGenerateOverlapEvents(false);
-		GetCapsuleComponent()->SetCollisionResponseToAllChannels(ECR_Ignore);
-		GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
-		GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Block);
-	}
-
 }
 
 void APolyWarPlayerCharacter::Map(const FInputActionValue& Value)

@@ -77,7 +77,8 @@ void USpellComponent::SpellEffect()
 
 	if(!OwnerCharacter->IsLocallyControlled())
 	{
-		// SpellStart->SpawnActor<ASpell> Worked Server, Client. So Need to remove Client's Spell.
+		// SpellStart->SpawnActor<ASpell> Worked on Server, Client.
+		// So Need to remove Client's Spell.
 		if(!OwnerCharacter->HasAuthority())
 		{
 			CurrentSpell->Destroy();

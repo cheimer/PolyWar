@@ -5,6 +5,8 @@ enum class EWeaponSkill : uint8
 {
 	EWS_SpearSlash,
 	EWS_SpearThrow,
+	EWS_SwordTakeDown,
+	EWS_SwordBlock,
 
 	EWS_MAX UMETA(Hidden)
 };

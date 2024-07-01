@@ -46,6 +46,7 @@ public:
 
 	float GetPowerRate();
 	float GetSpellPowerRate();
+	void SetApplyDamageRate(float DamageRate);
 
 	bool GetViewportCenter(FVector& CenterWorldPosition, FVector& CenterWorldDirection);
 
@@ -122,7 +123,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Settable")
 	TArray<UAnimMontage*> DeathAnimMontages;
 
-	void DeathTimerFinished();
+	virtual void DeathTimerFinished();
 	//~ End Health
 
 	//~ Begin Unit Default

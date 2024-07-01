@@ -38,6 +38,8 @@ void UStateComponent::ReceiveDamage(float Damage, AActor* DamageCauser)
 	if(!OwnerCharacter || !DamageCauser || Damage <= 0.0f) return;
 	if(CurrentHealth <= 0.0f) return;
 
+	Damage = Damage * ApplyDamageRate;
+
 	CurrentHealth = FMath::Clamp(CurrentHealth - Damage, 0.0f, MaxHealth);
 
 	UpdateHUDHealth();

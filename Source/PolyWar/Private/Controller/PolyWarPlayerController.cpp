@@ -939,6 +939,8 @@ void APolyWarPlayerController::StartOrder(EOrderType Order, FVector OrderPos)
 	{
 		for(auto TeamAI : TeamArray)
 		{
+			if(!TeamAI) continue;
+
 			switch (Order)
 			{
 			case EOrderType::EOD_Move :
@@ -967,6 +969,8 @@ void APolyWarPlayerController::ServerStartOrder_Implementation(EOrderType Order,
 {
 	for(auto TeamAI : TeamArray)
 	{
+		if(!TeamAI) continue;
+
 		switch (Order)
 		{
 		case EOrderType::EOD_Move :

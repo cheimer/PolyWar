@@ -133,6 +133,8 @@ void APolyWarBaseCharacter::Tick(float DeltaTime)
 
 void APolyWarBaseCharacter::UpdateFog()
 {
+	if(IsDead()) return;
+
 	FVector StartVec = GetActorLocation() + FVector(0.0f, 0.0f, 500.0f);
 	FVector EndVec = GetActorLocation() + FVector(0.0f, 0.0f, -500.0f);
 
@@ -227,8 +229,8 @@ bool APolyWarBaseCharacter::IsDead()
 
 void APolyWarBaseCharacter::SetPlayerDeath()
 {
-	GetCharacterMovement()->DisableMovement();
 	GetCharacterMovement()->StopMovementImmediately();
+	GetCharacterMovement()->DisableMovement();
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
@@ -396,7 +398,7 @@ void APolyWarBaseCharacter::SpellEffect()
 void APolyWarBaseCharacter::WeaponAttack()
 {
 	if(!CombatComponent || !CombatComponent->GetEquippedWeapon()) return;
-	if(bIsOpenUI || bIsGameEnd) return;
+	if(bIsOpenUI || IsDead() || bIsGameEnd) return;
 
 	CombatComponent->BeginWeaponAttack();
 }
@@ -404,7 +406,7 @@ void APolyWarBaseCharacter::WeaponAttack()
 void APolyWarBaseCharacter::WeaponSkillAttack(EWeaponSkill WeaponSkill)
 {
 	if(!CombatComponent || !CombatComponent->GetEquippedWeapon()) return;
-	if(bIsOpenUI || bIsGameEnd) return;
+	if(bIsOpenUI || IsDead() || bIsGameEnd) return;
 
 	CombatComponent->BeginWeaponSkill(WeaponSkill);
 }
@@ -412,7 +414,7 @@ void APolyWarBaseCharacter::WeaponSkillAttack(EWeaponSkill WeaponSkill)
 void APolyWarBaseCharacter::SpellAttack(TSubclassOf<ASpell> Spell)
 {
 	if(!CombatComponent || !CombatComponent->GetSpellComponent()) return;
-	if(bIsOpenUI || bIsGameEnd) return;
+	if(bIsOpenUI || IsDead() || bIsGameEnd) return;
 
 	CombatComponent->BeginSpell(Spell);
 }
@@ -429,6 +431,13 @@ float APolyWarBaseCharacter::GetSpellPowerRate()
 	if(!StateComponent) return 1.0f;
 
 	return StateComponent->GetSpellPowerRate();
+}
+
+void APolyWarBaseCharacter::SetApplyDamageRate(float DamageRate)
+{
+	if(!StateComponent) return;
+
+	StateComponent->SetApplyDamageRate(DamageRate);
 }
 
 void APolyWarBaseCharacter::PlayAttackAnimMontage(bool RandPlay, int32 Index)

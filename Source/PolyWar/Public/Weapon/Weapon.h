@@ -54,6 +54,7 @@ protected:
 	float WeaponSkillFirstCoolDown = 10.0f;
 	UPROPERTY(EditAnywhere, Category = "Set Should")
 	float WeaponSkillFirstDamage = 50.0f;
+	bool bWeaponSkillFirstLoop = false;
 
 	UPROPERTY(EditAnywhere, Category = "Set Should")
 	EWeaponSkill WeaponSkillSecond;
@@ -61,6 +62,9 @@ protected:
 	float WeaponSkillSecondCoolDown = 10.0f;
 	UPROPERTY(EditAnywhere, Category = "Set Should")
 	float WeaponSkillSecondDamage = 50.0f;
+	bool bWeaponSkillSecondLoop = false;
+
+	float WeaponSkillLoopTime = 0.0f;
 
 	EWeaponSkill CurrentWeaponSkill = EWeaponSkill::EWS_MAX;
 
@@ -96,5 +100,7 @@ public:
 	EWeaponSkill GetWeaponSkillSecond() const {return WeaponSkillSecond;}
 	void SetWeaponSkill(const EWeaponSkill WeaponSkill);
 	bool GetWeaponSkillAble(EWeaponSkill WeaponSkill);
+	bool GetWeaponSkillLoop(EWeaponSkill WeaponSkill);
+	float GetWeaponSKillLoopTime() const {return WeaponSkillLoopTime;}
 
 };

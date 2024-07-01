@@ -147,9 +147,11 @@ void UCombatComponent::WeaponSkillAttack(EWeaponSkill WeaponSkill)
 	EquippedWeapon->WeaponSkillStart(WeaponSkill);
 	OwnerCharacter->PlayWeaponSkillAnimMontage(WeaponSkill);
 
+	float Time = EquippedWeapon->GetWeaponSkillLoop(WeaponSkill) ?
+		EquippedWeapon->GetWeaponSKillLoopTime() : OwnerCharacter->GetWeaponSkillAnimPlayLen(WeaponSkill) * 0.9f;
+
 	FTimerHandle AttackTimer;
-	OwnerCharacter->GetWorldTimerManager().SetTimer(
-		AttackTimer, this, &ThisClass::WeaponSkillEnd, OwnerCharacter->GetWeaponSkillAnimPlayLen(WeaponSkill) * 0.9f);
+	OwnerCharacter->GetWorldTimerManager().SetTimer(AttackTimer, this, &ThisClass::WeaponSkillEnd, Time);
 }
 
 void UCombatComponent::ServerWeaponSkillAttack_Implementation(EWeaponSkill WeaponSkill)
@@ -215,9 +217,19 @@ void UCombatComponent::WeaponSkillEnd()
 {
 	if(OwnerCharacter && OwnerCharacter->GetEquippedWeapon())
 	{
+		if(EquippedWeapon->GetWeaponSkillLoop(CurrentWeaponSkill))
+		{
+			OwnerCharacter->StopAnimMontage();
+		}
+
 		OwnerCharacter->GetEquippedWeapon()->SetWeaponSkill(EWeaponSkill::EWS_MAX);
 	}
 
+	APolyWarPlayerCharacter* OwnerPlayerCharacter = Cast<APolyWarPlayerCharacter>(OwnerCharacter);
+	if(OwnerPlayerCharacter)
+	{
+		OwnerPlayerCharacter->SetIsFocusOnScreen(false);
+	}
 	CurrentWeaponSkill = EWeaponSkill::EWS_MAX;
 	CombatState = ECombatState::ECS_Wait;
 }

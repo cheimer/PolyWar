@@ -56,7 +56,7 @@ void AWeapon::OnAttackBeginOverlap(UPrimitiveComponent* OverlappedComponent, AAc
 	APolyWarBaseCharacter* Victim = Cast<APolyWarBaseCharacter>(OtherActor);
 	if(OwnerCharacter && Victim)
 	{
-		if(HitActors.Contains(Victim) || Victim->GetTeamType() == OwnerCharacter->GetTeamType())
+		if(HitActors.Contains(Victim) || Victim->GetTeamType() == OwnerCharacter->GetTeamType() || Victim->IsDead())
 		{
 			return;
 		}
@@ -200,6 +200,20 @@ bool AWeapon::GetWeaponSkillAble(EWeaponSkill WeaponSkill)
 	if(WeaponSkill == WeaponSkillSecond)
 	{
 		return bWeaponSkillSecondAble;
+	}
+
+	return false;
+}
+
+bool AWeapon::GetWeaponSkillLoop(EWeaponSkill WeaponSkill)
+{
+	if(WeaponSkill == WeaponSkillFirst)
+	{
+		return bWeaponSkillFirstLoop;
+	}
+	if(WeaponSkill == WeaponSkillSecond)
+	{
+		return bWeaponSkillSecondLoop;
 	}
 
 	return false;

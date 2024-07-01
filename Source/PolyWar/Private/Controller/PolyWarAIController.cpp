@@ -49,6 +49,10 @@ void APolyWarAIController::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimul
 		// PerceptedActor In
 		if(!InSightEnemies.Contains(PerceptedActor))
 		{
+			if(PerceptedActor->IsDead())
+			{
+				return;
+			}
 			InSightEnemies.Emplace(PerceptedActor);
 			PerceptedActor->OnCharacterDeathDelegate.AddDynamic(this, &ThisClass::OnPerceptedActorDeath);
 		}
@@ -64,6 +68,8 @@ void APolyWarAIController::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimul
 
 void APolyWarAIController::OnPerceptedActorDeath(APolyWarBaseCharacter* DeathCharacter)
 {
+	if(!DeathCharacter) return;
+
 	if(InSightEnemies.Contains(DeathCharacter))
 	{
 		InSightEnemies.Remove(DeathCharacter);

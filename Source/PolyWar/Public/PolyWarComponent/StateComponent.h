@@ -61,11 +61,14 @@ private:
 
 	void SpeedChange(float Rate, AActor* ChangedActor);
 
+	float ApplyDamageRate = 1.0f;
+
 public:
 	void SetOwnerCharacter(APolyWarBaseCharacter* InOwnerCharacter);
 	float GetMaxHealth() const {return MaxHealth;}
 	float GetCurrentHealth() const {return CurrentHealth;}
 	float GetPowerRate() const;
 	float GetSpellPowerRate() const;
+	void SetApplyDamageRate(const float InApplyDamageRate) {ApplyDamageRate = InApplyDamageRate;}
 
 };

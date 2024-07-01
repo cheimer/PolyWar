@@ -57,6 +57,8 @@ void ASpell::OnSpellBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActo
 
 	if(OwnerCharacter && EffectedActor)
 	{
+		if(EffectedActor->IsDead()) return;
+
 		if(bEffectEnemy && OwnerCharacter->GetTeamType() != EffectedActor->GetTeamType())
 		{
 			ApplyEffectOnce(EffectedActor);

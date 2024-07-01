@@ -23,7 +23,6 @@ APolyWarGameModeBase::APolyWarGameModeBase()
 FString APolyWarGameModeBase::InitNewPlayer(APlayerController* NewPlayerController,
 	const FUniqueNetIdRepl& UniqueId, const FString& Options, const FString& Portal)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Time GameModeInit"));
 	PolyWarGameState = PolyWarGameState == nullptr ? GetGameState<APolyWarGameStateBase>() : PolyWarGameState;
 	if(PolyWarGameState)
 	{

@@ -23,8 +23,6 @@ public:
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	virtual void SetPlayerDeath() override;
-
 	void ResetMapCamera();
 	void SetMapCameraRender(UTextureRenderTarget2D* MapRender);
 	FTransform GetMainCameraTransform();
@@ -45,11 +43,6 @@ public:
 
 	float GetSpellCoolDown(TSubclassOf<ASpell> Spell);
 	float GetSpellRemainCoolDown(TSubclassOf<ASpell> Spell);
-
-	UPROPERTY(EditDefaultsOnly, Category = "Set Should")
-	TSubclassOf<APolyWarPlayerCharacter> SpectatorClass;
-
-	void SpectatorSettings(APolyWarPlayerCharacter* BeforeCharacter);
 
 protected:
 	virtual void BeginPlay() override;
@@ -141,6 +134,8 @@ protected:
 	void SpellSecond(const FInputActionValue& Value);
 	void SpellUlt(const FInputActionValue& Value);
 	//~ End EnhancedInput
+
+	virtual void DeathTimerFinished() override;
 
 private:
 	TObjectPtr<class APolyWarPlayerController> PolyWarPlayerController;
