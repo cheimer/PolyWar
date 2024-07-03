@@ -18,7 +18,7 @@ class POLYWAR_API APolyWarGameModeBase : public AGameModeBase
 public:
 	APolyWarGameModeBase();
 
-	virtual void CharacterDeath(class APolyWarBaseCharacter* DeathCharacter);
+	virtual void CharacterDeath(class APolyWarBaseCharacter* DeathCharacter) {}
 
 	void GameEnd(ETeamType WinnerTeam);
 

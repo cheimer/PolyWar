@@ -174,7 +174,7 @@ void APolyWarBaseCharacter::CreateFogOfWar( UMaterialInterface* InFogOfWarInterf
 		FogOfWarMaterial = UKismetMaterialLibrary::CreateDynamicMaterialInstance(this, InFogOfWarInterface);
 		if(FogOfWarMaterial)
 		{
-			FogOfWarMaterial->SetScalarParameterValue(FName("Size"), FogRevealSize);
+			FogOfWarMaterial->SetScalarParameterValue(FName("Size"), FogRevealSize * FogSizeRate);
 		}
 	}
 	if(InFogOfWarRender)
@@ -186,12 +186,16 @@ void APolyWarBaseCharacter::CreateFogOfWar( UMaterialInterface* InFogOfWarInterf
 		FogOfWarRevealMaterial = UKismetMaterialLibrary::CreateDynamicMaterialInstance(this, InFogOfWarRevealInterface);
 		if(FogOfWarRevealMaterial)
 		{
-			FogOfWarRevealMaterial->SetScalarParameterValue(FName("Size"), FogRevealSize);
+			FogOfWarRevealMaterial->SetScalarParameterValue(FName("Size"), FogRevealSize * FogSizeRate);
 		}
 	}
 	if(InFogOfWarRevealRender)
 	{
 		FogOfWarRevealRender = InFogOfWarRevealRender;
+	}
+	if(VisibleSphere)
+	{
+		VisibleSphere->SetSphereRadius(FogRevealSize * 10000.0f * FogSizeRate);
 	}
 }
 
@@ -203,7 +207,7 @@ void APolyWarBaseCharacter::CreateFogOfWar(UMaterialInterface* InFogOfWarRevealI
 		FogOfWarRevealMaterial = UKismetMaterialLibrary::CreateDynamicMaterialInstance(this, InFogOfWarRevealInterface);
 		if(FogOfWarRevealMaterial)
 		{
-			FogOfWarRevealMaterial->SetScalarParameterValue(FName("Size"), FogRevealSize);
+			FogOfWarRevealMaterial->SetScalarParameterValue(FName("Size"), FogRevealSize * FogSizeRate);
 		}
 	}
 	if(InFogOfWarRevealRender)

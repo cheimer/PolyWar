@@ -22,8 +22,6 @@ public:
 	void SetProjectile();
 
 protected:
-	virtual void PostInitializeComponents() override;
-
 	UPROPERTY(EditAnywhere, Category = "Component")
 	class UProjectileMovementComponent* WeaponProjectile;
 

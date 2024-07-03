@@ -40,9 +40,6 @@ public:
 	void SpellCastEnd();
 	void SpellEffect();
 
-protected:
-	virtual void BeginPlay() override;
-
 private:
 	UPROPERTY()
 	class APolyWarBaseCharacter* OwnerCharacter;

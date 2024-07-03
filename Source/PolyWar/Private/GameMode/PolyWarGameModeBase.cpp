@@ -42,11 +42,6 @@ FString APolyWarGameModeBase::InitNewPlayer(APlayerController* NewPlayerControll
 	return Super::InitNewPlayer(NewPlayerController, UniqueId, Options, Portal);
 }
 
-void APolyWarGameModeBase::CharacterDeath(APolyWarBaseCharacter* DeathCharacter)
-{
-
-}
-
 void APolyWarGameModeBase::GameEnd(ETeamType WinnerTeam)
 {
 	if(bIsGameEnd) return;

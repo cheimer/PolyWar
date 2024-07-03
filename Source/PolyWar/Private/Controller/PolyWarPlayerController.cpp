@@ -20,7 +20,6 @@
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMaterialLibrary.h"
 #include "Kismet/KismetRenderingLibrary.h"
-#include "PolyWar/PolyWar.h"
 #include "UI/CharacterWidget.h"
 #include "UI/EndMenuWidget.h"
 #include "UI/MapButton.h"
@@ -199,6 +198,9 @@ void APolyWarPlayerController::CreateMap()
 void APolyWarPlayerController::CreateFog()
 {
 	FogOfWar = GetWorld()->SpawnActor<AStaticMeshActor>(FogOfWarClass);
+	FVector FogLocation = FogOfWar->GetActorLocation();
+	FogLocation.Z = FogHeightAdjust;
+	FogOfWar->SetActorLocation(FogLocation);
 
 	FogOfWarRevealRender = NewObject<UTextureRenderTarget2D>();
 	FogOfWarRevealRender->InitAutoFormat(1024, 1024);
@@ -392,6 +394,12 @@ void APolyWarPlayerController::SetAllTeamCharacterFog(const TArray<AActor*>& All
 		auto PolyCharacterIndex = Cast<APolyWarBaseCharacter>(CharacterIndex);
 		if(PolyCharacterIndex && PolyCharacterIndex->GetTeamType() == PolyWarPlayerCharacter->GetTeamType())
 		{
+			if(FogOfWar)
+			{
+				float FogSizeRate = 100.0f / FogOfWar->GetActorScale().X;
+				PolyCharacterIndex->SetFogSizeRate(FogSizeRate);
+			}
+
 			if(bWorldHideStart)
 			{
 				PolyCharacterIndex->CreateFogOfWar(FogOfWarInterface,FogOfWarRender,
@@ -760,10 +768,10 @@ void APolyWarPlayerController::MapToggle()
 	// Map Open
 	else
 	{
+		PolyWarPlayerCharacter->SetMapCameraRotationForward();
 		PolyWarHUD->ChangeWidget(PolyWarHUD->MapWidget);
 
 		SetInputDefault(true);
-		PolyWarPlayerCharacter->ResetMapCamera();
 		ResetMapButtons();
 	}
 }

@@ -4,10 +4,7 @@
 #include "Weapon/SpearWeapon.h"
 
 #include "Character/PolyWarBaseCharacter.h"
-#include "Components/BoxComponent.h"
-#include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
-#include "Kismet/GameplayStatics.h"
 
 ASpearWeapon::ASpearWeapon()
 {

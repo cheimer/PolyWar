@@ -187,6 +187,8 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Set Should")
 	TSubclassOf<class AStaticMeshActor> FogOfWarClass;
+	UPROPERTY(EditAnywhere, Category = "Set Should")
+	float FogHeightAdjust = 500.0f;
 	UPROPERTY()
 	AStaticMeshActor* FogOfWar;
 

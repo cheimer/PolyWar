@@ -3,7 +3,6 @@
 
 #include "Spell/ThrowSpell.h"
 
-#include "Character/PolyWarBaseCharacter.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Kismet/GameplayStatics.h"

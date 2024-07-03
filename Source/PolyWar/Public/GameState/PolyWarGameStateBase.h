@@ -19,8 +19,6 @@ class POLYWAR_API APolyWarGameStateBase : public AGameStateBase
 public:
 	virtual void PostInitializeComponents() override;
 
-	virtual void BeginPlay() override;
-
 	void RegisterPlayer(class APolyWarPlayerCharacter* PlayerCharacter);
 
 	void GetTeam(ETeamType TeamType, TArray<class APolyWarBaseCharacter*>& OutTeamArray);

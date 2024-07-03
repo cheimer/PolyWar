@@ -14,18 +14,6 @@ USpellComponent::USpellComponent()
 
 }
 
-void USpellComponent::BeginPlay()
-{
-	Super::BeginPlay();
-
-}
-
-void USpellComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-}
-
 void USpellComponent::SpellStart(TSubclassOf<ASpell> Spell)
 {
 	if(!OwnerCharacter || !IsValidSpell(Spell)) return;

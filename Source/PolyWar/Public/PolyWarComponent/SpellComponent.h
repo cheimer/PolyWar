@@ -14,7 +14,6 @@ class POLYWAR_API USpellComponent : public UActorComponent
 
 public:
 	USpellComponent();
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	void SpellStart(TSubclassOf<class ASpell> Spell);
 	void SpellEffect();
@@ -25,9 +24,6 @@ public:
 	void SetSpellCoolDown(TSubclassOf<ASpell> Spell, float CoolDown);
 	float GetSpellCoolDown(TSubclassOf<ASpell> Spell);
 	float GetSpellRemainCoolDown(TSubclassOf<ASpell> Spell);
-
-protected:
-	virtual void BeginPlay() override;
 
 private:
 	TObjectPtr<class APolyWarBaseCharacter> OwnerCharacter;

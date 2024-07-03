@@ -3,14 +3,12 @@
 
 #include "Spell/Spell.h"
 
-#include "ParticleHelper.h"
 #include "Character/PolyWarBaseCharacter.h"
 #include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Particles/ParticleSystem.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "PolyWarComponent/StateComponent.h"
-#include "NiagaraComponent.h"
 
 ASpell::ASpell()
 {

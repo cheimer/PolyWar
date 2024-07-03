@@ -131,6 +131,8 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Set Should")
 	float FogRevealSize = 0.3f;
 
+	float FogSizeRate = 1.0f;
+
 	UPROPERTY(EditAnywhere, Category = "Set Should")
 	EUnitType UnitType;
 
@@ -217,5 +219,7 @@ public:
 	void SetTeamType(ETeamType InTeamType) {TeamType = InTeamType;}
 	EUnitType GetUnitType() const {return UnitType;}
 	void SetUnitType(EUnitType InUnitType) {UnitType = InUnitType;}
+
+	void SetFogSizeRate(float InFogSizeRate) {FogSizeRate = InFogSizeRate;}
 
 };

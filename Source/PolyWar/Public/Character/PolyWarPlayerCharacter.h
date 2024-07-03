@@ -24,8 +24,9 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	void ResetMapCamera();
+	void SetMapCameraRotationForward();
 	void SetMapCameraRender(UTextureRenderTarget2D* MapRender);
-	FTransform GetMainCameraTransform();
+	FRotator GetMainCameraRotation();
 	FVector GetMapCameraPos();
 	FVector GetMapCameraForward();
 	FVector GetMapCameraRight();

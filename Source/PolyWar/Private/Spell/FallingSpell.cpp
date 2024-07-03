@@ -31,6 +31,7 @@ void AFallingSpell::SpellHitGround()
 {
 	SpellCollision->SetSimulatePhysics(false);
 	SpellCollision->SetNotifyRigidBodyCollision(false);
+	SpellCollision->SetWorldScale3D(SpellCollision->GetComponentScale() * 2.0f);
 
 	SpellCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	SpellCollision->SetCollisionResponseToAllChannels(ECR_Ignore);

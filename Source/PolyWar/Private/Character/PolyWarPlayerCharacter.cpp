@@ -17,7 +17,6 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "GameState/PolyWarGameStateBase.h"
 #include "Kismet/GameplayStatics.h"
-#include "Kismet/KismetMaterialLibrary.h"
 #include "Net/UnrealNetwork.h"
 #include "Perception/AIPerceptionStimuliSourceComponent.h"
 #include "Perception/AISense_Sight.h"
@@ -442,6 +441,14 @@ void APolyWarPlayerCharacter::ResetMapCamera()
 	MapSpringArm->SetWorldRotation(FRotator(-75.0f, 0.0f, 0.0f));
 }
 
+void APolyWarPlayerCharacter::SetMapCameraRotationForward()
+{
+	if(!MapSpringArm) return;
+	FRotator NewRotator(MapSpringArm->GetComponentRotation());
+	NewRotator.Yaw = GetMainCameraRotation().Yaw;
+	MapSpringArm->SetWorldRotation(NewRotator);
+}
+
 void APolyWarPlayerCharacter::SetMapCameraRender(UTextureRenderTarget2D* MapRender)
 {
 	if(MapCamera && !MapCamera->TextureTarget && MapRender)
@@ -450,10 +457,10 @@ void APolyWarPlayerCharacter::SetMapCameraRender(UTextureRenderTarget2D* MapRend
 	}
 }
 
-FTransform APolyWarPlayerCharacter::GetMainCameraTransform()
+FRotator APolyWarPlayerCharacter::GetMainCameraRotation()
 {
-	if(!MainCamera) return FTransform();
-	return MainCamera->GetComponentTransform();
+	if(!MainCamera) return FRotator();
+	return MainCamera->GetComponentRotation();
 }
 
 FVector APolyWarPlayerCharacter::GetMapCameraPos()

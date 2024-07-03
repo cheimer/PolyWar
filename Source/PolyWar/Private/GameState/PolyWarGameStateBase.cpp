@@ -60,11 +60,6 @@ void APolyWarGameStateBase::PostInitializeComponents()
 	}
 }
 
-void APolyWarGameStateBase::BeginPlay()
-{
-	Super::BeginPlay();
-}
-
 void APolyWarGameStateBase::RegisterPlayer(APolyWarPlayerCharacter* PlayerCharacter)
 {
 	if(!PlayerCharacter) return;

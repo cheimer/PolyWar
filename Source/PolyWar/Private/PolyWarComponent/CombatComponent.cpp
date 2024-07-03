@@ -28,12 +28,6 @@ void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	DOREPLIFETIME(UCombatComponent, EquippedWeapon)
 }
 
-void UCombatComponent::BeginPlay()
-{
-	Super::BeginPlay();
-	
-}
-
 void UCombatComponent::BeginWeaponAttack()
 {
 	if(!OwnerCharacter || !OwnerCharacter->GetEquippedWeapon() || CombatState != ECombatState::ECS_Wait || bIsAttackDelay) return;

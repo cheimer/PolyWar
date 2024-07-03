@@ -13,12 +13,6 @@ AThrowableWeapon::AThrowableWeapon()
 	WeaponProjectile->ProjectileGravityScale = 0.0f;
 }
 
-void AThrowableWeapon::PostInitializeComponents()
-{
-	Super::PostInitializeComponents();
-
-}
-
 void AThrowableWeapon::SetProjectile()
 {
 	WeaponProjectile->Activate();
