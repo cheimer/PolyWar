@@ -92,7 +92,7 @@ void APolyWarBaseCharacter::BeginPlay()
 
 	if(VisibleSphere)
 	{
-		VisibleSphere->SetSphereRadius(FogRevealSize * 10000.0f);
+		VisibleSphere->SetComponentTickInterval(0.1f);
 		VisibleSphere->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::VisibleSphereBeginOverlap);
 		VisibleSphere->OnComponentEndOverlap.AddDynamic(this, &ThisClass::VisibleSphereEndOverlap);
 	}
@@ -162,6 +162,11 @@ void APolyWarBaseCharacter::UpdateFog()
 	{
 		FogOfWarRevealMaterial->SetVectorParameterValue(FName("Location"), UVColor);
 		UKismetRenderingLibrary::DrawMaterialToRenderTarget(this, FogOfWarRevealRender, FogOfWarRevealMaterial);
+	}
+
+	if(FogOfWarRevealRender)
+	{
+		UKismetRenderingLibrary::ClearRenderTarget2D(this, FogOfWarRevealRender);
 	}
 }
 

@@ -65,8 +65,8 @@ void APolyWarPlayerController::Tick(float DeltaSeconds)
 	if(IsLocalController())
 	{
 		UpdateHUDTime(DeltaSeconds);
+		UpdateHUDVersusBar();
 		UpdateHUDCoolDown();
-		UpdateFog();
 	}
 }
 
@@ -374,14 +374,6 @@ void APolyWarPlayerController::UpdateHUDTeamScroll(APolyWarBaseCharacter* DeathC
 	if(!PolyWarHUD) return;
 
 	PolyWarHUD->EndMenuScrollMinus(DeathCharacter->GetTeamType(), DeathCharacter->GetUnitType());
-}
-
-void APolyWarPlayerController::UpdateFog()
-{
-	if(FogOfWarRevealRender)
-	{
-		UKismetRenderingLibrary::ClearRenderTarget2D(this, FogOfWarRevealRender);
-	}
 }
 
 void APolyWarPlayerController::SetAllTeamCharacterFog(const TArray<AActor*>& AllCharacters)

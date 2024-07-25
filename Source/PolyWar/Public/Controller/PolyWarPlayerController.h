@@ -179,8 +179,8 @@ private:
 	//~ Begin Fog
 
 	/*
-	 *	if true - FogOfWarClass's material need set 'FogOfWarWorldHide'
-	 *	if false - FogOfWarClass's material need set 'FogOfWarWorldReveal'
+	 * if true - FogOfWarClass's material need set 'FogOfWarWorldHide'
+	 * if false - FogOfWarClass's material need set 'FogOfWarWorldReveal'
 	 */
 	UPROPERTY(EditDefaultsOnly, Category = "Set Should")
 	bool bWorldHideStart = false;
@@ -202,7 +202,6 @@ private:
 	UTextureRenderTarget2D* FogOfWarRevealRender;
 
 	void CreateFog();
-	void UpdateFog();
 	void SetAllTeamCharacterFog(const TArray<AActor*>& AllCharacters);
 	//~ End Fog
 
