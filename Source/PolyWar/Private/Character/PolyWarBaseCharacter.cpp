@@ -92,7 +92,7 @@ void APolyWarBaseCharacter::BeginPlay()
 
 	if(VisibleSphere)
 	{
-		VisibleSphere->SetSphereRadius(FogRevealSize * 10000.0f);
+		VisibleSphere->SetComponentTickInterval(0.1f);
 		VisibleSphere->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::VisibleSphereBeginOverlap);
 		VisibleSphere->OnComponentEndOverlap.AddDynamic(this, &ThisClass::VisibleSphereEndOverlap);
 	}
@@ -115,7 +115,7 @@ void APolyWarBaseCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	UpdateFog();
+	bUpdateFog = false;
 
 	if(LocalPlayerTeam != ETeamType::ET_NoTeam && LocalPlayerTeam != GetTeamType())
 	{
@@ -163,6 +163,8 @@ void APolyWarBaseCharacter::UpdateFog()
 		FogOfWarRevealMaterial->SetVectorParameterValue(FName("Location"), UVColor);
 		UKismetRenderingLibrary::DrawMaterialToRenderTarget(this, FogOfWarRevealRender, FogOfWarRevealMaterial);
 	}
+
+	bUpdateFog = true;
 }
 
 // Use WorldHideStart

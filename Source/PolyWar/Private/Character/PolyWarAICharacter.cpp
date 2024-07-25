@@ -5,11 +5,14 @@
 
 #include "BrainComponent.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "Components/CapsuleComponent.h"
+#include "Components/SphereComponent.h"
 #include "Controller/PolyWarAIController.h"
 
 APolyWarAICharacter::APolyWarAICharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.TickInterval = 0.1f;
 
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 
@@ -26,6 +29,15 @@ void APolyWarAICharacter::BeginPlay()
 	Super::BeginPlay();
 
 	StartOrder(EOrderType::EOD_Hold, GetActorLocation());
+
+	if(GetCapsuleComponent())
+	{
+		GetCapsuleComponent()->SetComponentTickInterval(0.1f);
+	}
+	if(VisibleSphere)
+	{
+		VisibleSphere->SetComponentTickInterval(0.5f);
+	}
 }
 
 void APolyWarAICharacter::Tick(float DeltaSeconds)
@@ -43,8 +55,7 @@ void APolyWarAICharacter::Tick(float DeltaSeconds)
 			const FRotator TargetRotator = (ToVector - FromVector).Rotation();
 			const FRotator TargetYawRotator = FRotator(0.0f, TargetRotator.Yaw, 0.0f);
 
-			SetActorRotation(FMath::RInterpTo(
-				GetActorRotation(), TargetYawRotator, DeltaSeconds, 5.0f));
+			SetActorRotation(FMath::RInterpTo(GetActorRotation(), TargetYawRotator, DeltaSeconds, 5.0f));
 		}
 	}
 }

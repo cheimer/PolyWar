@@ -65,6 +65,7 @@ void APolyWarPlayerController::Tick(float DeltaSeconds)
 	if(IsLocalController())
 	{
 		UpdateHUDTime(DeltaSeconds);
+		UpdateHUDVersusBar();
 		UpdateHUDCoolDown();
 		UpdateFog();
 	}
@@ -378,10 +379,35 @@ void APolyWarPlayerController::UpdateHUDTeamScroll(APolyWarBaseCharacter* DeathC
 
 void APolyWarPlayerController::UpdateFog()
 {
+	PolyWarGameState = PolyWarGameState == nullptr ? Cast<APolyWarGameStateBase>(UGameplayStatics::GetGameState(GetWorld())) : PolyWarGameState;
+	if(!PolyWarGameState) return;
+
+	PolyWarPlayerCharacter = PolyWarPlayerCharacter == nullptr ? Cast<APolyWarPlayerCharacter>(GetPawn()) : PolyWarPlayerCharacter;
+	if(!PolyWarPlayerCharacter) return;
+
+	ETeamType PlayerTeam = PolyWarGameState->GetLocalPlayerTeam();
+	TArray<APolyWarBaseCharacter*> TeamArray;
+	PolyWarGameState->GetTeam(PlayerTeam, TeamArray);
+
+	for(const auto Index : TeamArray)
+	{
+		if(Index->GetIsUpdateFog())
+		{
+			return;
+		}
+	}
+
 	if(FogOfWarRevealRender)
 	{
 		UKismetRenderingLibrary::ClearRenderTarget2D(this, FogOfWarRevealRender);
 	}
+
+	PolyWarPlayerCharacter->UpdateFog();
+	for(const auto Index : TeamArray)
+	{
+		Index->UpdateFog();
+	}
+
 }
 
 void APolyWarPlayerController::SetAllTeamCharacterFog(const TArray<AActor*>& AllCharacters)

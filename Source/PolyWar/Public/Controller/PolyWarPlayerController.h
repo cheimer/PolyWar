@@ -203,6 +203,7 @@ private:
 
 	void CreateFog();
 	void UpdateFog();
+
 	void SetAllTeamCharacterFog(const TArray<AActor*>& AllCharacters);
 	//~ End Fog
 

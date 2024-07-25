@@ -61,6 +61,8 @@ public:
 	// Higher Value -> Throw weapon close character
 	float AdjustThrowPosVal = 5000.f;
 
+	void UpdateFog();
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -184,7 +186,7 @@ private:
 	UPROPERTY()
 	UTextureRenderTarget2D* FogOfWarRevealRender;
 
-	void UpdateFog();
+	bool bUpdateFog = false;
 	//~ End FogOfWar
 
 	ETeamType LocalPlayerTeam = ETeamType::ET_NoTeam;
@@ -221,5 +223,6 @@ public:
 	void SetUnitType(EUnitType InUnitType) {UnitType = InUnitType;}
 
 	void SetFogSizeRate(float InFogSizeRate) {FogSizeRate = InFogSizeRate;}
+	bool GetIsUpdateFog() const {return bUpdateFog;}
 
 };
